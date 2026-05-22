@@ -2,14 +2,17 @@ import { getTournament, getRikishi, getMatches } from '@/sanity/queries'
 import ThemeToggle from './components/ThemeToggle'
 import RikishiCard from './components/RikishiCard'
 import ChartWrapper from './components/ChartWrapper'
+import H2HTable from './components/H2HTable'
+import { getH2H } from '@/sanity/queries'
 
 export const revalidate = 60
 
 export default async function Home() {
-  const [tournament, rikishi, matches] = await Promise.all([
+  const [tournament, rikishi, matches, h2h] = await Promise.all([
     getTournament(),
     getRikishi(),
     getMatches(),
+    getH2H(),
   ])
 
   const leaders = rikishi.filter(r => r.status === 'lead')
@@ -150,6 +153,10 @@ export default async function Home() {
         </div>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+          Очні зустрічі — цей турнір
+        </div>
+        <H2HTable rikishi={rikishi} h2h={h2h} />
           Відсутні зірки — кюджо
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>

@@ -20,3 +20,10 @@ export async function getMatches() {
   })
   return data
 }
+
+export async function getH2H() {
+  const { data } = await sanityFetch({
+    query: `*[_type == "h2h"] | order(day asc)`
+  })
+  return data
+}
