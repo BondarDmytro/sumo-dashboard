@@ -6,7 +6,7 @@ import RikishiCard from './components/RikishiCard'
 export const revalidate = 300
 
 async function getBashoData() {
-  const res = await fetch('https://sumo-api.com/api/basho/202505/banzuke/Makuuchi', {
+  const res = await fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', {
     next: { revalidate: 300 }
   })
   const banzuke = await res.json()
@@ -42,10 +42,19 @@ async function getBashoData() {
   const currentDay = processed[0]?.record?.length || 0
 
   const withChances = processed.map(r => {
-    if (r.kyujo || r.losses >= 5) return { ...r, yushoChance: 0, chanceDelta: 0 }
-    const remaining = 15 - currentDay
+    if (r.kyujo) return { ...r, yushoChance: 0, chanceDelta: 0 }
+    const remaining = Math.max(0, 15 - currentDay)
     const maxWins = r.wins + remaining
-    if (maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
+
+    // Якщо турнір завершено — показуємо на основі фінального рекорду
+    if (currentDay >= 15) {
+      const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
+      const base = r.wins === maxW ? 90 : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
+      const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
+      return { ...r, yushoChance: Math.round(base * rankBonus * 10) / 10, chanceDelta: 0 }
+    }
+
+    if (r.losses >= 5 || maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
     let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
     const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
     if (maxWins < 13) base *= 0.6
