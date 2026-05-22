@@ -1,0 +1,110 @@
+export const translations = {
+  uk: {
+    nav: {
+      tournament: 'Турнір',
+      rikishi: 'Рікіші',
+      ranks: 'Прогноз рангів',
+      archive: 'Архів',
+      sumo: 'Про сумо',
+    },
+    header: {
+      subtitle: 'Великий турнір сумо · Токіо · 2026',
+      title: 'Прогноз Юшо',
+      titleSub: 'Макуучі',
+      dayOf: 'з 15',
+      daysLeft: 'днів залишилось',
+      contenders: 'претендентів',
+    },
+    table: {
+      title: 'Турнірна таблиця — всі рікіші макуучі',
+      day: 'День',
+      rikishi: 'Рікіші',
+      rank: 'Ранг',
+      record: 'Рекорд',
+      matches: 'Матчі',
+      status: 'Статус',
+      chance: 'Шанс на юшо',
+      leader: 'лідер',
+      eliminated: 'вибув',
+    },
+    status: {
+      leaders: 'Лідери',
+      chasers: 'Переслідувачі',
+      daysLeft: 'Днів залишилось',
+      toFinal: 'до фіналу',
+      kyujo: 'Кюджо',
+      absent: 'відсутні',
+      contenders: 'Претендентів',
+      chanceAbove: 'шанс > 0%',
+      record: 'рекорд',
+    },
+    sections: {
+      tournament: 'Стан турніру',
+      chart: 'Графік ймовірностей юшо',
+      chartSub: 'Динаміка шансів на юшо по днях турніру',
+      h2h: 'Очні зустрічі — цей турнір (топ претенденти)',
+      eliminated: 'Вибули з гонки юшо',
+      kyujo: 'Кюджо — відсутні',
+    },
+    misc: {
+      loading: 'Завантаження...',
+      expected: 'очікується',
+      today: 'Сьогодні',
+    }
+  },
+  en: {
+    nav: {
+      tournament: 'Tournament',
+      rikishi: 'Rikishi',
+      ranks: 'Rank Forecast',
+      archive: 'Archive',
+      sumo: 'About Sumo',
+    },
+    header: {
+      subtitle: 'Grand Sumo Tournament · Tokyo · 2026',
+      title: 'Yusho Forecast',
+      titleSub: 'Makuuchi',
+      dayOf: 'of 15',
+      daysLeft: 'days remaining',
+      contenders: 'contenders',
+    },
+    table: {
+      title: 'Standings — all Makuuchi rikishi',
+      day: 'Day',
+      rikishi: 'Rikishi',
+      rank: 'Rank',
+      record: 'Record',
+      matches: 'Matches',
+      status: 'Status',
+      chance: 'Yusho chance',
+      leader: 'leader',
+      eliminated: 'out',
+    },
+    status: {
+      leaders: 'Leaders',
+      chasers: 'Chasers',
+      daysLeft: 'Days remaining',
+      toFinal: 'to final',
+      kyujo: 'Kyujo',
+      absent: 'absent',
+      contenders: 'Contenders',
+      chanceAbove: 'chance > 0%',
+      record: 'record',
+    },
+    sections: {
+      tournament: 'Tournament status',
+      chart: 'Yusho probability chart',
+      chartSub: 'Yusho chance dynamics by tournament day',
+      h2h: 'Head-to-head — this tournament (top contenders)',
+      eliminated: 'Eliminated from yusho race',
+      kyujo: 'Kyujo — absent',
+    },
+    misc: {
+      loading: 'Loading...',
+      expected: 'upcoming',
+      today: 'Today',
+    }
+  }
+}
+
+export const defaultLang = 'uk'

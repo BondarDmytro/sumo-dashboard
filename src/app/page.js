@@ -2,6 +2,7 @@ import H2HTable from './components/H2HTable'
 import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
 import FlagName from './components/FlagName'
+import TournamentHeader from './components/TournamentHeader'
 
 export const revalidate = 300
 
@@ -343,31 +344,12 @@ export default async function Home() {
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
 
-      <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.3,lineHeight:1,pointerEvents:'none',color:'#038ffb'}}>相撲</div>
-        <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'1rem'}}>
-          <div>
-            <div style={{fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#6b6560',marginBottom:'0.3rem'}}>
-              夏場所 · Натсу Басьо 2026 · Токіо
-            </div>
-            <h1 style={{fontSize:'clamp(1.4rem,3vw,2rem)',fontWeight:800,lineHeight:1.1,margin:0}}>
-              Прогноз переможця турніру
-              <span style={{color:'#b8860b'}}> — Дивізіон Макуучі</span>
-            </h1>
-          </div>
-          <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'0.85rem',color:'#c8c3b8'}}>
-            <span><b style={{color:'#f5f0e8'}}>День {currentDay}</b> з 15</span>
-            <span><b style={{color:'#f5f0e8'}}>{15 - currentDay}</b> днів залишилось</span>
-            <span><b style={{color:'#f5f0e8'}}>{contenders.length}</b> претендентів</span>
-            {hasPlayoff && (
-              <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'2px 10px',borderRadius:2}}>
-                <span>⚡</span>
-                <b style={{color:'#b8860b'}}>Можливий плей-оф!</b>
-              </span>
-            )}
-          </div>
-        </div>
-      </header>
+      <TournamentHeader
+        currentDay={currentDay}
+        daysLeft={15 - currentDay}
+        contendersCount={contenders.length}
+        hasPlayoff={hasPlayoff}
+      />
 
       <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
 
