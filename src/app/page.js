@@ -5,6 +5,10 @@ import RikishiCard from './components/RikishiCard'
 
 export const revalidate = 300
 
+const RESULTS_WIN = ['win', 'fusen win']
+const RESULTS_LOSS = ['loss', 'fusen loss']
+const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
+
 async function getBashoData() {
   const res = await fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', {
     next: { revalidate: 300 }
@@ -12,10 +16,15 @@ async function getBashoData() {
   const banzuke = await res.json()
   const all = [...(banzuke.east || []), ...(banzuke.west || [])]
 
+  const bashoStart = new Date('2026-05-10')
+  const today = new Date()
+  const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
+  const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
+
   const processed = all.map(r => {
     const record = r.record || []
-    const wins = record.filter(m => m.result === 'win').length
-    const losses = record.filter(m => m.result === 'loss').length
+    const wins = record.filter(m => RESULTS_WIN.includes(m.result)).length
+    const losses = record.filter(m => RESULTS_LOSS.includes(m.result)).length
     const kyujo = record.filter(m => m.result === 'absent').length > 5
     const rankValue = r.rankValue || 999
     return {
@@ -32,19 +41,16 @@ async function getBashoData() {
         day: i + 1,
         result: m.result,
         opponent: m.opponentShikonaEn,
+        kimarite: m.kimarite,
       }))
     }
   })
 
-  const apiDay = processed[0]?.record?.length || 0
-  const bashoStart = new Date('2026-05-10')
-  const today = new Date()
-  const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
-  const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
-
   const withChances = processed.map(r => {
     if (r.kyujo) return { ...r, yushoChance: 0, chanceDelta: 0 }
-    const remaining = Math.max(0, 15 - currentDay)
+
+    const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
+    const remaining = 15 - played
     const maxWins = r.wins + remaining
 
     if (currentDay >= 15) {
@@ -76,7 +82,7 @@ async function getBashoData() {
   const h2h = []
   normalized.forEach(r => {
     r.record.forEach(m => {
-      if (m.result === 'win' || m.result === 'loss') {
+      if (RESULTS_PLAYED.includes(m.result)) {
         const exists = h2h.find(x =>
           (x.fighter1 === r.name && x.fighter2 === m.opponent) ||
           (x.fighter1 === m.opponent && x.fighter2 === r.name)
@@ -85,7 +91,7 @@ async function getBashoData() {
           h2h.push({
             fighter1: r.name,
             fighter2: m.opponent,
-            winner: m.result === 'win' ? r.name : m.opponent,
+            winner: RESULTS_WIN.includes(m.result) ? r.name : m.opponent,
             day: m.day
           })
         }
@@ -135,7 +141,7 @@ export default async function Home() {
           </div>
           <div style={{display:'flex',alignItems:'center',gap:12,marginTop:'1rem',flexWrap:'wrap'}}>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#1a6b5c',color:'#fff',fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.1em',padding:'4px 10px',borderRadius:2}}>
-              ↻ дані: sumo-api.com · оновлено після дня {currentDay}
+              ↻ дані: sumo-api.com · день {currentDay} з 15
             </div>
             <ThemeToggle />
           </div>
@@ -170,7 +176,7 @@ export default async function Home() {
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
               <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                {['День '+currentDay,'#','Рікіші','Ранг','Рекорд','Матчі','Статус','Шанс на юшо','Δ'].map(h=>(
+                {[`День ${currentDay}`,'#','Рікіші','Ранг','Рекорд','Матчі','Статус','Шанс на юшо','Δ'].map(h=>(
                   <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
                 ))}
               </tr>
@@ -182,17 +188,22 @@ export default async function Home() {
                 const textColor=i<3?'#fff':'var(--mid)'
                 const barColor=i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
                 const todayMatch = r.record.find(m => m.day === currentDay)
+                const todayPlayed = todayMatch && RESULTS_PLAYED.includes(todayMatch.result)
+                const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
+                const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
                 return(
                   <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
                     <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
-                      {!todayMatch ? (
+                      {!todayMatch || !todayMatch.result ? (
                         <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
-                      ) : todayMatch.result === 'win' ? (
+                      ) : todayWin ? (
                         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
                           <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
-                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
+                            {todayMatch.kimarite === 'fusen' ? '✦ ' : ''}{todayMatch.opponent}
+                          </span>
                         </div>
-                      ) : todayMatch.result === 'loss' ? (
+                      ) : todayLoss ? (
                         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
                           <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
                           <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
@@ -214,26 +225,32 @@ export default async function Home() {
                     <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',maxWidth:200}}>
-                        {r.record.map((m,idx) => (
-                          <span
-                            key={idx}
-                            title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}`}
-                            style={{
-                              width:13,height:13,borderRadius:'50%',
-                              background: m.result==='win' ? 'var(--ink)' :
-                                          m.result==='absent' ? '#aaa' : 'transparent',
-                              border: m.result==='loss' ? '1.5px solid var(--ink)' :
-                                      m.result==='absent' ? '1.5px solid #aaa' :
-                                      m.result==='win' ? 'none' : '1px dashed var(--light)',
-                              display:'inline-block',flexShrink:0,
-                            }}
-                          />
-                        ))}
+                        {r.record.map((m,idx) => {
+                          const isWin = RESULTS_WIN.includes(m.result)
+                          const isLoss = RESULTS_LOSS.includes(m.result)
+                          const isFusen = m.kimarite === 'fusen'
+                          return (
+                            <span
+                              key={idx}
+                              title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}${isFusen ? ' (fusen)' : ''}`}
+                              style={{
+                                width:13,height:13,borderRadius:'50%',
+                                background: isWin ? 'var(--ink)' :
+                                            m.result==='absent' ? '#aaa' : 'transparent',
+                                border: isLoss ? '1.5px solid var(--ink)' :
+                                        m.result==='absent' ? '1.5px solid #aaa' :
+                                        isWin ? 'none' : '1px dashed var(--light)',
+                                display:'inline-block',flexShrink:0,
+                                opacity: isFusen ? 0.5 : 1,
+                              }}
+                            />
+                          )
+                        })}
                         {Array.from({length: Math.max(0, 15 - r.record.length)}).map((_,idx) => (
                           <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
                         ))}
                         <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
-                          {r.record.filter(m=>m.result==='win'||m.result==='loss').length}/15
+                          {r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15
                         </span>
                       </div>
                     </td>
@@ -297,7 +314,7 @@ export default async function Home() {
         )}
 
         <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
-          <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Не є ставкою.
+          <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.
         </div>
 
       </div>
