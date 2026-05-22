@@ -1,4 +1,30 @@
 const SUMO_API = 'https://sumo-api.com/api'
+const COUNTRY_FLAGS = {
+  'Mongolia': { flag: '🇲🇳', name: 'Монголія' },
+  'Ukraine': { flag: '🇺🇦', name: 'Україна' },
+  'Georgia': { flag: '🇬🇪', name: 'Грузія' },
+  'Bulgaria': { flag: '🇧🇬', name: 'Болгарія' },
+  'Russia': { flag: '🇷🇺', name: 'Росія' },
+  'China': { flag: '🇨🇳', name: 'Китай' },
+  'Brazil': { flag: '🇧🇷', name: 'Бразилія' },
+  'Kazakhstan': { flag: '🇰🇿', name: 'Казахстан' },
+  'Kyrgyzstan': { flag: '🇰🇬', name: 'Киргизстан' },
+  'Czech Republic': { flag: '🇨🇿', name: 'Чехія' },
+  'Tonga': { flag: '🇹🇴', name: 'Тонга' },
+  'Uzbekistan': { flag: '🇺🇿', name: 'Узбекистан' },
+  'Philippines': { flag: '🇵🇭', name: 'Філіппіни' },
+  'Egypt': { flag: '🇪🇬', name: 'Єгипет' },
+}
+
+function getCountry(shusshin) {
+  if (!shusshin) return { flag: '🇯🇵', name: 'Японія' }
+  const isJapan = shusshin.includes('-ken') || shusshin.includes('-to') ||
+                  shusshin.includes('-do') || shusshin.includes('-fu') ||
+                  shusshin.includes('Tokyo') || shusshin.includes('Osaka')
+  if (isJapan) return { flag: '🇯🇵', name: 'Японія' }
+  const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
+  return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
+}
 const CURRENT_BASHO = '202605'
 const PREV_BASHOS = ['202603', '202601', '202511']
 
@@ -170,8 +196,16 @@ export async function GET() {
         const wins = record.filter(m => ['win','fusen win'].includes(m.result)).length
         const losses = record.filter(m => ['loss','fusen loss'].includes(m.result)).length
 
-        const history = await getRikishiMatches(r.rikishiID)
+        const [history, infoRes] = await Promise.all([
+          getRikishiMatches(r.rikishiID),
+          fetch(`${SUMO_API}/rikishi/${r.rikishiID}`, { next: { revalidate: 86400 } })
+        ])
+        const info = await infoRes.json()
         const forecasts = calcRankForecast(r, history, wins, losses)
+
+        const birthDate = info.birthDate ? new Date(info.birthDate) : null
+        const age = birthDate ? Math.floor((new Date() - birthDate) / (1000 * 60 * 60 * 24 * 365.25)) : null
+        const country = getCountry(info.shusshin)
 
         return {
           id: r.rikishiID,
@@ -186,9 +220,18 @@ export async function GET() {
             losses: history[b]?.losses || 0,
           })),
           forecasts,
+          bio: {
+            age,
+            height: info.height || null,
+            weight: info.weight || null,
+            debut: info.debut || null,
+            heya: info.heya || null,
+            country,
+          }
         }
       })
     )
+    
 
     results.sort((a, b) => (a.rankValue || 999) - (b.rankValue || 999))
 

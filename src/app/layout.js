@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SanityLive } from '@/sanity/lib/live'
+import { BiosProvider } from './components/BiosProvider'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,12 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children} <SanityLive /> </body>
+      <body className="min-h-full flex flex-col">
+        <BiosProvider>
+          {children}
+        </BiosProvider>
+        <SanityLive />
+      </body>
     </html>
   );
 }

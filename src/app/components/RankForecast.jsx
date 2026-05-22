@@ -57,17 +57,54 @@ export default function RankForecast() {
         }}>
           <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',flexWrap:'wrap'}}>
 
-            <div style={{minWidth:160,flex:'0 0 auto'}}>
-              <div style={{fontWeight:700,fontSize:'0.95rem'}}>{r.name}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginTop:2}}>{r.rank}</div>
+            {/* БІО */}
+            <div style={{minWidth:200,flex:'0 0 auto'}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                <span style={{fontSize:'1.2rem'}}>{r.bio?.country?.flag}</span>
+                <div style={{fontWeight:700,fontSize:'0.95rem'}}>{r.name}</div>
+              </div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>{r.rank}</div>
               <div style={{fontFamily:'monospace',fontSize:'0.82rem',fontWeight:600,marginTop:4}}>
                 {r.wins}–{r.losses}
                 <span style={{fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>поточний</span>
               </div>
+              <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+                {r.bio?.country?.name !== 'Японія' && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    {r.bio.country.name}
+                  </span>
+                )}
+                {r.bio?.age && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    {r.bio.age} р.
+                  </span>
+                )}
+                {r.bio?.height && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    {r.bio.height} см
+                  </span>
+                )}
+                {r.bio?.weight && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    {r.bio.weight} кг
+                  </span>
+                )}
+                {r.bio?.debut && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    дебют {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}
+                  </span>
+                )}
+                {r.bio?.heya && (
+                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
+                    {r.bio.heya}
+                  </span>
+                )}
+              </div>
             </div>
 
+            {/* ПОПЕРЕДНІ БАСЬО */}
             <div style={{display:'flex',gap:'0.75rem',alignItems:'center',flexWrap:'wrap',flex:'0 0 auto'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',writingMode:'horizontal-tb'}}>
+              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)'}}>
                 ← попередні басьо
               </div>
               {[...r.prevBashos].reverse().map(b => (
@@ -81,22 +118,23 @@ export default function RankForecast() {
                 </div>
               </div>
 
-              {r.rank.includes('Sekiwake') || r.rank.includes('Komusubi') ? (
+              {r.rank.includes('Sekiwake') && (
                 <div style={{
                   display:'flex',flexDirection:'column',alignItems:'center',
                   background:'var(--bg2)',borderRadius:2,padding:'4px 10px',minWidth:80
                 }}>
                   <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--light)'}}>Озекі-тест</div>
                   <div style={{fontFamily:'monospace',fontSize:'1rem',fontWeight:700,color:
-                    (r.wins + r.prevBashos.reduce((s,b,i)=>i<2?s+b.wins:s,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'
+                    (r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'
                   }}>
                     {r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)}
                     <span style={{fontSize:'0.65rem',color:'var(--mid)'}}>/33</span>
                   </div>
                 </div>
-              ) : null}
+              )}
             </div>
 
+            {/* ПРОГНОЗ */}
             <div style={{flex:1,minWidth:200,display:'flex',flexDirection:'column',gap:6}}>
               {r.forecasts.map((f,i) => {
                 const st = TYPE_STYLES[f.type] || TYPE_STYLES.info

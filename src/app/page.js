@@ -3,7 +3,7 @@ import H2HTable from './components/H2HTable'
 import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
 import RankForecast from './components/RankForecast'
-
+import FlagName from './components/FlagName'
 export const revalidate = 300
 
 const RESULTS_WIN = ['win', 'fusen win']
@@ -195,7 +195,7 @@ function CompactGrid({ items, title, isKyujo }) {
               }} />
             )}
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+              <FlagName id={r._id} name={r.name} size='0.78rem' />
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
             </div>
             <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',flexShrink:0}}>
@@ -298,7 +298,7 @@ export default async function Home() {
                       <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
-                      <div style={{fontWeight:700,fontSize:'0.95rem'}}>{r.name}</div>
+                      <FlagName id={r._id} name={r.name} />
                       <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{r.rankFull}</div>
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
