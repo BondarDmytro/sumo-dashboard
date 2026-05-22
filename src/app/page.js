@@ -48,7 +48,6 @@ async function getBashoData() {
 
   const withChances = processed.map(r => {
     if (r.kyujo) return { ...r, yushoChance: 0, chanceDelta: 0 }
-
     const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
     const remaining = 15 - played
     const maxWins = r.wins + remaining
@@ -115,10 +114,73 @@ function getRankShort(rank) {
   return rank
 }
 
+function MatchDots({ record, currentDay }) {
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'wrap',maxWidth:200}}>
+      {record.map((m, idx) => {
+        const isWin = RESULTS_WIN.includes(m.result)
+        const isLoss = RESULTS_LOSS.includes(m.result)
+        const isFusen = m.kimarite === 'fusen'
+        const isToday = m.day === currentDay
+        return (
+          <span
+            key={idx}
+            title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}${isFusen ? ' (fusen)' : ''}`}
+            style={{
+              width: 13, height: 13, borderRadius: '50%',
+              background: isWin ? 'var(--ink)' : m.result === 'absent' ? '#aaa' : 'transparent',
+              border: isLoss ? '1.5px solid var(--ink)' :
+                      m.result === 'absent' ? '1.5px solid #aaa' :
+                      isWin ? (isToday ? '2px solid #1a6b5c' : 'none') :
+                      '1px dashed var(--light)',
+              display: 'inline-block', flexShrink: 0,
+              opacity: isFusen ? 0.5 : 1,
+              outline: isToday ? '2px solid #b8860b' : 'none',
+              outlineOffset: 1,
+            }}
+          />
+        )
+      })}
+      {Array.from({length: Math.max(0, 15 - record.length)}).map((_, idx) => (
+        <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
+      ))}
+      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
+        {record.filter(m => RESULTS_PLAYED.includes(m.result)).length}/15
+      </span>
+    </div>
+  )
+}
+
+function TodayCell({ record, currentDay }) {
+  const todayMatch = record.find(m => m.day === currentDay)
+  const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
+  const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
+
+  if (!todayMatch || !todayMatch.result) {
+    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
+  }
+  if (todayWin) return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+      <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
+      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
+        {todayMatch.kimarite === 'fusen' ? '✦ ' : ''}{todayMatch.opponent}
+      </span>
+    </div>
+  )
+  if (todayLoss) return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+      <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
+      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+    </div>
+  )
+  return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
+}
+
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
-  const contenders = rikishi.filter(r => r.yushoChance > 0).slice(0, 12)
-  const kyujo = rikishi.filter(r => r.kyujo).slice(0, 6)
+  const contenders = rikishi.filter(r => r.yushoChance > 0)
+  const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
+  const kyujo = rikishi.filter(r => r.kyujo)
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
@@ -170,7 +232,7 @@ export default async function Home() {
         </div>
 
         <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-          Математичний прогноз юшо
+          Турнірна таблиця — всі рікіші макуучі
         </div>
         <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'2rem'}}>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
@@ -187,30 +249,10 @@ export default async function Home() {
                 const bgColor=i<3?rankColors[i]:'var(--bg2)'
                 const textColor=i<3?'#fff':'var(--mid)'
                 const barColor=i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
-                const todayMatch = r.record.find(m => m.day === currentDay)
-                const todayPlayed = todayMatch && RESULTS_PLAYED.includes(todayMatch.result)
-                const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
-                const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
                 return(
                   <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
                     <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
-                      {!todayMatch || !todayMatch.result ? (
-                        <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
-                      ) : todayWin ? (
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                          <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
-                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
-                            {todayMatch.kimarite === 'fusen' ? '✦ ' : ''}{todayMatch.opponent}
-                          </span>
-                        </div>
-                      ) : todayLoss ? (
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                          <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
-                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
-                        </div>
-                      ) : (
-                        <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
-                      )}
+                      <TodayCell record={r.record} currentDay={currentDay} />
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
@@ -224,35 +266,7 @@ export default async function Home() {
                     </td>
                     <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',maxWidth:200}}>
-                        {r.record.map((m,idx) => {
-                          const isWin = RESULTS_WIN.includes(m.result)
-                          const isLoss = RESULTS_LOSS.includes(m.result)
-                          const isFusen = m.kimarite === 'fusen'
-                          return (
-                            <span
-                              key={idx}
-                              title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}${isFusen ? ' (fusen)' : ''}`}
-                              style={{
-                                width:13,height:13,borderRadius:'50%',
-                                background: isWin ? 'var(--ink)' :
-                                            m.result==='absent' ? '#aaa' : 'transparent',
-                                border: isLoss ? '1.5px solid var(--ink)' :
-                                        m.result==='absent' ? '1.5px solid #aaa' :
-                                        isWin ? 'none' : '1px dashed var(--light)',
-                                display:'inline-block',flexShrink:0,
-                                opacity: isFusen ? 0.5 : 1,
-                              }}
-                            />
-                          )
-                        })}
-                        {Array.from({length: Math.max(0, 15 - r.record.length)}).map((_,idx) => (
-                          <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
-                        ))}
-                        <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
-                          {r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15
-                        </span>
-                      </div>
+                      <MatchDots record={r.record} currentDay={currentDay} />
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
@@ -271,9 +285,61 @@ export default async function Home() {
                   </tr>
                 )
               })}
-            </tbody>
+
+              </tbody>
           </table>
         </div>
+
+        {others.length > 0 && (
+          <div className="anim-3" style={{marginBottom:'1rem'}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
+              Вибули з гонки юшо
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:1,background:'var(--border)'}}>
+              {others.map(r => {
+                const todayMatch = r.record.find(m => m.day === currentDay)
+                const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
+                const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
+                const todayPlayed = todayWin || todayLoss
+                return (
+                  <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.7}}>
+                    <div style={{flexShrink:0,width:16,height:16,borderRadius:'50%',
+                      background: todayWin ? 'var(--ink)' : 'transparent',
+                      border: todayLoss ? '1.5px solid var(--ink)' : todayWin ? 'none' : '1px dashed var(--light)',
+                    }} title={todayMatch?.opponent} />
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+                      <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
+                    </div>
+                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',flexShrink:0}}>
+                      {r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {kyujo.length > 0 && (
+          <div className="anim-3" style={{marginBottom:'2rem'}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
+              Кюджо — відсутні
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:1,background:'var(--border)'}}>
+              {kyujo.map(r => (
+                <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
+                  </div>
+                  <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,flexShrink:0}}>КЮД</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
@@ -292,26 +358,6 @@ export default async function Home() {
         <div className="anim-5">
           <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
         </div>
-
-        {kyujo.length > 0 && (
-          <div className="anim-6">
-            <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-              Відсутні — кюджо
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
-              {kyujo.map(k=>(
-                <div key={k._id} style={{background:'var(--card)',padding:'1rem 1.25rem',display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}}></div>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:700,fontSize:'0.9rem'}}>{k.name}</div>
-                    <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{k.rankFull}</div>
-                  </div>
-                  <span style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.08em',background:'#fde8e8',color:'#c0392b',padding:'3px 7px',borderRadius:2}}>КЮДЖО</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
           <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.
