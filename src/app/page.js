@@ -3,6 +3,8 @@ import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
 import FlagName from './components/FlagName'
 import TournamentHeader from './components/TournamentHeader'
+import TournamentTable from './components/TournamentTable'
+
 
 export const revalidate = 300
 
@@ -372,9 +374,7 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-          Турнірна таблиця — всі рікіші макуучі
-        </div>
+       <TournamentTable contenders={contenders} currentDay={currentDay} />
         <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
