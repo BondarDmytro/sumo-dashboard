@@ -21,7 +21,7 @@ export default function TournamentStatus({ leaders, chasers, currentDay, maxWins
       num: 15 - currentDay,
       label: lang === 'en' ? 'Days remaining' : 'Днів залишилось',
       sub: lang === 'en' ? 'to final' : 'до фіналу',
-      color: '#c0392b'
+      color: '#01ddff'
     },
     {
       num: kyujoCount,

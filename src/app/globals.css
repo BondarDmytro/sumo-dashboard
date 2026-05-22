@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f5f0e8;
-  --bg2: #ede8dc;
-  --ink: #0f0e0c;
-  --mid: #6b6560;
-  --light: #a09b94;
+  --bg: #f5f0e8;      /* фон світлої теми */
+  --bg2: #ede8dc;     /* другорядний фон */
+  --ink: #0f0e0c;     /* основний текст */
+  --mid: #6b6560;     /* другорядний текст */
+  --light: #a09b94;   /* тьмяний текст */
   --border: rgba(15,14,12,0.15);
   --card: #f5f0e8;
-  --header: #0f0e0c;
+  --header: #0f0e0c;  /* фон навбару і хедера */
 }
 
 [data-theme="dark"] {
