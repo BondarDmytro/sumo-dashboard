@@ -18,7 +18,6 @@ async function getBashoData() {
     const losses = record.filter(m => m.result === 'loss').length
     const kyujo = record.filter(m => m.result === 'absent').length > 5
     const rankValue = r.rankValue || 999
-
     return {
       _id: String(r.rikishiID),
       name: r.shikonaEn,
@@ -37,7 +36,11 @@ async function getBashoData() {
     }
   })
 
-  const currentDay = processed[0]?.record?.length || 0
+  const apiDay = processed[0]?.record?.length || 0
+  const bashoStart = new Date('2026-05-10')
+  const today = new Date()
+  const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
+  const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
   const withChances = processed.map(r => {
     if (r.kyujo) return { ...r, yushoChance: 0, chanceDelta: 0 }
@@ -114,7 +117,7 @@ export default async function Home() {
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
 
-      <header style={{background:'var(--header)',color:'#f5f0e8',padding:'3rem 2rem 2rem',position:'relative',overflow:'hidden'}}>
+      <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'3rem 2rem 2rem',position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',right:'-0.05em',top:'-0.15em',fontSize:'clamp(8rem,20vw,18rem)',fontWeight:800,opacity:0.06,lineHeight:1,pointerEvents:'none'}}>相撲</div>
         <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1}}>
           <div style={{fontFamily:'monospace',fontSize:'0.7rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#c8c3b8',marginBottom:'0.75rem'}}>
@@ -141,10 +144,10 @@ export default async function Home() {
 
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
 
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2.5rem'}}>
+        <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2.5rem'}}>
           Стан турніру
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'2rem'}}>
+        <div className="anim-1" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'2rem'}}>
           {[
             {num:leaders.length,label:'Лідери',sub:`рекорд ${maxWins}-${leaders[0]?.losses ?? '?'}`,color:'#1a6b5c'},
             {num:chasers.length,label:'Переслідувачі',sub:`рекорд ${maxWins-1}-${chasers[0]?.losses ?? '?'}`},
@@ -160,14 +163,14 @@ export default async function Home() {
           ))}
         </div>
 
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+        <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Математичний прогноз юшо
         </div>
-        <div className="desktop-table" style={{overflowX:'auto',marginBottom:'2rem'}}>
+        <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'2rem'}}>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
               <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                {['#','Рікіші','Ранг','Рекорд','Матчі','Сьогодні','Статус','Шанс на юшо','Δ'].map(h=>(
+                {['День '+currentDay,'#','Рікіші','Ранг','Рекорд','Матчі','Статус','Шанс на юшо','Δ'].map(h=>(
                   <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
                 ))}
               </tr>
@@ -181,6 +184,23 @@ export default async function Home() {
                 const todayMatch = r.record.find(m => m.day === currentDay)
                 return(
                   <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
+                    <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
+                      {!todayMatch ? (
+                        <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
+                      ) : todayMatch.result === 'win' ? (
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                          <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
+                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+                        </div>
+                      ) : todayMatch.result === 'loss' ? (
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                          <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
+                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+                        </div>
+                      ) : (
+                        <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
+                      )}
+                    </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
                     </td>
@@ -217,23 +237,6 @@ export default async function Home() {
                         </span>
                       </div>
                     </td>
-                    <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:80}}>
-                      {!todayMatch ? (
-                        <span style={{color:'var(--light)',fontSize:'0.75rem',fontFamily:'monospace'}}>очікується</span>
-                      ) : todayMatch.result === 'win' ? (
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                          <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
-                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
-                        </div>
-                      ) : todayMatch.result === 'loss' ? (
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-                          <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
-                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
-                        </div>
-                      ) : (
-                        <span style={{color:'var(--light)',fontSize:'0.75rem',fontFamily:'monospace'}}>—</span>
-                      )}
-                    </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
                         {r.status==='lead'?'лідер':r.status==='chase'?'-1':'вибув'}
@@ -255,41 +258,45 @@ export default async function Home() {
           </table>
         </div>
 
-        <div className="mobile-cards" style={{marginBottom:'2rem'}}>
+        <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
 
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+        <div className="anim-4" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Графік ймовірностей юшо
         </div>
-        <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
+        <div className="anim-4" style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
           <ChartWrapper rikishi={contenders.slice(0,10)} />
         </div>
 
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+        <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Очні зустрічі — цей турнір (топ претенденти)
         </div>
-        <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
+        <div className="anim-5">
+          <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
+        </div>
 
-        {kyujo.length > 0 && <>
-          <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-            Відсутні — кюджо
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
-            {kyujo.map(k=>(
-              <div key={k._id} style={{background:'var(--card)',padding:'1rem 1.25rem',display:'flex',alignItems:'center',gap:12}}>
-                <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}}></div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:700,fontSize:'0.9rem'}}>{k.name}</div>
-                  <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{k.rankFull}</div>
+        {kyujo.length > 0 && (
+          <div className="anim-6">
+            <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+              Відсутні — кюджо
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
+              {kyujo.map(k=>(
+                <div key={k._id} style={{background:'var(--card)',padding:'1rem 1.25rem',display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}}></div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:700,fontSize:'0.9rem'}}>{k.name}</div>
+                    <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{k.rankFull}</div>
+                  </div>
+                  <span style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.08em',background:'#fde8e8',color:'#c0392b',padding:'3px 7px',borderRadius:2}}>КЮДЖО</span>
                 </div>
-                <span style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.08em',background:'#fde8e8',color:'#c0392b',padding:'3px 7px',borderRadius:2}}>КЮДЖО</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </>}
+        )}
 
-        <div style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
+        <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
           <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Не є ставкою.
         </div>
 

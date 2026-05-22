@@ -34,3 +34,35 @@ body {
   .desktop-table { display: none; }
   .mobile-cards { display: grid; gap: 10px; }
 }
+/* Анімації */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { width: 0; }
+  to { width: var(--target-width); }
+}
+
+.anim-header { animation: fadeIn 0.6s ease forwards; }
+.anim-1 { animation: fadeUp 0.5s ease 0.1s both; }
+.anim-2 { animation: fadeUp 0.5s ease 0.2s both; }
+.anim-3 { animation: fadeUp 0.5s ease 0.3s both; }
+.anim-4 { animation: fadeUp 0.5s ease 0.4s both; }
+.anim-5 { animation: fadeUp 0.5s ease 0.5s both; }
+.anim-6 { animation: fadeUp 0.5s ease 0.6s both; }
+
+.progress-bar-fill {
+  animation: progressGrow 1.2s ease 0.3s both;
+}
+
+@keyframes progressGrow {
+  from { width: 0; }
+  to { width: var(--pw); }
+}
