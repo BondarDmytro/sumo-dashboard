@@ -93,12 +93,11 @@ export default function ArchivePageClient() {
         })
         processed.sort((a,b) => b.wins - a.wins || a.rankValue - b.rankValue)
         const maxWins = Math.max(...processed.filter(r => !r.kyujo).map(r => r.wins))
-        const winner = processed.find(r => r.wins === maxWins && !r.kyujo)
-        // Знаходимо переможця з офіційного API
-        const officialWinner = bashoInfo.yusho?.find(y => y.type === 'Makuuchi')
-
-        // Знаходимо переможця юшо
         const officialWinnerId = bashoInfo.yusho?.find(y => y.type === 'Makuuchi')?.rikishiId
+        const winner = officialWinnerId
+        ? processed.find(r => r.id === officialWinnerId)
+        : processed.find(r => r.wins === maxWins && !r.kyujo)
+
 
         // Завантажуємо матчі переможця щоб знайти плей-оф (день 16+)
         let playoff = null
@@ -109,10 +108,11 @@ export default function ArchivePageClient() {
             const playoffMatch = matchData.records?.find(m =>
               m.bashoId === selectedBasho.id && m.day >= 16 && m.winnerId === officialWinnerId
             )
+            console.log('playoffMatch:', playoffMatch)
             if (playoffMatch) {
               const loser = playoffMatch.eastId === officialWinnerId
-                ? playoffMatch.westShikona
-                : playoffMatch.eastShikona
+                ? (playoffMatch.westShikona || playoffMatch.westEn || playoffMatch.west)
+                : (playoffMatch.eastShikona || playoffMatch.eastEn || playoffMatch.east)
               playoff = {
                 winner: bashoInfo.yusho.find(y => y.type === 'Makuuchi')?.shikonaEn,
                 loser,
