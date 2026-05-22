@@ -1,6 +1,7 @@
 import { getTournament, getRikishi, getMatches } from '@/sanity/queries'
-import YushoChart from './components/YushoChart'
 import ThemeToggle from './components/ThemeToggle'
+import RikishiCard from './components/RikishiCard'
+import ChartWrapper from './components/ChartWrapper'
 
 export const revalidate = 60
 
@@ -66,10 +67,10 @@ export default async function Home() {
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Математичний прогноз юшо
         </div>
-        <div style={{overflowX:'auto',marginBottom:'2rem'}}>
+        <div className="desktop-table" style={{overflowX:'auto',marginBottom:'2rem'}}>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
-              <tr style={{borderBottom:`2px solid var(--ink)`}}>
+              <tr style={{borderBottom:'2px solid var(--ink)'}}>
                 {['#','Рікіші','Ранг','Рекорд','Статус',`День ${tournament?.currentDay+1}`,'Шанс на юшо','Δ'].map(h=>(
                   <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
                 ))}
@@ -118,11 +119,15 @@ export default async function Home() {
           </table>
         </div>
 
+        <div className="mobile-cards" style={{marginBottom:'2rem'}}>
+          {rikishi.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
+        </div>
+
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Графік ймовірностей юшо
         </div>
         <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
-          <YushoChart rikishi={rikishi} />
+          <ChartWrapper rikishi={rikishi} />
         </div>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>

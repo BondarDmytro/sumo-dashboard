@@ -27,3 +27,10 @@ body {
   color: var(--ink);
   transition: background 0.3s, color 0.3s;
 }
+.desktop-table { display: block; }
+.mobile-cards { display: none; }
+
+@media (max-width: 768px) {
+  .desktop-table { display: none; }
+  .mobile-cards { display: grid; gap: 10px; }
+}
