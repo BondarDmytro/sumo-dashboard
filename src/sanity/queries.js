@@ -1,20 +1,22 @@
-import { createClient } from 'next-sanity'
-
-export const client = createClient({
-  projectId: 'nvmyfpgv',
-  dataset: 'production',
-  apiVersion: '2026-05-21',
-  useCdn: false,
-})
+import { sanityFetch } from './lib/live'
 
 export async function getTournament() {
-  return client.fetch(`*[_type == "tournament"][0]`)
+  const { data } = await sanityFetch({
+    query: `*[_type == "tournament"][0]`
+  })
+  return data
 }
 
 export async function getRikishi() {
-  return client.fetch(`*[_type == "rikishi"] | order(order asc)`)
+  const { data } = await sanityFetch({
+    query: `*[_type == "rikishi"] | order(order asc)`
+  })
+  return data
 }
 
 export async function getMatches() {
-  return client.fetch(`*[_type == "match"] | order(order asc)`)
+  const { data } = await sanityFetch({
+    query: `*[_type == "match"] | order(order asc)`
+  })
+  return data
 }
