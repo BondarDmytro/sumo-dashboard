@@ -71,10 +71,11 @@ export default function NavBar() {
 
   if (isStudio) return null
 
-  const tabs = [
+    const tabs = [
     { href: '/', label: 'Турнір' },
     { href: '/rikishi', label: 'Рікіші' },
     { href: '/ranks', label: 'Прогноз рангів' },
+    { href: '/archive', label: 'Архів' },
     { href: '/sumo', label: 'Про сумо' },
   ]
 

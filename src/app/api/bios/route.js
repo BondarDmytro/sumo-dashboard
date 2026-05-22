@@ -39,19 +39,31 @@ function getCountry(shusshin) {
 
 export async function GET() {
   try {
-    const res = await fetch(
-      `${SUMO_API}/rikishis?limit=200&intai=false`,
+    const banzukeRes = await fetch(
+      `${SUMO_API}/basho/202605/banzuke/Makuuchi`,
       { next: { revalidate: 86400 } }
     )
-    const data = await res.json()
-    const records = data.records || []
+    const banzuke = await banzukeRes.json()
+    const rikishiIds = [
+      ...(banzuke.east || []),
+      ...(banzuke.west || [])
+    ].map(r => r.rikishiID)
+
+    const infoList = await Promise.all(
+      rikishiIds.map(id =>
+        fetch(`${SUMO_API}/rikishi/${id}`, { next: { revalidate: 86400 } })
+          .then(r => r.json())
+      )
+    )
 
     const bios = {}
-    records.forEach(r => {
-      bios[r.id] = {
-        country: getCountry(r.shusshin),
-        height: r.height || null,
-        weight: r.weight || null,
+    infoList.forEach(r => {
+      if (r.id) {
+        bios[r.id] = {
+          country: getCountry(r.shusshin),
+          height: r.height || null,
+          weight: r.weight || null,
+        }
       }
     })
 

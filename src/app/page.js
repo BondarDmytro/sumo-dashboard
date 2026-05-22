@@ -56,7 +56,12 @@ async function getBashoData() {
 
     if (currentDay >= 15) {
       const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
-      const base = r.wins === maxW ? 90 : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
+      const leaders = processed.filter(x => x.wins === maxW && !x.kyujo)
+      const hasPlayoff = leaders.length > 1
+      // Якщо плей-оф — ділимо шанси порівну між лідерами з бонусом за ранг
+      const base = r.wins === maxW
+        ? (hasPlayoff ? 90 / leaders.length : 90)
+        : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
       const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
       return { ...r, yushoChance: Math.round(base * rankBonus * 10) / 10, chanceDelta: 0 }
     }
@@ -331,6 +336,7 @@ export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
+  const hasPlayoff = currentDay >= 15 && leaders.length > 1
   const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)
 
@@ -353,6 +359,12 @@ export default async function Home() {
             <span><b style={{color:'#f5f0e8'}}>День {currentDay}</b> з 15</span>
             <span><b style={{color:'#f5f0e8'}}>{15 - currentDay}</b> днів залишилось</span>
             <span><b style={{color:'#f5f0e8'}}>{contenders.length}</b> претендентів</span>
+            {hasPlayoff && (
+              <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'2px 10px',borderRadius:2}}>
+                <span>⚡</span>
+                <b style={{color:'#b8860b'}}>Можливий плей-оф!</b>
+              </span>
+            )}
           </div>
         </div>
       </header>
