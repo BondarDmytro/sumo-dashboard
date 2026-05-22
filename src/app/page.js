@@ -250,7 +250,7 @@ function CompactGrid({ items, title, isKyujo, currentDay }) {
         }} />
         <div style={{minWidth:0,flex:1}}>
           <div style={{display:'flex',alignItems:'baseline',gap:4}}>
-            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--light)',flexShrink:0}}>{r.rank}</span>
+            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{r.rank}</span>
             <FlagName id={r._id} name={r.name} size='0.75rem' />
           </div>
           <div style={{display:'flex',gap:1.5,flexWrap:'nowrap',marginTop:2}}>
@@ -338,26 +338,27 @@ export default async function Home() {
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
 
-      <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'3rem 2rem 2rem',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',right:'-0.05em',top:'-0.15em',fontSize:'clamp(8rem,20vw,18rem)',fontWeight:800,opacity:0.06,lineHeight:1,pointerEvents:'none'}}>相撲</div>
-        <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.7rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#c8c3b8',marginBottom:'0.75rem'}}>
-            Великий турнір сумо · Токіо · 2026
+      <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.3,lineHeight:1,pointerEvents:'none',color:'#038ffb'}}>相撲</div>
+        <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'1rem'}}>
+          <div>
+            <div style={{fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#6b6560',marginBottom:'0.3rem'}}>
+              夏場所 · Натсу Басьо 2026 · Токіо
+            </div>
+            <h1 style={{fontSize:'clamp(1.4rem,3vw,2rem)',fontWeight:800,lineHeight:1.1,margin:0}}>
+              Прогноз переможця турніру
+              <span style={{color:'#b8860b'}}> — Дивізіон Макуучі</span>
+            </h1>
           </div>
-          <h1 style={{fontSize:'clamp(2rem,5vw,3.5rem)',fontWeight:800,lineHeight:1.1,marginBottom:'0.5rem'}}>
-            夏場所 — Натсу Басьо 2026<br/>
-            <span style={{color:'#b8860b'}}>Прогноз Юшо</span>
-          </h1>
-          <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',marginTop:'1rem',fontSize:'0.9rem',color:'#c8c3b8'}}>
-            <span><b style={{color:'#f5f0e8'}}>День {currentDay}</b> завершено</span>
+          <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'0.85rem',color:'#c8c3b8'}}>
+            <span><b style={{color:'#f5f0e8'}}>День {currentDay}</b> з 15</span>
             <span><b style={{color:'#f5f0e8'}}>{15 - currentDay}</b> днів залишилось</span>
             <span><b style={{color:'#f5f0e8'}}>{contenders.length}</b> претендентів</span>
-            <span><b style={{color:'#f5f0e8'}}>Кокуґікан, Токіо</b></span>
           </div>
         </div>
       </header>
 
-      <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
+      <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
 
         <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2.5rem'}}>
           Стан турніру
@@ -417,8 +418,8 @@ export default async function Home() {
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,
-                        background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',
-                        color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
+                        background:r.status==='lead'?'#1a6b5c':r.status==='chase'?'#b8860b':'var(--bg2)',
+                        color:r.status==='lead'?'#fff':r.status==='chase'?'#fff':'var(--mid)'}}>
                         {r.status==='lead'?'лідер':r.status==='chase'?'-1':`${r.wins}–${r.losses}`}
                       </span>
                     </td>

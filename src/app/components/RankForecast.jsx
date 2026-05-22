@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 
 const TYPE_STYLES = {
-  danger: { bg: '#fde8e8', color: '#c0392b', border: '#f5c6c6' },
-  warning: { bg: '#fff3cd', color: '#856404', border: '#ffeaa0' },
-  good: { bg: '#d4edda', color: '#155724', border: '#b8dfc4' },
+  danger: { bg: 'rgba(192,57,43,0.12)', color: '#c0392b', border: 'rgba(192,57,43,0.3)' },
+  warning: { bg: 'rgba(184,134,11,0.12)', color: '#9a7200', border: 'rgba(184,134,11,0.3)' },
+  good: { bg: 'rgba(26,107,92,0.12)', color: '#1a6b5c', border: 'rgba(26,107,92,0.3)' },
   info: { bg: 'var(--bg2)', color: 'var(--mid)', border: 'var(--border)' },
 }
 

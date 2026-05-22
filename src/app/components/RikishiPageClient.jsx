@@ -94,7 +94,7 @@ function RikishiDetail({ r }) {
             { label:'Дебют', value: r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—' },
           ].map(item => (
             <div key={item.label} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--light)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:2}}>{item.label}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:2}}>{item.label}</div>
               <div style={{fontWeight:600,fontSize:'0.8rem'}}>{item.value}</div>
             </div>
           ))}
