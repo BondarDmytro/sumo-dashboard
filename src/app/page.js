@@ -25,7 +25,9 @@ async function getBashoData() {
     const record = r.record || []
     const wins = record.filter(m => RESULTS_WIN.includes(m.result)).length
     const losses = record.filter(m => RESULTS_LOSS.includes(m.result)).length
-    const kyujo = record.filter(m => m.result === 'absent').length > 5
+    const absentCount = record.filter(m => m.result === 'absent').length
+    const hasLateAbsent = record.some((m, i) => m.result === 'absent' && i >= 5)
+    const kyujo = absentCount > 5 || (absentCount > 0 && hasLateAbsent)
     const rankValue = r.rankValue || 999
     return {
       _id: String(r.rikishiID),
