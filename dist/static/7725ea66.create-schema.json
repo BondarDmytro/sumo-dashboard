@@ -1,0 +1,222 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Ім'я"
+      },
+      {
+        "description": "Наприклад: O2e, M15e, K1e",
+        "name": "rank",
+        "type": "string",
+        "title": "Ранг (скорочено)"
+      },
+      {
+        "description": "Наприклад: Озекі, Маєґашіра 15",
+        "name": "rankFull",
+        "type": "string",
+        "title": "Ранг (повний)"
+      },
+      {
+        "name": "wins",
+        "type": "number",
+        "title": "Перемог"
+      },
+      {
+        "name": "losses",
+        "type": "number",
+        "title": "Поразок"
+      },
+      {
+        "name": "yushoChance",
+        "type": "number",
+        "title": "Шанс на юшо (%)"
+      },
+      {
+        "description": "Наприклад: +2 або -1",
+        "name": "chanceDelta",
+        "type": "number",
+        "title": "Зміна шансу (δ)"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Лідер",
+              "value": "lead"
+            },
+            {
+              "title": "Переслідувач",
+              "value": "chase"
+            },
+            {
+              "title": "Вибув",
+              "value": "out"
+            }
+          ]
+        },
+        "name": "status",
+        "type": "string",
+        "title": "Статус"
+      },
+      {
+        "name": "nextOpponent",
+        "type": "string",
+        "title": "Суперник наступного дня"
+      },
+      {
+        "description": "Наприклад: захисник титулу, 3-й турнір у макуучі",
+        "name": "note",
+        "type": "string",
+        "title": "Примітка"
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "title": "Порядок відображення"
+      }
+    ],
+    "name": "rikishi",
+    "type": "document",
+    "title": "Рікіші"
+  },
+  {
+    "fields": [
+      {
+        "description": "Наприклад: Натсу Басьо 2026",
+        "name": "name",
+        "type": "string",
+        "title": "Назва"
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "title": "Місце"
+      },
+      {
+        "name": "currentDay",
+        "type": "number",
+        "title": "Поточний день"
+      },
+      {
+        "name": "totalDays",
+        "type": "number",
+        "title": "Всього днів"
+      },
+      {
+        "description": "Наприклад: Kirishima, Tobizaru, Kotoeiho",
+        "name": "leaders",
+        "type": "string",
+        "title": "Лідери (текст)"
+      },
+      {
+        "name": "kyujoCount",
+        "type": "number",
+        "title": "Кількість кюджо"
+      },
+      {
+        "description": "Наприклад: після дня 11 · розклад дня 12",
+        "name": "updatedNote",
+        "type": "string",
+        "title": "Примітка про оновлення"
+      }
+    ],
+    "name": "tournament",
+    "type": "document",
+    "title": "Турнір"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "fighterA",
+        "type": "string",
+        "title": "Борець A"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "fighterB",
+        "type": "string",
+        "title": "Борець B"
+      },
+      {
+        "name": "day",
+        "type": "number",
+        "title": "День"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "⭐ Критичний",
+              "value": "critical"
+            },
+            {
+              "title": "Важливий",
+              "value": "important"
+            },
+            {
+              "title": "Звичайний",
+              "value": "normal"
+            }
+          ]
+        },
+        "name": "importance",
+        "type": "string",
+        "title": "Важливість"
+      },
+      {
+        "description": "Наприклад: Лідер vs небезпечний суперник",
+        "name": "label",
+        "type": "string",
+        "title": "Підпис"
+      },
+      {
+        "rows": 2,
+        "name": "note",
+        "type": "text",
+        "title": "Примітка"
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "title": "Порядок"
+      }
+    ],
+    "name": "match",
+    "type": "document",
+    "title": "Поєдинок"
+  }
+]
