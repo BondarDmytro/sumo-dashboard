@@ -161,12 +161,12 @@ export default function NavBar() {
                   width:34, height:34, borderRadius:'50%',
                   display:'flex', alignItems:'center', justifyContent:'center',
                   cursor:'pointer', transition:'opacity 0.2s, border-color 0.2s', flexShrink:0,
-                  fontFamily:'monospace', fontSize:'0.62rem', fontWeight:700,
+                  fontSize:'1rem',
                 }}
                 onMouseEnter={e=>{e.currentTarget.style.opacity='0.75';e.currentTarget.style.borderColor='rgba(255,255,255,0.35)'}}
                 onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}
               >
-                {lang === 'uk' ? 'EN' : 'УК'}
+                {lang === 'uk' ? '🇬🇧' : '🇺🇦'}
               </button>
             </>
           )}

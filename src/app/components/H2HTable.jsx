@@ -16,7 +16,8 @@ export default function H2HTable({ rikishi, h2h }) {
     return match.winner === a ? 'win' : 'loss'
   }
 
-  const currentDay = Math.max(...(h2h.filter(m => m.winner === 'pending').map(m => m.day) || [0]))
+  const pendingDays = h2h.filter(m => m.winner === 'pending').map(m => m.day)
+const currentDay = pendingDays.length > 0 ? Math.max(...pendingDays) : 0
 
   return (
     <div style={{overflowX:'auto',marginBottom:'2rem'}}>
@@ -63,25 +64,24 @@ export default function H2HTable({ rikishi, h2h }) {
                 if (result === 'pending') {
                   return (
                     <td key={colName} style={{padding:'0.6rem 0.5rem',textAlign:'center'}}>
-                      <span style={{background:'#fff3cd',color:'#856404',fontSize:'0.6rem',fontFamily:'monospace',padding:'2px 6px',borderRadius:2}}>
-                        {lang === 'en' ? `day ${currentDay}` : `день ${currentDay}`}
-                      </span>
+                      <span style={{color:'var(--light)',fontSize:'0.75rem',fontFamily:'monospace'}}>·</span>
                     </td>
                   )
                 }
                 return (
-                  <td key={colName} style={{padding:'0.6rem 0.5rem',textAlign:'center'}}>
-                    <span style={{
-                      background: result==='win'?'#d4edda':'#fde8e8',
-                      color: result==='win'?'#155724':'#721c24',
-                      fontSize:'0.7rem',
-                      fontFamily:'monospace',
-                      fontWeight:600,
-                      padding:'3px 8px',
-                      borderRadius:2
+                  <td key={colName} style={{
+                    padding:0,
+                    textAlign:'center',
+                    background: result==='win'?'rgba(26,107,92,0.15)':'rgba(192,57,43,0.1)',
+                  }}>
+                    <div style={{
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      height:'100%',minHeight:42,
+                      color: result==='win'?'#1a6b5c':'#c0392b',
+                      fontSize:'0.85rem',fontWeight:700,
                     }}>
                       {result==='win'?'●':'○'}
-                    </span>
+                    </div>
                   </td>
                 )
               })}
@@ -98,12 +98,7 @@ export default function H2HTable({ rikishi, h2h }) {
           <span style={{background:'transparent',border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span>
           {' '}{lang === 'en' ? 'loss' : 'поразка'}
         </span>
-        <span>
-          <span style={{background:'#fff3cd',color:'#856404',padding:'1px 5px',borderRadius:2}}>
-            {lang === 'en' ? `day ${currentDay}` : `день ${currentDay}`}
-          </span>
-          {' '}{lang === 'en' ? 'scheduled' : 'заплановано'}
-        </span>
+       
         <span>
           <span style={{color:'var(--light)'}}>·</span>
           {' '}{lang === 'en' ? 'not met' : 'не зустрічались'}
