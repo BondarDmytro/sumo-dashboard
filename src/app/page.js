@@ -4,7 +4,9 @@ import RikishiCard from './components/RikishiCard'
 import FlagName from './components/FlagName'
 import TournamentHeader from './components/TournamentHeader'
 import TournamentTable from './components/TournamentTable'
-
+import TournamentStatus from './components/TournamentStatus'
+import CompactGrid from './components/CompactGrid'
+import TournamentFooter from './components/TournamentFooter'
 
 export const revalidate = 300
 
@@ -183,157 +185,7 @@ function TodayCell({ record, currentDay }) {
   return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
 }
 
-function CompactGrid({ items, title, isKyujo, currentDay }) {
-  if (!items.length) return null
 
-  if (isKyujo) {
-    return (
-      <div style={{marginBottom:'1rem'}}>
-        <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
-          {title}
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:1,background:'var(--border)'}}>
-          {items.map(r => (
-            <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
-              <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
-              <div style={{flex:1,minWidth:0}}>
-                <FlagName id={r._id} name={r.name} size='0.78rem' />
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
-              </div>
-              <span style={{background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,fontSize:'0.55rem',fontFamily:'monospace',flexShrink:0}}>КЮД</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Групуємо по перемогах
-  const byWins = {}
-  items.forEach(r => {
-    if (!byWins[r.wins]) byWins[r.wins] = []
-    byWins[r.wins].push(r)
-  })
-  const winGroups = Object.keys(byWins).map(Number).sort((a,b) => b - a)
-
-  // Розбиваємо на 3 колонки — рівномірно по блоках
-  // Групи як об'єкти {wins, items}
-  const groups = winGroups.map(wins => ({
-    wins,
-    items: byWins[wins].sort((a,b) => (a.rankValue||999) - (b.rankValue||999))
-  }))
-
-  // Розподіляємо групи по 3 колонках — не розбиваючи групи
-  const totalRikishi = items.length
-  const perCol = Math.ceil(totalRikishi / 3)
-
-
- const cols = [[], [], []]
-  const numCols = 3
-  // Рахуємо ідеальну кількість рікіші на колонку
-  const target = Math.ceil(totalRikishi / numCols)
-  let colIdx = 0
-  let colCount = 0
-
-  groups.forEach(group => {
-    // Переходимо в наступну колонку коли досягли цілі
-    // але не розбиваємо групу — переходимо тільки перед початком нової групи
-    if (colIdx < numCols - 1 && colCount >= target * (colIdx + 1)) {
-      colIdx++
-    }
-    cols[colIdx].push(group)
-    colCount += group.items.length
-  })
-
-  const renderItem = r => {
-    const todayMatch = r.record?.find(m => m.day === currentDay)
-    const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
-    const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
-    return (
-      <div key={r._id} style={{display:'flex',alignItems:'center',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
-        <div style={{flexShrink:0,width:11,height:11,borderRadius:'50%',
-          background: todayWin ? 'var(--ink)' : 'transparent',
-          border: todayLoss ? '1.5px solid var(--ink)' : todayWin ? 'none' : '1px dashed var(--light)',
-        }} />
-        <div style={{minWidth:0,flex:1}}>
-          <div style={{display:'flex',alignItems:'baseline',gap:4}}>
-            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{r.rank}</span>
-            <FlagName id={r._id} name={r.name} size='0.75rem' />
-          </div>
-          <div style={{display:'flex',gap:1.5,flexWrap:'nowrap',marginTop:2}}>
-            {r.record?.slice(0, currentDay).map((m, idx) => {
-              const isWin = RESULTS_WIN.includes(m.result)
-              const isLoss = RESULTS_LOSS.includes(m.result)
-              return (
-                <span key={idx} title={`День ${m.day}${m.opponent?': '+m.opponent:''}`} style={{
-                  width:8,height:8,borderRadius:'50%',
-                  background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-                  border: isLoss ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
-                  display:'inline-block',flexShrink:0,
-                  opacity: m.kimarite==='fusen' ? 0.5 : 1,
-                }} />
-              )
-            })}
-          </div>
-        </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,color:'var(--mid)'}}>
-          {r.wins}–{r.losses}
-        </div>
-      </div>
-    )
-  }
-
-  const winsLabel = w => w === 1 ? '1 перемога' : w >= 2 && w <= 4 ? `${w} перемоги` : `${w} перемог`
-
-  const renderCol = (colGroups) => (
-    <div style={{flex:1,minWidth:0,background:'var(--card)',border:'1px solid var(--border)'}}>
-      {colGroups.map(({ wins, items: groupItems }) => (
-        <div key={wins}>
-          <div style={{
-            fontFamily:'monospace',fontSize:'0.68rem',fontWeight:700,
-            color:'var(--ink)',padding:'0.3rem 0.5rem',
-            background:'var(--bg2)',letterSpacing:'0.05em',
-            borderLeft:'3px solid #b8860b',
-            borderBottom:'1px solid var(--border)',
-          }}>
-            {winsLabel(wins)}
-          </div>
-          {groupItems.map(r => renderItem(r))}
-        </div>
-      ))}
-    </div>
-  )
-
-  return (
-    <div style={{marginBottom:'1.5rem'}}>
-      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:4}}>
-        {title}
-      </div>
-     <div className="compact-cols" style={{display:'flex',gap:4,alignItems:'stretch'}}>
-        {cols.filter(c => c.length > 0).map((col, i) => (
-          <div key={i} style={{flex:1,minWidth:0}}>
-            {renderCol(col)}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-
-  return (
-    <div style={{marginBottom:'1.5rem'}}>
-      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:4}}>
-        {title}
-      </div>
-      <div style={{display:'flex',gap:4,alignItems:'stretch'}}>
-        {cols.map((col, i) => (
-          <div key={i} style={{flex:1,minWidth:0}}>
-            {renderCol(col)}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
@@ -355,108 +207,26 @@ export default async function Home() {
 
       <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
 
-        <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2.5rem'}}>
-          Стан турніру
-        </div>
-        <div className="anim-1" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'2rem'}}>
-          {[
-            {num:leaders.length,label:'Лідери',sub:`рекорд ${maxWins}-${leaders[0]?.losses ?? '?'}`,color:'#1a6b5c'},
-            {num:chasers.length,label:'Переслідувачі',sub:`рекорд ${maxWins-1}-${chasers[0]?.losses ?? '?'}`},
-            {num:15-currentDay,label:'Днів залишилось',sub:'до фіналу',color:'#c0392b'},
-            {num:kyujo.length,label:'Кюджо',sub:'відсутні',color:'#b8860b'},
-            {num:contenders.length,label:'Претендентів',sub:'шанс > 0%'},
-          ].map((s,i)=>(
-            <div key={i} style={{background:'var(--card)',padding:'1.25rem 1rem',textAlign:'center'}}>
-              <div style={{fontFamily:'Georgia,serif',fontSize:'2.8rem',fontWeight:800,lineHeight:1,color:s.color||'var(--ink)'}}>{s.num}</div>
-              <div style={{fontSize:'0.72rem',color:'var(--mid)',marginTop:'0.4rem'}}>{s.label}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--light)',marginTop:'0.2rem'}}>{s.sub}</div>
-            </div>
-          ))}
-        </div>
+       <TournamentStatus
+          leaders={leaders}
+          chasers={chasers}
+          currentDay={currentDay}
+          maxWins={maxWins}
+          kyujoCount={kyujo.length}
+          contendersCount={contenders.length}
+        />
 
        <TournamentTable contenders={contenders} currentDay={currentDay} />
-        <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
-          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
-            <thead>
-              <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                {[`День ${currentDay}`,'#','Рікіші','Ранг','Рекорд','Матчі','Статус','Шанс на юшо','Δ'].map(h=>(
-                  <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {contenders.map((r,i)=>{
-                const rankColors=['#b8860b','#888','#a0522d']
-                const bgColor=i<3?rankColors[i]:'var(--bg2)'
-                const textColor=i<3?'#fff':'var(--mid)'
-                const barColor=i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
-                return(
-                  <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
-                    <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
-                      <TodayCell record={r.record} currentDay={currentDay} />
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem'}}>
-                      <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem'}}>
-                      <FlagName id={r._id} name={r.name} />
-                      <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{r.rankFull}</div>
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem'}}>
-                      <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{r.rank}</span>
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
-                    <td style={{padding:'0.85rem 0.75rem'}}>
-                      <MatchDots record={r.record} currentDay={currentDay} />
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem'}}>
-                      <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,
-                        background:r.status==='lead'?'#1a6b5c':r.status==='chase'?'#b8860b':'var(--bg2)',
-                        color:r.status==='lead'?'#fff':r.status==='chase'?'#fff':'var(--mid)'}}>
-                        {r.status==='lead'?'лідер':r.status==='chase'?'-1':`${r.wins}–${r.losses}`}
-                      </span>
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem',minWidth:180}}>
-                      <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <div style={{flex:1,height:5,background:'var(--bg2)'}}>
-                          <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}}></div>
-                        </div>
-                        <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>
-                      </div>
-                    </td>
-                    <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>—</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        
 
-        <CompactGrid items={others} title="Вибули з гонки юшо" isKyujo={false} currentDay={currentDay} />
-        <CompactGrid items={kyujo} title="Кюджо — відсутні" isKyujo={true} currentDay={currentDay} />
+        <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
+        <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />
 
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
 
-        <div className="anim-4" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
-          Графік ймовірностей юшо
-        </div>
-        <div className="anim-4" style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
-          <ChartWrapper rikishi={contenders.slice(0,10)} />
-        </div>
-
-
-        <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
-          Очні зустрічі — цей турнір (топ претенденти)
-        </div>
-        <div className="anim-5">
-          <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
-        </div>
-
-        <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
-          <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.
-        </div>
+        <TournamentFooter contenders={contenders} h2h={h2h} />
 
       </div>
     </main>

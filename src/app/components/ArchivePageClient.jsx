@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLang } from './LangProvider'
 
 const BASHOS = [
-  { id: '202603', label: 'Хару 2026', date: 'Березень 2026', location: 'Осака' },
-  { id: '202601', label: 'Хацу 2026', date: 'Січень 2026', location: 'Токіо' },
-  { id: '202511', label: 'Кюшу 2025', date: 'Листопад 2025', location: 'Фукуока' },
+  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', location: 'Осака', locationEn: 'Osaka' },
+  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
 ]
 
 const RESULTS_WIN = ['win', 'fusen win']
@@ -33,7 +34,7 @@ function MatchDots({ record }) {
         const isLoss = RESULTS_LOSS.includes(m.result)
         const isFusen = m.kimarite === 'fusen'
         return (
-          <span key={idx} title={`День ${idx+1}${m.opponentShikonaEn ? ': '+m.opponentShikonaEn : ''}`} style={{
+          <span key={idx} title={`Day ${idx+1}${m.opponentShikonaEn ? ': '+m.opponentShikonaEn : ''}`} style={{
             width:11,height:11,borderRadius:'50%',
             background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
             border: isLoss ? '1.5px solid var(--ink)' : m.result==='absent' ? '1.5px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
@@ -51,8 +52,8 @@ export default function ArchivePageClient() {
   const [data, setData] = useState(null)
   const [bios, setBios] = useState({})
   const [loading, setLoading] = useState(false)
-
   const [biosLoaded, setBiosLoaded] = useState(false)
+  const { lang } = useLang()
 
   useEffect(() => {
     fetch('/api/bios').then(r => r.json()).then(d => {
@@ -82,7 +83,6 @@ export default function ArchivePageClient() {
           return {
             id: r.rikishiID,
             name: r.shikonaEn,
-            nameJp: r.shikonaJp,
             rank: getRankShort(r.rank),
             rankFull: r.rank,
             rankValue: r.rankValue || 999,
@@ -95,11 +95,9 @@ export default function ArchivePageClient() {
         const maxWins = Math.max(...processed.filter(r => !r.kyujo).map(r => r.wins))
         const officialWinnerId = bashoInfo.yusho?.find(y => y.type === 'Makuuchi')?.rikishiId
         const winner = officialWinnerId
-        ? processed.find(r => r.id === officialWinnerId)
-        : processed.find(r => r.wins === maxWins && !r.kyujo)
+          ? processed.find(r => r.id === officialWinnerId)
+          : processed.find(r => r.wins === maxWins && !r.kyujo)
 
-
-        // Завантажуємо матчі переможця щоб знайти плей-оф (день 16+)
         let playoff = null
         if (officialWinnerId) {
           try {
@@ -108,7 +106,6 @@ export default function ArchivePageClient() {
             const playoffMatch = matchData.records?.find(m =>
               m.bashoId === selectedBasho.id && m.day >= 16 && m.winnerId === officialWinnerId
             )
-            console.log('playoffMatch:', playoffMatch)
             if (playoffMatch) {
               const loser = playoffMatch.eastId === officialWinnerId
                 ? (playoffMatch.westShikona || playoffMatch.westEn || playoffMatch.west)
@@ -132,19 +129,22 @@ export default function ArchivePageClient() {
     load()
   }, [selectedBasho, biosLoaded])
 
+  const tableHeaders = lang === 'en'
+    ? ['#', 'Rikishi', 'Rank', 'Record', 'Matches']
+    : ['#', 'Рікіші', 'Ранг', 'Рекорд', 'Матчі']
+
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          Архів турнірів
+          {lang === 'en' ? 'Tournament archive' : 'Архів турнірів'}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
-          Результати
-          <span style={{color:'#b8860b'}}> — Попередні басьо</span>
+          {lang === 'en' ? 'Results' : 'Результати'}
+          <span style={{color:'#b8860b'}}>{lang === 'en' ? ' — Previous basho' : ' — Попередні басьо'}</span>
         </h1>
 
-        {/* Вибір турніру */}
         <div style={{display:'flex',gap:8,marginBottom:'2rem',flexWrap:'wrap'}}>
           {BASHOS.map(b => (
             <button key={b.id} onClick={() => setSelectedBasho(b)} style={{
@@ -156,37 +156,38 @@ export default function ArchivePageClient() {
               border:`1px solid ${selectedBasho.id === b.id ? 'var(--ink)' : 'var(--border)'}`,
               borderRadius:2,cursor:'pointer',
             }}>
-              <div style={{fontWeight:700}}>{b.label}</div>
-              <div style={{fontSize:'0.58rem',opacity:0.7}}>{b.location}</div>
+              <div style={{fontWeight:700}}>{lang === 'en' ? b.labelEn : b.label}</div>
+              <div style={{fontSize:'0.58rem',opacity:0.7}}>{lang === 'en' ? b.locationEn : b.location}</div>
             </button>
           ))}
         </div>
 
         {loading && (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            Завантаження...
+            {lang === 'en' ? 'Loading...' : 'Завантаження...'}
           </div>
         )}
 
         {data && !loading && (
           <>
-            {/* Переможець */}
             {data.winner && (
               <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderLeft:'4px solid #b8860b',padding:'1rem 1.5rem',marginBottom:'2rem',display:'flex',alignItems:'center',gap:'1rem',flexWrap:'wrap'}}>
                 <div style={{fontSize:'2rem'}}>🏆</div>
                 <div>
-                  <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Переможець {selectedBasho.label}</div>
+                  <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',letterSpacing:'0.1em',textTransform:'uppercase'}}>
+                    {lang === 'en' ? 'Winner' : 'Переможець'} {lang === 'en' ? selectedBasho.labelEn : selectedBasho.label}
+                  </div>
                   <div style={{fontWeight:800,fontSize:'1.2rem',marginTop:2}}>
                     {data.winner.flag} {data.winner.name}
                   </div>
                   <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:2}}>
                     {data.winner.rankFull} · {data.winner.wins}–{data.winner.losses}
                   </div>
-                    {data.playoff && (
+                  {data.playoff && (
                     <div style={{marginTop:6,display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.15)',border:'1px solid rgba(184,134,11,0.4)',padding:'3px 10px',borderRadius:2}}>
                       <span style={{fontSize:'0.75rem'}}>⚡</span>
                       <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600}}>
-                        Плей-оф проти {data.playoff.loser} · {data.playoff.kimarite}
+                        {lang === 'en' ? 'Playoff vs' : 'Плей-оф проти'} {data.playoff.loser} · {data.playoff.kimarite}
                       </span>
                     </div>
                   )}
@@ -194,12 +195,11 @@ export default function ArchivePageClient() {
               </div>
             )}
 
-            {/* Таблиця */}
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
                 <thead>
                   <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                    {['#','Рікіші','Ранг','Рекорд','Матчі'].map(h => (
+                    {tableHeaders.map(h => (
                       <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.5rem 0.75rem',textAlign:'left',fontWeight:500}}>
                         {h}
                       </th>
@@ -210,7 +210,7 @@ export default function ArchivePageClient() {
                   {data.rikishi.map((r, i) => (
                     <tr key={r.id} style={{borderBottom:'1px solid var(--border)',opacity: r.kyujo ? 0.5 : 1}}>
                       <td style={{padding:'0.6rem 0.75rem',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-                        {r.wins === data.maxWins && !r.kyujo ? '🏆' : i+1}
+                        {r.id === data.winner?.id ? '🏆' : i+1}
                       </td>
                       <td style={{padding:'0.6rem 0.75rem'}}>
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -228,7 +228,11 @@ export default function ArchivePageClient() {
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>
                           {r.wins}–{r.losses}
                         </span>
-                        {r.kyujo && <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,marginLeft:4}}>КЮД</span>}
+                        {r.kyujo && (
+                          <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,marginLeft:4}}>
+                            {lang === 'en' ? 'KYJ' : 'КЮД'}
+                          </span>
+                        )}
                       </td>
                       <td style={{padding:'0.6rem 0.75rem'}}>
                         <MatchDots record={r.record} />

@@ -1,6 +1,9 @@
 'use client'
 
+import { useLang } from './LangProvider'
+
 export default function H2HTable({ rikishi, h2h }) {
+  const { lang } = useLang()
   const names = rikishi.map(r => r.name)
 
   const getResult = (a, b) => {
@@ -13,13 +16,15 @@ export default function H2HTable({ rikishi, h2h }) {
     return match.winner === a ? 'win' : 'loss'
   }
 
+  const currentDay = Math.max(...(h2h.filter(m => m.winner === 'pending').map(m => m.day) || [0]))
+
   return (
     <div style={{overflowX:'auto',marginBottom:'2rem'}}>
       <table style={{borderCollapse:'collapse',fontSize:'0.78rem',width:'100%'}}>
         <thead>
           <tr>
             <th style={{padding:'0.5rem 0.75rem',fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)',textAlign:'left',borderBottom:'2px solid var(--ink)',minWidth:120}}>
-              Рікіші
+              {lang === 'en' ? 'Rikishi' : 'Рікіші'}
             </th>
             {names.map(name => (
               <th key={name} style={{padding:'0.5rem 0.5rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textAlign:'center',borderBottom:'2px solid var(--ink)',minWidth:90,fontWeight:500}}>
@@ -58,7 +63,9 @@ export default function H2HTable({ rikishi, h2h }) {
                 if (result === 'pending') {
                   return (
                     <td key={colName} style={{padding:'0.6rem 0.5rem',textAlign:'center'}}>
-                      <span style={{background:'#fff3cd',color:'#856404',fontSize:'0.6rem',fontFamily:'monospace',padding:'2px 6px',borderRadius:2}}>день 12</span>
+                      <span style={{background:'#fff3cd',color:'#856404',fontSize:'0.6rem',fontFamily:'monospace',padding:'2px 6px',borderRadius:2}}>
+                        {lang === 'en' ? `day ${currentDay}` : `день ${currentDay}`}
+                      </span>
                     </td>
                   )
                 }
@@ -83,10 +90,24 @@ export default function H2HTable({ rikishi, h2h }) {
         </tbody>
       </table>
       <div style={{marginTop:'0.75rem',fontSize:'0.7rem',color:'var(--light)',fontFamily:'monospace',display:'flex',gap:'1rem',flexWrap:'wrap'}}>
-        <span><span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span> перемога</span>
-        <span><span style={{background:'transparent',border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span> поразка</span>
-        <span><span style={{background:'#fff3cd',color:'#856404',padding:'1px 5px',borderRadius:2}}>день 12</span> заплановано</span>
-        <span><span style={{color:'var(--light)'}}>·</span> не зустрічались</span>
+        <span>
+          <span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span>
+          {' '}{lang === 'en' ? 'win' : 'перемога'}
+        </span>
+        <span>
+          <span style={{background:'transparent',border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span>
+          {' '}{lang === 'en' ? 'loss' : 'поразка'}
+        </span>
+        <span>
+          <span style={{background:'#fff3cd',color:'#856404',padding:'1px 5px',borderRadius:2}}>
+            {lang === 'en' ? `day ${currentDay}` : `день ${currentDay}`}
+          </span>
+          {' '}{lang === 'en' ? 'scheduled' : 'заплановано'}
+        </span>
+        <span>
+          <span style={{color:'var(--light)'}}>·</span>
+          {' '}{lang === 'en' ? 'not met' : 'не зустрічались'}
+        </span>
       </div>
     </div>
   )

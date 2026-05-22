@@ -4,6 +4,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
+import { useLang } from './LangProvider'
 
 const COLORS = [
   '#1a6b5c','#1a4a7a','#c0392b','#b8860b',
@@ -11,7 +12,7 @@ const COLORS = [
   '#d35400','#16a085',
 ]
 
-function calcChanceAtDay(record, day, allRikishi) {
+function calcChanceAtDay(record, day) {
   const slice = record.slice(0, day)
   const wins = slice.filter(m => ['win','fusen win'].includes(m.result)).length
   const losses = slice.filter(m => ['loss','fusen loss'].includes(m.result)).length
@@ -28,23 +29,21 @@ function calcChanceAtDay(record, day, allRikishi) {
 }
 
 export default function YushoChart({ rikishi }) {
+  const { lang } = useLang()
   if (!rikishi?.length) return null
 
   const top = rikishi.slice(0, 8)
   const maxDay = Math.max(...top.map(r => r.record?.filter(m => m.result).length || 0))
 
-  // Будуємо дані по днях
   const chartData = Array.from({ length: maxDay }, (_, i) => {
     const day = i + 1
-    const point = { day: `День ${day}` }
+    const point = { day: lang === 'en' ? `Day ${day}` : `День ${day}` }
 
-    // Рахуємо сирі шанси для всіх
     const rawChances = {}
     top.forEach(r => {
-      rawChances[r.name] = calcChanceAtDay(r.record || [], day, top)
+      rawChances[r.name] = calcChanceAtDay(r.record || [], day)
     })
 
-    // Нормалізуємо до 100%
     const total = Object.values(rawChances).reduce((s, v) => s + v, 0)
     top.forEach(r => {
       point[r.name] = total > 0
@@ -58,7 +57,7 @@ export default function YushoChart({ rikishi }) {
   return (
     <div>
       <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'0.75rem',letterSpacing:'0.08em'}}>
-        Динаміка шансів на юшо по днях турніру
+        {lang === 'en' ? 'Yusho chance dynamics by tournament day' : 'Динаміка шансів на юшо по днях турніру'}
       </div>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={chartData} margin={{top:5,right:20,left:0,bottom:5}}>
