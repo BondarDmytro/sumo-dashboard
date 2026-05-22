@@ -103,7 +103,7 @@ export default function ArchivePageClient() {
         let playoff = null
         if (officialWinnerId) {
           try {
-            const matchRes = await fetch(`https://sumo-api.com/api/rikishi/${officialWinnerId}/matches?limit=20`)
+            const matchRes = await fetch(`https://sumo-api.com/api/rikishi/${officialWinnerId}/matches?limit=100`)
             const matchData = await matchRes.json()
             const playoffMatch = matchData.records?.find(m =>
               m.bashoId === selectedBasho.id && m.day >= 16 && m.winnerId === officialWinnerId
