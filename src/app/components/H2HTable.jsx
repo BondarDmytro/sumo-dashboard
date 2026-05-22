@@ -73,7 +73,7 @@ export default function H2HTable({ rikishi, h2h }) {
                       padding:'3px 8px',
                       borderRadius:2
                     }}>
-                      {result==='win'?'✓':'✗'}
+                      {result==='win'?'●':'○'}
                     </span>
                   </td>
                 )
@@ -83,8 +83,8 @@ export default function H2HTable({ rikishi, h2h }) {
         </tbody>
       </table>
       <div style={{marginTop:'0.75rem',fontSize:'0.7rem',color:'var(--light)',fontFamily:'monospace',display:'flex',gap:'1rem',flexWrap:'wrap'}}>
-        <span><span style={{background:'#d4edda',color:'#155724',padding:'1px 5px',borderRadius:2}}>✓</span> перемога</span>
-        <span><span style={{background:'#fde8e8',color:'#721c24',padding:'1px 5px',borderRadius:2}}>✗</span> поразка</span>
+        <span><span style={{background:'#d4edda',color:'#155724',padding:'1px 5px',borderRadius:2}}>●</span> перемога</span>
+        <span><span style={{background:'#fde8e8',color:'#721c24',padding:'1px 5px',borderRadius:2}}>○</span> поразка</span>
         <span><span style={{background:'#fff3cd',color:'#856404',padding:'1px 5px',borderRadius:2}}>день 12</span> заплановано</span>
         <span><span style={{color:'var(--light)'}}>·</span> не зустрічались</span>
       </div>

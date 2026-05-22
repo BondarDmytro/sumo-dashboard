@@ -29,8 +29,6 @@ async function getBashoData() {
       losses,
       kyujo,
       status: kyujo ? 'kyujo' : losses <= 2 ? 'lead' : losses <= 3 ? 'chase' : 'out',
-      nextOpponent: record[record.length - 1]?.opponent || '—',
-      note: r.rank,
       record: record.map((m, i) => ({
         day: i + 1,
         result: m.result,
@@ -46,7 +44,6 @@ async function getBashoData() {
     const remaining = Math.max(0, 15 - currentDay)
     const maxWins = r.wins + remaining
 
-    // Якщо турнір завершено — показуємо на основі фінального рекорду
     if (currentDay >= 15) {
       const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
       const base = r.wins === maxW ? 90 : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
@@ -73,7 +70,6 @@ async function getBashoData() {
   const leaders = normalized.filter(r => r.wins === maxWins && !r.kyujo)
   const chasers = normalized.filter(r => r.wins === maxWins - 1 && !r.kyujo)
 
-  // H2H з record даних
   const h2h = []
   normalized.forEach(r => {
     r.record.forEach(m => {
@@ -171,7 +167,7 @@ export default async function Home() {
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
               <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                {['#','Рікіші','Ранг','Рекорд','Статус',`День ${currentDay+1}`,'Шанс на юшо','Δ'].map(h=>(
+                {['#','Рікіші','Ранг','Рекорд','Матчі','Сьогодні','Статус','Шанс на юшо','Δ'].map(h=>(
                   <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
                 ))}
               </tr>
@@ -182,6 +178,7 @@ export default async function Home() {
                 const bgColor=i<3?rankColors[i]:'var(--bg2)'
                 const textColor=i<3?'#fff':'var(--mid)'
                 const barColor=i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
+                const todayMatch = r.record.find(m => m.day === currentDay)
                 return(
                   <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
                     <td style={{padding:'0.85rem 0.75rem'}}>
@@ -196,12 +193,53 @@ export default async function Home() {
                     </td>
                     <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',maxWidth:200}}>
+                        {r.record.map((m,idx) => (
+                          <span
+                            key={idx}
+                            title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}`}
+                            style={{
+                              width:13,height:13,borderRadius:'50%',
+                              background: m.result==='win' ? 'var(--ink)' :
+                                          m.result==='absent' ? '#aaa' : 'transparent',
+                              border: m.result==='loss' ? '1.5px solid var(--ink)' :
+                                      m.result==='absent' ? '1.5px solid #aaa' :
+                                      m.result==='win' ? 'none' : '1px dashed var(--light)',
+                              display:'inline-block',flexShrink:0,
+                            }}
+                          />
+                        ))}
+                        {Array.from({length: Math.max(0, 15 - r.record.length)}).map((_,idx) => (
+                          <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
+                        ))}
+                        <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
+                          {r.record.filter(m=>m.result==='win'||m.result==='loss').length}/15
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:80}}>
+                      {!todayMatch ? (
+                        <span style={{color:'var(--light)',fontSize:'0.75rem',fontFamily:'monospace'}}>очікується</span>
+                      ) : todayMatch.result === 'win' ? (
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                          <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
+                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+                        </div>
+                      ) : todayMatch.result === 'loss' ? (
+                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                          <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
+                          <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+                        </div>
+                      ) : (
+                        <span style={{color:'var(--light)',fontSize:'0.75rem',fontFamily:'monospace'}}>—</span>
+                      )}
+                    </td>
+                    <td style={{padding:'0.85rem 0.75rem'}}>
                       <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
                         {r.status==='lead'?'лідер':r.status==='chase'?'-1':'вибув'}
                       </span>
                     </td>
-                    <td style={{padding:'0.85rem 0.75rem',fontSize:'0.78rem',color:'var(--mid)'}}>—</td>
-                    <td style={{padding:'0.85rem 0.75rem',minWidth:200}}>
+                    <td style={{padding:'0.85rem 0.75rem',minWidth:180}}>
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
                         <div style={{flex:1,height:5,background:'var(--bg2)'}}>
                           <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}}></div>
