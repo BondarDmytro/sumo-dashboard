@@ -74,6 +74,8 @@ export default function NavBar() {
   const tabs = [
     { href: '/', label: 'Турнір' },
     { href: '/rikishi', label: 'Рікіші' },
+    { href: '/ranks', label: 'Прогноз рангів' },
+    { href: '/sumo', label: 'Про сумо' },
   ]
 
   return (

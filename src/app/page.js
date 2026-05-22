@@ -1,7 +1,6 @@
 import H2HTable from './components/H2HTable'
 import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
-import RankForecast from './components/RankForecast'
 import FlagName from './components/FlagName'
 
 export const revalidate = 300
@@ -453,12 +452,6 @@ export default async function Home() {
           <ChartWrapper rikishi={contenders.slice(0,10)} />
         </div>
 
-        <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-          Прогноз змін рангу — Санʼяку
-        </div>
-        <div className="anim-5">
-          <RankForecast />
-        </div>
 
         <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
           Очні зустрічі — цей турнір (топ претенденти)
