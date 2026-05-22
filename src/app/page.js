@@ -1,9 +1,9 @@
-import ThemeToggle from './components/ThemeToggle'
 import H2HTable from './components/H2HTable'
 import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
 import RankForecast from './components/RankForecast'
 import FlagName from './components/FlagName'
+
 export const revalidate = 300
 
 const RESULTS_WIN = ['win', 'fusen win']
@@ -176,32 +176,151 @@ function TodayCell({ record, currentDay }) {
   return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
 }
 
-function CompactGrid({ items, title, isKyujo }) {
+function CompactGrid({ items, title, isKyujo, currentDay }) {
   if (!items.length) return null
+
+  if (isKyujo) {
+    return (
+      <div style={{marginBottom:'1rem'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
+          {title}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(175px,1fr))',gap:1,background:'var(--border)'}}>
+          {items.map(r => (
+            <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
+              <div style={{flex:1,minWidth:0}}>
+                <FlagName id={r._id} name={r.name} size='0.78rem' />
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
+              </div>
+              <span style={{background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,fontSize:'0.55rem',fontFamily:'monospace',flexShrink:0}}>КЮД</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Групуємо по перемогах
+  const byWins = {}
+  items.forEach(r => {
+    if (!byWins[r.wins]) byWins[r.wins] = []
+    byWins[r.wins].push(r)
+  })
+  const winGroups = Object.keys(byWins).map(Number).sort((a,b) => b - a)
+
+  // Розбиваємо на 3 колонки — рівномірно по блоках
+  // Групи як об'єкти {wins, items}
+  const groups = winGroups.map(wins => ({
+    wins,
+    items: byWins[wins].sort((a,b) => (a.rankValue||999) - (b.rankValue||999))
+  }))
+
+  // Розподіляємо групи по 3 колонках — не розбиваючи групи
+  const totalRikishi = items.length
+  const perCol = Math.ceil(totalRikishi / 3)
+
+
+ const cols = [[], [], []]
+  const numCols = 3
+  // Рахуємо ідеальну кількість рікіші на колонку
+  const target = Math.ceil(totalRikishi / numCols)
+  let colIdx = 0
+  let colCount = 0
+
+  groups.forEach(group => {
+    // Переходимо в наступну колонку коли досягли цілі
+    // але не розбиваємо групу — переходимо тільки перед початком нової групи
+    if (colIdx < numCols - 1 && colCount >= target * (colIdx + 1)) {
+      colIdx++
+    }
+    cols[colIdx].push(group)
+    colCount += group.items.length
+  })
+
+  const renderItem = r => {
+    const todayMatch = r.record?.find(m => m.day === currentDay)
+    const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
+    const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
+    return (
+      <div key={r._id} style={{display:'flex',alignItems:'center',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
+        <div style={{flexShrink:0,width:11,height:11,borderRadius:'50%',
+          background: todayWin ? 'var(--ink)' : 'transparent',
+          border: todayLoss ? '1.5px solid var(--ink)' : todayWin ? 'none' : '1px dashed var(--light)',
+        }} />
+        <div style={{minWidth:0,flex:1}}>
+          <div style={{display:'flex',alignItems:'baseline',gap:4}}>
+            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--light)',flexShrink:0}}>{r.rank}</span>
+            <FlagName id={r._id} name={r.name} size='0.75rem' />
+          </div>
+          <div style={{display:'flex',gap:1.5,flexWrap:'nowrap',marginTop:2}}>
+            {r.record?.slice(0, currentDay).map((m, idx) => {
+              const isWin = RESULTS_WIN.includes(m.result)
+              const isLoss = RESULTS_LOSS.includes(m.result)
+              return (
+                <span key={idx} title={`День ${m.day}${m.opponent?': '+m.opponent:''}`} style={{
+                  width:8,height:8,borderRadius:'50%',
+                  background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
+                  border: isLoss ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
+                  display:'inline-block',flexShrink:0,
+                  opacity: m.kimarite==='fusen' ? 0.5 : 1,
+                }} />
+              )
+            })}
+          </div>
+        </div>
+        <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,color:'var(--mid)'}}>
+          {r.wins}–{r.losses}
+        </div>
+      </div>
+    )
+  }
+
+  const winsLabel = w => w === 1 ? '1 перемога' : w >= 2 && w <= 4 ? `${w} перемоги` : `${w} перемог`
+
+  const renderCol = (colGroups) => (
+    <div style={{flex:1,minWidth:0,background:'var(--card)',border:'1px solid var(--border)'}}>
+      {colGroups.map(({ wins, items: groupItems }) => (
+        <div key={wins}>
+          <div style={{
+            fontFamily:'monospace',fontSize:'0.68rem',fontWeight:700,
+            color:'var(--ink)',padding:'0.3rem 0.5rem',
+            background:'var(--bg2)',letterSpacing:'0.05em',
+            borderLeft:'3px solid #b8860b',
+            borderBottom:'1px solid var(--border)',
+          }}>
+            {winsLabel(wins)}
+          </div>
+          {groupItems.map(r => renderItem(r))}
+        </div>
+      ))}
+    </div>
+  )
+
   return (
-    <div style={{marginBottom:'1rem'}}>
-      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
+    <div style={{marginBottom:'1.5rem'}}>
+      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:4}}>
         {title}
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(175px,1fr))',gap:1,background:'var(--border)'}}>
-        {items.map(r => (
-          <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity: isKyujo ? 0.5 : 0.7}}>
-            {isKyujo ? (
-              <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
-            ) : (
-              <div style={{flexShrink:0,width:13,height:13,borderRadius:'50%',
-                background: r.todayWin ? 'var(--ink)' : 'transparent',
-                border: r.todayLoss ? '1.5px solid var(--ink)' : r.todayWin ? 'none' : '1px dashed var(--light)',
-              }} />
-            )}
-            <div style={{flex:1,minWidth:0}}>
-              <FlagName id={r._id} name={r.name} size='0.78rem' />
-              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
-            </div>
-            <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',flexShrink:0}}>
-              {isKyujo ? <span style={{background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,fontSize:'0.55rem'}}>КЮД</span>
-                : `${r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15`}
-            </div>
+      <div style={{display:'flex',gap:4,alignItems:'stretch'}}>
+        {cols.filter(c => c.length > 0).map((col, i) => (
+          <div key={i} style={{flex:1,minWidth:0}}>
+            {renderCol(col)}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{marginBottom:'1.5rem'}}>
+      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:4}}>
+        {title}
+      </div>
+      <div style={{display:'flex',gap:4,alignItems:'stretch'}}>
+        {cols.map((col, i) => (
+          <div key={i} style={{flex:1,minWidth:0}}>
+            {renderCol(col)}
           </div>
         ))}
       </div>
@@ -212,14 +331,8 @@ function CompactGrid({ items, title, isKyujo }) {
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
-  const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo).map(r => {
-    const todayMatch = r.record.find(m => m.day === currentDay)
-    return {
-      ...r,
-      todayWin: todayMatch && RESULTS_WIN.includes(todayMatch.result),
-      todayLoss: todayMatch && RESULTS_LOSS.includes(todayMatch.result),
-    }
-  })
+    .sort((a,b) => b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
+  const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)
 
   return (
@@ -240,12 +353,6 @@ export default async function Home() {
             <span><b style={{color:'#f5f0e8'}}>{15 - currentDay}</b> днів залишилось</span>
             <span><b style={{color:'#f5f0e8'}}>{contenders.length}</b> претендентів</span>
             <span><b style={{color:'#f5f0e8'}}>Кокуґікан, Токіо</b></span>
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:12,marginTop:'1rem',flexWrap:'wrap'}}>
-            <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#1a6b5c',color:'#fff',fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.1em',padding:'4px 10px',borderRadius:2}}>
-              ↻ дані: sumo-api.com · день {currentDay} з 15
-            </div>
-            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -309,8 +416,10 @@ export default async function Home() {
                       <MatchDots record={r.record} currentDay={currentDay} />
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
-                      <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
-                        {r.status==='lead'?'лідер':r.status==='chase'?'-1':'вибув'}
+                      <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,
+                        background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',
+                        color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
+                        {r.status==='lead'?'лідер':r.status==='chase'?'-1':`${r.wins}–${r.losses}`}
                       </span>
                     </td>
                     <td style={{padding:'0.85rem 0.75rem',minWidth:180}}>
@@ -329,8 +438,8 @@ export default async function Home() {
           </table>
         </div>
 
-        <CompactGrid items={others} title="Вибули з гонки юшо" isKyujo={false} />
-        <CompactGrid items={kyujo} title="Кюджо — відсутні" isKyujo={true} />
+        <CompactGrid items={others} title="Вибули з гонки юшо" isKyujo={false} currentDay={currentDay} />
+        <CompactGrid items={kyujo} title="Кюджо — відсутні" isKyujo={true} currentDay={currentDay} />
 
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
