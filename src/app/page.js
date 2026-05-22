@@ -1,22 +1,110 @@
-import { getTournament, getRikishi, getMatches } from '@/sanity/queries'
 import ThemeToggle from './components/ThemeToggle'
-import RikishiCard from './components/RikishiCard'
-import ChartWrapper from './components/ChartWrapper'
 import H2HTable from './components/H2HTable'
-import { getH2H } from '@/sanity/queries'
+import ChartWrapper from './components/ChartWrapper'
+import RikishiCard from './components/RikishiCard'
 
-export const revalidate = 60
+export const revalidate = 300
+
+async function getBashoData() {
+  const res = await fetch('https://sumo-api.com/api/basho/202505/banzuke/Makuuchi', {
+    next: { revalidate: 300 }
+  })
+  const banzuke = await res.json()
+  const all = [...(banzuke.east || []), ...(banzuke.west || [])]
+
+  const processed = all.map(r => {
+    const record = r.record || []
+    const wins = record.filter(m => m.result === 'win').length
+    const losses = record.filter(m => m.result === 'loss').length
+    const kyujo = record.filter(m => m.result === 'absent').length > 5
+    const rankValue = r.rankValue || 999
+
+    return {
+      _id: String(r.rikishiID),
+      name: r.shikonaEn,
+      rank: getRankShort(r.rank),
+      rankFull: r.rank,
+      rankValue,
+      wins,
+      losses,
+      kyujo,
+      status: kyujo ? 'kyujo' : losses <= 2 ? 'lead' : losses <= 3 ? 'chase' : 'out',
+      nextOpponent: record[record.length - 1]?.opponent || '—',
+      note: r.rank,
+      record: record.map((m, i) => ({
+        day: i + 1,
+        result: m.result,
+        opponent: m.opponentShikonaEn,
+      }))
+    }
+  })
+
+  const currentDay = processed[0]?.record?.length || 0
+
+  const withChances = processed.map(r => {
+    if (r.kyujo || r.losses >= 5) return { ...r, yushoChance: 0, chanceDelta: 0 }
+    const remaining = 15 - currentDay
+    const maxWins = r.wins + remaining
+    if (maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
+    let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
+    const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
+    if (maxWins < 13) base *= 0.6
+    return { ...r, yushoChance: Math.round(base * rankBonus * 10) / 10, chanceDelta: 0 }
+  })
+
+  const total = withChances.reduce((s, r) => s + r.yushoChance, 0)
+  const normalized = withChances.map(r => ({
+    ...r,
+    yushoChance: total > 0 ? Math.round(r.yushoChance / total * 1000) / 10 : 0
+  }))
+
+  normalized.sort((a, b) => b.yushoChance - a.yushoChance)
+
+  const maxWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
+  const leaders = normalized.filter(r => r.wins === maxWins && !r.kyujo)
+  const chasers = normalized.filter(r => r.wins === maxWins - 1 && !r.kyujo)
+
+  // H2H з record даних
+  const h2h = []
+  normalized.forEach(r => {
+    r.record.forEach(m => {
+      if (m.result === 'win' || m.result === 'loss') {
+        const exists = h2h.find(x =>
+          (x.fighter1 === r.name && x.fighter2 === m.opponent) ||
+          (x.fighter1 === m.opponent && x.fighter2 === r.name)
+        )
+        if (!exists && m.opponent) {
+          h2h.push({
+            fighter1: r.name,
+            fighter2: m.opponent,
+            winner: m.result === 'win' ? r.name : m.opponent,
+            day: m.day
+          })
+        }
+      }
+    })
+  })
+
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h }
+}
+
+function getRankShort(rank) {
+  if (!rank) return '?'
+  if (rank.includes('Yokozuna')) return rank.replace('Yokozuna ', 'Y').replace(' East', 'e').replace(' West', 'w')
+  if (rank.includes('Ozeki')) return rank.replace('Ozeki ', 'O').replace(' East', 'e').replace(' West', 'w')
+  if (rank.includes('Sekiwake')) return rank.replace('Sekiwake ', 'S').replace(' East', 'e').replace(' West', 'w')
+  if (rank.includes('Komusubi')) return rank.replace('Komusubi ', 'K').replace(' East', 'e').replace(' West', 'w')
+  if (rank.includes('Maegashira')) {
+    const num = rank.match(/\d+/)?.[0] || ''
+    return `M${num}${rank.includes('East') ? 'e' : 'w'}`
+  }
+  return rank
+}
 
 export default async function Home() {
-  const [tournament, rikishi, matches, h2h] = await Promise.all([
-    getTournament(),
-    getRikishi(),
-    getMatches(),
-    getH2H(),
-  ])
-
-  const leaders = rikishi.filter(r => r.status === 'lead')
-  const chasers = rikishi.filter(r => r.status === 'chase')
+  const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
+  const contenders = rikishi.filter(r => r.yushoChance > 0).slice(0, 12)
+  const kyujo = rikishi.filter(r => r.kyujo).slice(0, 6)
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
@@ -25,21 +113,21 @@ export default async function Home() {
         <div style={{position:'absolute',right:'-0.05em',top:'-0.15em',fontSize:'clamp(8rem,20vw,18rem)',fontWeight:800,opacity:0.06,lineHeight:1,pointerEvents:'none'}}>相撲</div>
         <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1}}>
           <div style={{fontFamily:'monospace',fontSize:'0.7rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#c8c3b8',marginBottom:'0.75rem'}}>
-            Великий турнір сумо · Токіо · Травень 2026
+            Великий турнір сумо · Токіо · 2026
           </div>
           <h1 style={{fontSize:'clamp(2rem,5vw,3.5rem)',fontWeight:800,lineHeight:1.1,marginBottom:'0.5rem'}}>
-            夏場所 — {tournament?.name}<br/>
+            夏場所 — Натсу Басьо 2026<br/>
             <span style={{color:'#b8860b'}}>Прогноз Юшо</span>
           </h1>
           <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',marginTop:'1rem',fontSize:'0.9rem',color:'#c8c3b8'}}>
-            <span><b style={{color:'#f5f0e8'}}>День {tournament?.currentDay}</b> завершено</span>
-            <span><b style={{color:'#f5f0e8'}}>{tournament?.totalDays - tournament?.currentDay}</b> днів залишилось</span>
-            <span><b style={{color:'#f5f0e8'}}>{rikishi.length}</b> претендентів</span>
-            <span><b style={{color:'#f5f0e8'}}>{tournament?.location}</b></span>
+            <span><b style={{color:'#f5f0e8'}}>День {currentDay}</b> завершено</span>
+            <span><b style={{color:'#f5f0e8'}}>{15 - currentDay}</b> днів залишилось</span>
+            <span><b style={{color:'#f5f0e8'}}>{contenders.length}</b> претендентів</span>
+            <span><b style={{color:'#f5f0e8'}}>Кокуґікан, Токіо</b></span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:12,marginTop:'1rem',flexWrap:'wrap'}}>
             <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'#1a6b5c',color:'#fff',fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.1em',padding:'4px 10px',borderRadius:2}}>
-              ↻ {tournament?.updatedNote}
+              ↻ дані: sumo-api.com · оновлено після дня {currentDay}
             </div>
             <ThemeToggle />
           </div>
@@ -53,11 +141,11 @@ export default async function Home() {
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'2rem'}}>
           {[
-            {num:leaders.length,label:'Лідери',sub:`рекорд ${leaders[0]?.wins}-${leaders[0]?.losses}`,color:'#1a6b5c'},
-            {num:chasers.length,label:'Переслідувачі',sub:`рекорд ${chasers[0]?.wins}-${chasers[0]?.losses}`},
-            {num:tournament?.totalDays-tournament?.currentDay,label:'Днів залишилось',sub:'до фіналу',color:'#c0392b'},
-            {num:tournament?.kyujoCount,label:'Кюджо',sub:'обидва йокодзуна',color:'#b8860b'},
-            {num:matches.length,label:'Вирішальних пар',sub:`у день ${tournament?.currentDay+1}`},
+            {num:leaders.length,label:'Лідери',sub:`рекорд ${maxWins}-${leaders[0]?.losses ?? '?'}`,color:'#1a6b5c'},
+            {num:chasers.length,label:'Переслідувачі',sub:`рекорд ${maxWins-1}-${chasers[0]?.losses ?? '?'}`},
+            {num:15-currentDay,label:'Днів залишилось',sub:'до фіналу',color:'#c0392b'},
+            {num:kyujo.length,label:'Кюджо',sub:'відсутні',color:'#b8860b'},
+            {num:contenders.length,label:'Претендентів',sub:'шанс > 0%'},
           ].map((s,i)=>(
             <div key={i} style={{background:'var(--card)',padding:'1.25rem 1rem',textAlign:'center'}}>
               <div style={{fontFamily:'Georgia,serif',fontSize:'2.8rem',fontWeight:800,lineHeight:1,color:s.color||'var(--ink)'}}>{s.num}</div>
@@ -74,13 +162,13 @@ export default async function Home() {
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
               <tr style={{borderBottom:'2px solid var(--ink)'}}>
-                {['#','Рікіші','Ранг','Рекорд','Статус',`День ${tournament?.currentDay+1}`,'Шанс на юшо','Δ'].map(h=>(
+                {['#','Рікіші','Ранг','Рекорд','Статус',`День ${currentDay+1}`,'Шанс на юшо','Δ'].map(h=>(
                   <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rikishi.map((r,i)=>{
+              {contenders.map((r,i)=>{
                 const rankColors=['#b8860b','#888','#a0522d']
                 const bgColor=i<3?rankColors[i]:'var(--bg2)'
                 const textColor=i<3?'#fff':'var(--mid)'
@@ -92,29 +180,27 @@ export default async function Home() {
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <div style={{fontWeight:700,fontSize:'0.95rem'}}>{r.name}</div>
-                      <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{r.rankFull} · {r.note}</div>
+                      <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{r.rankFull}</div>
                     </td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
                       <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{r.rank}</span>
                     </td>
                     <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
                     <td style={{padding:'0.85rem 0.75rem'}}>
-                      <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':'#fff3cd',color:r.status==='lead'?'#155724':'#856404'}}>
-                        {r.status==='lead'?'лідер':'-1'}
+                      <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,background:r.status==='lead'?'#d4edda':r.status==='chase'?'#fff3cd':'var(--bg2)',color:r.status==='lead'?'#155724':r.status==='chase'?'#856404':'var(--mid)'}}>
+                        {r.status==='lead'?'лідер':r.status==='chase'?'-1':'вибув'}
                       </span>
                     </td>
-                    <td style={{padding:'0.85rem 0.75rem',fontSize:'0.78rem',color:'var(--mid)'}}>vs {r.nextOpponent}</td>
+                    <td style={{padding:'0.85rem 0.75rem',fontSize:'0.78rem',color:'var(--mid)'}}>—</td>
                     <td style={{padding:'0.85rem 0.75rem',minWidth:200}}>
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
                         <div style={{flex:1,height:5,background:'var(--bg2)'}}>
-                          <div style={{height:'100%',width:`${r.yushoChance}%`,background:barColor}}></div>
+                          <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}}></div>
                         </div>
                         <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>
                       </div>
                     </td>
-                    <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',fontWeight:500,color:r.chanceDelta>0?'#1a6b5c':r.chanceDelta<0?'#c0392b':'var(--mid)'}}>
-                      {r.chanceDelta>0?`▲+${r.chanceDelta}`:r.chanceDelta<0?`▼${r.chanceDelta}`:'–'}
-                    </td>
+                    <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>—</td>
                   </tr>
                 )
               })}
@@ -123,62 +209,41 @@ export default async function Home() {
         </div>
 
         <div className="mobile-cards" style={{marginBottom:'2rem'}}>
-          {rikishi.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
+          {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Графік ймовірностей юшо
         </div>
         <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
-          <ChartWrapper rikishi={rikishi} />
+          <ChartWrapper rikishi={contenders.slice(0,10)} />
         </div>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-          Вирішальні поєдинки — день {tournament?.currentDay+1}
+          Очні зустрічі — цей турнір (топ претенденти)
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
-          {matches.map(m=>(
-            <div key={m._id} style={{background:'var(--card)',padding:'1.1rem 1.25rem',borderTop:`3px solid ${m.importance==='critical'?'#c0392b':'#b8860b'}`}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:m.importance==='critical'?'#c0392b':'#b8860b',marginBottom:'0.6rem'}}>
-                {m.importance==='critical'?'⭐ ':''}{m.label}
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:'0.75rem',marginBottom:'0.5rem'}}>
-                <span style={{fontWeight:700,fontSize:'1rem'}}>{m.fighterA}</span>
-                <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>проти</span>
-                <span style={{fontWeight:700,fontSize:'1rem'}}>{m.fighterB}</span>
-              </div>
-              <div style={{fontSize:'0.78rem',color:'var(--mid)',lineHeight:1.5}}>{m.note}</div>
-            </div>
-          ))}
-        </div>
+        <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
 
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+        {kyujo.length > 0 && <>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-          Очні зустрічі — цей турнір
-        </div>
-        <H2HTable rikishi={rikishi} h2h={h2h} />
-          Відсутні зірки — кюджо
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
-          {[
-            {name:'Hoshoryu',rank:'Йокодзуна 1e',reason:'травма підколінного сухожилля'},
-            {name:'Onosato',rank:'Йокодзуна 1w',reason:'травма лівого плеча'},
-            {name:'Aonishiki',rank:'Озекі 1w',reason:'перелом пальця · втрачає ранг'},
-          ].map(k=>(
-            <div key={k.name} style={{background:'var(--card)',padding:'1rem 1.25rem',display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}}></div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:'0.9rem'}}>{k.name}</div>
-                <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{k.rank}</div>
-                <div style={{fontSize:'0.7rem',color:'var(--light)',marginTop:2}}>{k.reason}</div>
+            Відсутні — кюджо
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:1,background:'var(--border)',marginBottom:'2rem'}}>
+            {kyujo.map(k=>(
+              <div key={k._id} style={{background:'var(--card)',padding:'1rem 1.25rem',display:'flex',alignItems:'center',gap:12}}>
+                <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}}></div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:'0.9rem'}}>{k.name}</div>
+                  <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{k.rankFull}</div>
+                </div>
+                <span style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.08em',background:'#fde8e8',color:'#c0392b',padding:'3px 7px',borderRadius:2}}>КЮДЖО</span>
               </div>
-              <span style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.08em',background:'#fde8e8',color:'#c0392b',padding:'3px 7px',borderRadius:2}}>КЮДЖО</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>}
 
         <div style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
-          <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг та сила розкладу (15%), очні зустрічі (15%), форма за 3 басьо (10%). Сума ≈ 100%. <b style={{color:'var(--ink)'}}>Не є ставкою — виключно статистична модель.</b>
+          <b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Не є ставкою.
         </div>
 
       </div>
