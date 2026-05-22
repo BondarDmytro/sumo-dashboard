@@ -2,6 +2,7 @@ import ThemeToggle from './components/ThemeToggle'
 import H2HTable from './components/H2HTable'
 import ChartWrapper from './components/ChartWrapper'
 import RikishiCard from './components/RikishiCard'
+import RankForecast from './components/RankForecast'
 
 export const revalidate = 300
 
@@ -125,17 +126,15 @@ function MatchDots({ record, currentDay }) {
         const isFusen = m.kimarite === 'fusen'
         const isToday = m.day === currentDay
         return (
-          <span
-            key={idx}
+          <span key={idx}
             title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}${isFusen ? ' (fusen)' : ''}`}
             style={{
-              width: 13, height: 13, borderRadius: '50%',
-              background: isWin ? 'var(--ink)' : m.result === 'absent' ? '#aaa' : 'transparent',
+              width:13, height:13, borderRadius:'50%',
+              background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
               border: isLoss ? '1.5px solid var(--ink)' :
-                      m.result === 'absent' ? '1.5px solid #aaa' :
-                      isWin ? (isToday ? '2px solid #1a6b5c' : 'none') :
-                      '1px dashed var(--light)',
-              display: 'inline-block', flexShrink: 0,
+                      m.result==='absent' ? '1.5px solid #aaa' :
+                      isWin ? 'none' : '1px dashed var(--light)',
+              display:'inline-block', flexShrink:0,
               opacity: isFusen ? 0.5 : 1,
               outline: isToday ? '2px solid #b8860b' : 'none',
               outlineOffset: 1,
@@ -157,7 +156,6 @@ function TodayCell({ record, currentDay }) {
   const todayMatch = record.find(m => m.day === currentDay)
   const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
   const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
-
   if (!todayMatch || !todayMatch.result) {
     return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
   }
@@ -165,7 +163,7 @@ function TodayCell({ record, currentDay }) {
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
       <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
       <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
-        {todayMatch.kimarite === 'fusen' ? '✦ ' : ''}{todayMatch.opponent}
+        {todayMatch.kimarite==='fusen'?'✦ ':''}{todayMatch.opponent}
       </span>
     </div>
   )
@@ -178,10 +176,50 @@ function TodayCell({ record, currentDay }) {
   return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
 }
 
+function CompactGrid({ items, title, isKyujo }) {
+  if (!items.length) return null
+  return (
+    <div style={{marginBottom:'1rem'}}>
+      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
+        {title}
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(175px,1fr))',gap:1,background:'var(--border)'}}>
+        {items.map(r => (
+          <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity: isKyujo ? 0.5 : 0.7}}>
+            {isKyujo ? (
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
+            ) : (
+              <div style={{flexShrink:0,width:13,height:13,borderRadius:'50%',
+                background: r.todayWin ? 'var(--ink)' : 'transparent',
+                border: r.todayLoss ? '1.5px solid var(--ink)' : r.todayWin ? 'none' : '1px dashed var(--light)',
+              }} />
+            )}
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
+            </div>
+            <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',flexShrink:0}}>
+              {isKyujo ? <span style={{background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,fontSize:'0.55rem'}}>КЮД</span>
+                : `${r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15`}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
-  const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
+  const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo).map(r => {
+    const todayMatch = r.record.find(m => m.day === currentDay)
+    return {
+      ...r,
+      todayWin: todayMatch && RESULTS_WIN.includes(todayMatch.result),
+      todayLoss: todayMatch && RESULTS_LOSS.includes(todayMatch.result),
+    }
+  })
   const kyujo = rikishi.filter(r => r.kyujo)
 
   return (
@@ -236,7 +274,7 @@ export default async function Home() {
         <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
           Турнірна таблиця — всі рікіші макуучі
         </div>
-        <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'2rem'}}>
+        <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
           <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
             <thead>
               <tr style={{borderBottom:'2px solid var(--ink)'}}>
@@ -287,67 +325,18 @@ export default async function Home() {
                   </tr>
                 )
               })}
-
-              </tbody>
+            </tbody>
           </table>
         </div>
 
-        {others.length > 0 && (
-          <div className="anim-3" style={{marginBottom:'1rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
-              Вибули з гонки юшо
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:1,background:'var(--border)'}}>
-              {others.map(r => {
-                const todayMatch = r.record.find(m => m.day === currentDay)
-                const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
-                const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
-                const todayPlayed = todayWin || todayLoss
-                return (
-                  <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.7}}>
-                    <div style={{flexShrink:0,width:16,height:16,borderRadius:'50%',
-                      background: todayWin ? 'var(--ink)' : 'transparent',
-                      border: todayLoss ? '1.5px solid var(--ink)' : todayWin ? 'none' : '1px dashed var(--light)',
-                    }} title={todayMatch?.opponent} />
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
-                      <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
-                    </div>
-                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',flexShrink:0}}>
-                      {r.record.filter(m=>RESULTS_PLAYED.includes(m.result)).length}/15
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {kyujo.length > 0 && (
-          <div className="anim-3" style={{marginBottom:'2rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding:'0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>
-              Кюджо — відсутні
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:1,background:'var(--border)'}}>
-              {kyujo.map(r => (
-                <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
-                  <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:600,fontSize:'0.78rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
-                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
-                  </div>
-                  <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,flexShrink:0}}>КЮД</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <CompactGrid items={others} title="Вибули з гонки юшо" isKyujo={false} />
+        <CompactGrid items={kyujo} title="Кюджо — відсутні" isKyujo={true} />
 
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
 
-        <div className="anim-4" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+        <div className="anim-4" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
           Графік ймовірностей юшо
         </div>
         <div className="anim-4" style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
@@ -355,6 +344,13 @@ export default async function Home() {
         </div>
 
         <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
+          Прогноз змін рангу — Санʼяку
+        </div>
+        <div className="anim-5">
+          <RankForecast />
+        </div>
+
+        <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
           Очні зустрічі — цей турнір (топ претенденти)
         </div>
         <div className="anim-5">
