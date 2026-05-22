@@ -18,9 +18,19 @@ const COUNTRY_FLAGS = {
 
 function getCountry(shusshin) {
   if (!shusshin) return { flag: '🇯🇵', name: 'Японія' }
+
+  // Roga — народився в Монголії але виступає за Росію
+  if (shusshin.includes('- Russia')) return { flag: '🏳️', name: 'Росія (нейтральний)' }
+
   const isJapan = shusshin.includes('-ken') || shusshin.includes('-to') ||
                   shusshin.includes('-do') || shusshin.includes('-fu') ||
-                  shusshin.includes('Tokyo') || shusshin.includes('Osaka')
+                  shusshin.includes('Tokyo') || shusshin.includes('Osaka') ||
+                  shusshin.includes('Hokkaido') || shusshin.includes('Okinawa') ||
+                  shusshin.includes('Aichi') || shusshin.includes('Fukuoka') ||
+                  shusshin.includes('Hyogo') || shusshin.includes('Miyagi') ||
+                  shusshin.includes('Niigata') || shusshin.includes('Nagano') ||
+                  shusshin.includes('Kumamoto') || shusshin.includes('Kagoshima') ||
+                  shusshin.includes('Hiroshima') || shusshin.includes('Kyoto')
   if (isJapan) return { flag: '🇯🇵', name: 'Японія' }
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
