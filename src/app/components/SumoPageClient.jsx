@@ -138,15 +138,21 @@ function KimariteModal({ item, onClose }) {
             {info.ua}
           </p>
         )}
-        {info?.img ? (
-          <div style={{background:'var(--bg2)',borderRadius:2,padding:'1rem',textAlign:'center',marginBottom:'1rem'}}>
-            <img src={info.img} alt={item.kimarite} style={{maxWidth:'100%',maxHeight:220,objectFit:'contain'}} onError={e => { e.target.style.display='none' }} />
+        <div style={{background:'var(--bg2)',borderRadius:2,padding:'1.5rem',marginBottom:'1rem',display:'flex',alignItems:'center',gap:'1rem'}}>
+          <div style={{fontSize:'3rem',flexShrink:0}}>
+            {getKimariteCategory(item.kimarite) === 'Виштовхування' ? '🤼' :
+             getKimariteCategory(item.kimarite) === 'Кидки' ? '🔄' :
+             getKimariteCategory(item.kimarite) === 'Підсічки' ? '🦵' :
+             getKimariteCategory(item.kimarite) === 'Збивання' ? '👋' : '⚡'}
           </div>
-        ) : (
-          <div style={{background:'var(--bg2)',borderRadius:2,padding:'2rem',textAlign:'center',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.75rem',marginBottom:'1rem'}}>
-            {info ? 'Зображення буде додано' : 'Опис та зображення буде додано'}
+          <div>
+            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--light)',marginBottom:4}}>Категорія</div>
+            <div style={{fontWeight:700,fontSize:'0.95rem',marginBottom:6}}>{getKimariteCategory(item.kimarite)}</div>
+            {!info?.ua && (
+              <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)'}}>Детальний опис буде додано</div>
+            )}
           </div>
-        )}
+        </div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>Використань за всю історію</div>

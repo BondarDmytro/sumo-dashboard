@@ -13,9 +13,9 @@ function BashoWins({ bashoId, wins, losses }) {
   const label = bashoId.slice(0,4) + '/' + bashoId.slice(4)
   const kk = wins >= 8
   return (
-    <div style={{textAlign:'center',minWidth:52}}>
-      <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',marginBottom:2}}>{label}</div>
-      <div style={{fontFamily:'monospace',fontSize:'0.82rem',fontWeight:600,color: kk ? 'var(--ink)' : '#c0392b'}}>
+    <div style={{textAlign:'center',minWidth:48}}>
+      <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--light)',marginBottom:2}}>{label}</div>
+      <div style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:600,color: kk ? 'var(--ink)' : '#c0392b'}}>
         {wins}–{losses}
       </div>
     </div>
@@ -42,111 +42,83 @@ export default function RankForecast() {
   if (!data?.rikishi?.length) return null
 
   return (
-    <div style={{marginBottom:'2rem'}}>
-      {data.rikishi.map(r => (
-        <div key={r.id} style={{
-          background:'var(--card)',
-          border:'1px solid var(--border)',
-          borderLeft:`4px solid ${
-            r.forecasts.some(f=>f.type==='danger') ? '#c0392b' :
-            r.forecasts.some(f=>f.type==='warning') ? '#b8860b' :
-            r.forecasts.some(f=>f.type==='good') ? '#1a6b5c' : 'var(--border)'
-          }`,
-          padding:'1rem 1.25rem',
-          marginBottom:1,
-        }}>
-          <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',flexWrap:'wrap'}}>
+    <div style={{marginBottom:'1rem'}}>
+      {data.rikishi.map(r => {
+        const mainType = r.forecasts[0]?.type || 'info'
+        const st = TYPE_STYLES[mainType] || TYPE_STYLES.info
+        const borderColor = mainType === 'danger' ? '#c0392b' : mainType === 'warning' ? '#b8860b' : mainType === 'good' ? '#1a6b5c' : 'var(--border)'
 
-            {/* БІО */}
-            <div style={{minWidth:200,flex:'0 0 auto'}}>
-              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
-                <span style={{fontSize:'1.2rem'}}>{r.bio?.country?.flag}</span>
-                <div style={{fontWeight:700,fontSize:'0.95rem'}}>{r.name}</div>
+        return (
+          <div key={r.id} style={{
+            display:'grid',
+            gridTemplateColumns:'380px 1fr 220px',
+            background:'var(--card)',
+            border:'1px solid var(--border)',
+            borderLeft:`4px solid ${borderColor}`,
+            marginBottom:1,
+            minHeight:60,
+          }}>
+
+            {/* КОЛ 1 — Ім'я + біо */}
+            <div style={{padding:'0.5rem 1rem',borderRight:'1px solid var(--border)'}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
+                <span style={{fontSize:'1.1rem'}}>{r.bio?.country?.flag}</span>
+                <div style={{fontWeight:700,fontSize:'0.9rem'}}>{r.name}</div>
               </div>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>{r.rank}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.82rem',fontWeight:600,marginTop:4}}>
-                {r.wins}–{r.losses}
-                <span style={{fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>поточний</span>
-              </div>
-              <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:3}}>{r.rank}</div>
+              <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                 {r.bio?.country?.name !== 'Японія' && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    {r.bio.country.name}
-                  </span>
+                  <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.country.name}</span>
                 )}
-                {r.bio?.age && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    {r.bio.age} р.
-                  </span>
-                )}
-                {r.bio?.height && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    {r.bio.height} см
-                  </span>
-                )}
-                {r.bio?.weight && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    {r.bio.weight} кг
-                  </span>
-                )}
-                {r.bio?.debut && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    дебют {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}
-                  </span>
-                )}
-                {r.bio?.heya && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',background:'var(--bg2)',padding:'2px 6px',borderRadius:2}}>
-                    {r.bio.heya}
-                  </span>
-                )}
+                {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} р.</span>}
+                {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} см</span>}
+                {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} кг</span>}
+                {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>дебют {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
+                {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.heya}</span>}
               </div>
             </div>
 
-            {/* ПОПЕРЕДНІ БАСЬО */}
-            <div style={{display:'flex',gap:'0.75rem',alignItems:'center',flexWrap:'wrap',flex:'0 0 auto'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)'}}>
-                ← попередні басьо
-              </div>
+            {/* КОЛ 2 — Попередні басьо + поточний */}
+            <div style={{padding:'0.5rem 1rem',display:'flex',alignItems:'center',gap:'0.6rem',flexWrap:'wrap',borderRight:'1px solid var(--border)'}}>
+              <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)',whiteSpace:'nowrap'}}>← попередні</div>
               {[...r.prevBashos].reverse().map(b => (
                 <BashoWins key={b.bashoId} {...b} />
               ))}
-              <div style={{width:1,height:32,background:'var(--border)',margin:'0 4px'}} />
-              <div style={{textAlign:'center',minWidth:52}}>
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'#1a6b5c',marginBottom:2}}>поточний</div>
-                <div style={{fontFamily:'monospace',fontSize:'0.82rem',fontWeight:700,color:'var(--ink)'}}>
-                  {r.wins}–{r.losses}
-                </div>
+              <div style={{width:1,height:28,background:'var(--border)',margin:'0 2px'}} />
+              <div style={{textAlign:'center',minWidth:48}}>
+                <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'#1a6b5c',marginBottom:1}}>поточний</div>
+                <div style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:700,color:'var(--ink)'}}>{r.wins}–{r.losses}</div>
               </div>
-
               {r.rank.includes('Sekiwake') && (
-                <div style={{
-                  display:'flex',flexDirection:'column',alignItems:'center',
-                  background:'var(--bg2)',borderRadius:2,padding:'4px 10px',minWidth:80
-                }}>
-                  <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--light)'}}>Озекі-тест</div>
-                  <div style={{fontFamily:'monospace',fontSize:'1rem',fontWeight:700,color:
-                    (r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'
-                  }}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',background:'var(--bg2)',borderRadius:2,padding:'3px 8px',minWidth:65}}>
+                  <div style={{fontFamily:'monospace',fontSize:'0.54rem',color:'var(--light)'}}>Озекі-тест</div>
+                  <div style={{fontFamily:'monospace',fontSize:'0.88rem',fontWeight:700,color:(r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'}}>
                     {r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)}
-                    <span style={{fontSize:'0.65rem',color:'var(--mid)'}}>/33</span>
+                    <span style={{fontSize:'0.58rem',color:'var(--mid)'}}>/33</span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ПРОГНОЗ */}
-            <div style={{flex:1,minWidth:200,display:'flex',flexDirection:'column',gap:6}}>
+            {/* КОЛ 3 — Статус */}
+            <div style={{
+              background: st.bg,
+              display:'flex',
+              flexDirection:'column',
+              alignItems:'center',
+              justifyContent:'center',
+              padding:'0.5rem 1rem',
+              gap:4,
+              textAlign:'center',
+            }}>
               {r.forecasts.map((f,i) => {
-                const st = TYPE_STYLES[f.type] || TYPE_STYLES.info
+                const fst = TYPE_STYLES[f.type] || TYPE_STYLES.info
                 return (
                   <div key={i} style={{
-                    background:st.bg,
-                    color:st.color,
-                    border:`1px solid ${st.border}`,
-                    borderRadius:2,
-                    padding:'5px 10px',
-                    fontSize:'0.78rem',
+                    color: fst.color,
+                    fontSize:'0.75rem',
                     lineHeight:1.4,
+                    fontWeight: i === 0 ? 600 : 400,
                   }}>
                     {f.text}
                   </div>
@@ -155,8 +127,8 @@ export default function RankForecast() {
             </div>
 
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
