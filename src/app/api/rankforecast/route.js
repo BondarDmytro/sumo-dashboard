@@ -147,7 +147,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     if (currentBashoLosses > currentBashoWins && played >= 8) {
       forecasts.push({ type: 'warning', text: '⚠ Маке-коші → можливе пониження до Комусубі' })
     } else if (currentBashoWins >= 8) {
-      forecasts.push({ type: 'good', text: '✓ Кк-коші — ранг Секіваке збережено' })
+      forecasts.push({ type: 'good', text: '✓ Качі-коші — ранг Секіваке збережено' })
     }
   }
 
@@ -156,14 +156,14 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     if (currentBashoWins >= 10) {
       forecasts.push({ type: 'good', text: `✓ ${currentBashoWins} перемог → підвищення до Секіваке` })
     } else if (currentBashoWins >= 8) {
-      forecasts.push({ type: 'good', text: '✓ Кк-коші — ранг Комусубі збережено' })
+      forecasts.push({ type: 'good', text: '✓ Качі-коші — ранг Комусубі збережено' })
     } else if (played >= 8 && currentBashoLosses > currentBashoWins) {
       forecasts.push({ type: 'warning', text: '⚠ Маке-коші → пониження до Маєґашіра' })
     } else {
       const needed = 8 - currentBashoWins
       const remaining = 15 - played
       if (remaining > 0) {
-        forecasts.push({ type: 'info', text: `Потрібно ще ${needed} перемог для кк-коші` })
+        forecasts.push({ type: 'info', text: `Потрібно ще ${needed} перемог для качі-коші` })
       }
     }
   }
@@ -179,7 +179,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     } else if (currentBashoLosses > currentBashoWins) {
       forecasts.push({ type: 'warning', text: `⚠ Маке-коші → пониження в банзуке` })
     } else {
-      forecasts.push({ type: 'info', text: `Кк-коші — ранг стабільний` })
+      forecasts.push({ type: 'info', text: `Качі-коші — ранг стабільний` })
     }
   }
 
