@@ -3,6 +3,7 @@ import "./globals.css";
 import { SanityLive } from '@/sanity/lib/live'
 import { BiosProvider } from './components/BiosProvider'
 import NavBar from './components/NavBar'
+import { Analytics } from '@vercel/analytics/next'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({ children }) {
           {children}
         </BiosProvider>
         <SanityLive />
+        <Analytics />
       </body>
     </html>
   );
