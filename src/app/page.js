@@ -190,7 +190,7 @@ function TodayCell({ record, currentDay }) {
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
-    .sort((a,b) => b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
+    .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
   const hasPlayoff = currentDay >= 15 && leaders.length > 1
   const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)
