@@ -1,16 +1,11 @@
-import H2HTable from './components/H2HTable'
-import ChartWrapper from './components/ChartWrapper'
-import RikishiCard from './components/RikishiCard'
-import FlagName from './components/FlagName'
 import TournamentHeader from './components/TournamentHeader'
-import TournamentTable from './components/TournamentTable'
 import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
-import TorikumiView from './components/TorikumiView'
 import TournamentTabsWrapper from './components/TournamentTabsWrapper'
+import RikishiCard from './components/RikishiCard'
 
-export const revalidate = 300
+export const revalidate = 60
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -18,7 +13,7 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 async function getBashoData() {
   const res = await fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', {
-    next: { revalidate: 300 }
+    next: { revalidate: 60 }
   })
   const banzuke = await res.json()
   const all = [...(banzuke.east || []), ...(banzuke.west || [])]
@@ -45,7 +40,7 @@ async function getBashoData() {
       wins,
       losses,
       kyujo,
-      status: kyujo ? 'kyujo' : losses <= 2 ? 'lead' : losses <= 3 ? 'chase' : 'out',
+      status: 'out',
       record: record.map((m, i) => ({
         day: i + 1,
         result: m.result,
@@ -65,7 +60,6 @@ async function getBashoData() {
       const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
       const leaders = processed.filter(x => x.wins === maxW && !x.kyujo)
       const hasPlayoff = leaders.length > 1
-      // Якщо плей-оф — ділимо шанси порівну між лідерами з бонусом за ранг
       const base = r.wins === maxW
         ? (hasPlayoff ? 90 / leaders.length : 90)
         : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
@@ -89,6 +83,15 @@ async function getBashoData() {
   normalized.sort((a, b) => b.yushoChance - a.yushoChance)
 
   const maxWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
+
+  // Оновлюємо статуси на основі реального maxWins
+  normalized.forEach(r => {
+    if (r.kyujo) { r.status = 'kyujo'; return }
+    if (r.wins === maxWins) r.status = 'lead'
+    else if (r.wins === maxWins - 1) r.status = 'chase'
+    else r.status = 'out'
+  })
+
   const leaders = normalized.filter(r => r.wins === maxWins && !r.kyujo)
   const chasers = normalized.filter(r => r.wins === maxWins - 1 && !r.kyujo)
 
@@ -128,67 +131,6 @@ function getRankShort(rank) {
   return rank
 }
 
-function MatchDots({ record, currentDay }) {
-  return (
-    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'wrap',maxWidth:200}}>
-      {record.map((m, idx) => {
-        const isWin = RESULTS_WIN.includes(m.result)
-        const isLoss = RESULTS_LOSS.includes(m.result)
-        const isFusen = m.kimarite === 'fusen'
-        const isToday = m.day === currentDay
-        return (
-          <span key={idx}
-            title={`День ${m.day}${m.opponent ? ': ' + m.opponent : ''}${isFusen ? ' (fusen)' : ''}`}
-            style={{
-              width:13, height:13, borderRadius:'50%',
-              background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-              border: isLoss ? '1.5px solid var(--ink)' :
-                      m.result==='absent' ? '1.5px solid #aaa' :
-                      isWin ? 'none' : '1px dashed var(--light)',
-              display:'inline-block', flexShrink:0,
-              opacity: isFusen ? 0.5 : 1,
-              outline: isToday ? '2px solid #b8860b' : 'none',
-              outlineOffset: 1,
-            }}
-          />
-        )
-      })}
-      {Array.from({length: Math.max(0, 15 - record.length)}).map((_, idx) => (
-        <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
-      ))}
-      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
-        {record.filter(m => RESULTS_PLAYED.includes(m.result)).length}/15
-      </span>
-    </div>
-  )
-}
-
-function TodayCell({ record, currentDay }) {
-  const todayMatch = record.find(m => m.day === currentDay)
-  const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
-  const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
-  if (!todayMatch || !todayMatch.result) {
-    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>очікується</span>
-  }
-  if (todayWin) return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-      <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
-      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
-        {todayMatch.kimarite==='fusen'?'✦ ':''}{todayMatch.opponent}
-      </span>
-    </div>
-  )
-  if (todayLoss) return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-      <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
-      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
-    </div>
-  )
-  return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>
-}
-
-
-
 export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
@@ -199,17 +141,14 @@ export default async function Home() {
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
-
       <TournamentHeader
         currentDay={currentDay}
         daysLeft={15 - currentDay}
         contendersCount={contenders.length}
         hasPlayoff={hasPlayoff}
       />
-
       <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
-
-       <TournamentStatus
+        <TournamentStatus
           leaders={leaders}
           chasers={chasers}
           currentDay={currentDay}
@@ -217,23 +156,17 @@ export default async function Home() {
           kyujoCount={kyujo.length}
           contendersCount={contenders.length}
         />
-
-       <TournamentTabsWrapper
+        <TournamentTabsWrapper
           contenders={contenders}
           currentDay={currentDay}
           allRikishi={rikishi}
         />
-        
-
         <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
         <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />
-
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
-
         <TournamentFooter contenders={contenders} h2h={h2h} />
-
       </div>
     </main>
   )
