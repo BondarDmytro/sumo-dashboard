@@ -34,9 +34,7 @@ export default function CompactGrid({ items, isKyujo, currentDay }) {
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
                 <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
               </div>
-              <span style={{background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,fontSize:'0.55rem',fontFamily:'monospace',flexShrink:0}}>
-                {lang === 'en' ? 'KYJ' : 'КЮД'}
-              </span>
+              
             </div>
           ))}
         </div>
@@ -69,29 +67,22 @@ export default function CompactGrid({ items, isKyujo, currentDay }) {
   })
 
   const renderItem = r => {
-    const todayMatch = r.record?.find(m => m.day === currentDay)
-    const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
-    const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
     return (
       <div key={r._id} style={{display:'flex',alignItems:'center',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
-        <div style={{flexShrink:0,width:11,height:11,borderRadius:'50%',
-          background: todayWin ? 'var(--ink)' : 'transparent',
-          border: todayLoss ? '1.5px solid var(--ink)' : todayWin ? 'none' : '1px dashed var(--light)',
-        }} />
         <div style={{minWidth:0,flex:1}}>
           <div style={{display:'flex',alignItems:'baseline',gap:4}}>
             <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{r.rank}</span>
             <FlagName id={r._id} name={r.name} size='0.75rem' />
           </div>
-          <div style={{display:'flex',gap:1.5,flexWrap:'nowrap',marginTop:2}}>
-            {r.record?.slice(0, currentDay).map((m, idx) => {
+          <div style={{display:'flex',gap:8,flexWrap:'nowrap',marginTop:4}}>
+            {r.record?.slice(0, 15).map((m, idx) => {
               const isWin = RESULTS_WIN.includes(m.result)
               const isLoss = RESULTS_LOSS.includes(m.result)
               return (
-                <span key={idx} style={{
-                  width:8,height:8,borderRadius:'50%',
-                  background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-                  border: isLoss ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
+                <span key={idx} title={`День ${idx+1}${m.opponent?': '+m.opponent:''}`} style={{
+                  width:9,height:9,borderRadius:'50%',
+                  background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
+                  border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',
                   display:'inline-block',flexShrink:0,
                   opacity: m.kimarite==='fusen' ? 0.5 : 1,
                 }} />

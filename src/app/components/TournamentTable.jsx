@@ -16,7 +16,7 @@ function TodayCell({ record, currentDay, t }) {
   }
   if (todayWin) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-      <span style={{width:16,height:16,borderRadius:'50%',background:'var(--ink)',display:'inline-block'}} />
+      <span style={{width:16,height:16,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid #0f0e0c',display:'inline-block'}} />
       <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
         {todayMatch.kimarite==='fusen'?'✦ ':''}{todayMatch.opponent}
       </span>
@@ -24,7 +24,7 @@ function TodayCell({ record, currentDay, t }) {
   )
   if (todayLoss) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
-      <span style={{width:16,height:16,borderRadius:'50%',background:'transparent',border:'1.5px solid var(--ink)',display:'inline-block'}} />
+      <span style={{width:16,height:16,borderRadius:'50%',background:'#0f0e0c',border:'1.5px solid #f5f0e8',display:'inline-block'}} />
       <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
     </div>
   )
@@ -33,7 +33,7 @@ function TodayCell({ record, currentDay, t }) {
 
 function MatchDots({ record, currentDay }) {
   return (
-    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'wrap',maxWidth:200}}>
+    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'wrap',maxWidth:300}}>
       {record.map((m, idx) => {
         const isWin = RESULTS_WIN.includes(m.result)
         const isLoss = RESULTS_LOSS.includes(m.result)
@@ -42,8 +42,9 @@ function MatchDots({ record, currentDay }) {
         return (
           <span key={idx} style={{
             width:13,height:13,borderRadius:'50%',
-            background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-            border: isLoss ? '1.5px solid var(--ink)' : m.result==='absent' ? '1.5px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
+            background: isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : m.result==='absent' ? '#888' : 'transparent',
+            border: '1.5px solid var(--ink)',
+            boxSizing:'border-box',
             display:'inline-block',flexShrink:0,
             opacity: isFusen ? 0.5 : 1,
             outline: isToday ? '2px solid #b8860b' : 'none',
@@ -52,7 +53,14 @@ function MatchDots({ record, currentDay }) {
         )
       })}
       {Array.from({length: Math.max(0, 15 - record.length)}).map((_, idx) => (
-        <span key={`e-${idx}`} style={{width:13,height:13,borderRadius:'50%',background:'transparent',border:'1px dashed var(--light)',display:'inline-block',flexShrink:0}} />
+        <span key={`e-${idx}`} style={{
+          width:13,height:13,borderRadius:'50%',
+          background:'transparent',
+          border:'1.5px solid var(--ink)',
+          boxSizing:'border-box',
+          opacity:0.2,
+          display:'inline-block',flexShrink:0,
+        }} />
       ))}
       <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
         {record.filter(m => RESULTS_PLAYED.includes(m.result)).length}/15
