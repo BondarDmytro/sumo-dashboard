@@ -7,6 +7,8 @@ import TournamentTable from './components/TournamentTable'
 import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
+import TorikumiView from './components/TorikumiView'
+import TournamentTabsWrapper from './components/TournamentTabsWrapper'
 
 export const revalidate = 300
 
@@ -216,7 +218,11 @@ export default async function Home() {
           contendersCount={contenders.length}
         />
 
-       <TournamentTable contenders={contenders} currentDay={currentDay} />
+       <TournamentTabsWrapper
+          contenders={contenders}
+          currentDay={currentDay}
+          h2h={h2h}
+        />
         
 
         <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
