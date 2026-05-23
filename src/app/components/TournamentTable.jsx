@@ -56,9 +56,8 @@ function MatchDots({ record, currentDay }) {
         <span key={`e-${idx}`} style={{
           width:13,height:13,borderRadius:'50%',
           background:'transparent',
-          border:'1.5px solid var(--ink)',
+          border:'1px dashed var(--light)',
           boxSizing:'border-box',
-          opacity:0.2,
           display:'inline-block',flexShrink:0,
         }} />
       ))}
