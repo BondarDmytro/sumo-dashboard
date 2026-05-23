@@ -33,17 +33,20 @@ function TodayCell({ record, currentDay, t }) {
 
 function MatchDots({ record, currentDay }) {
   return (
-    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'wrap',maxWidth:300}}>
-      {record.map((m, idx) => {
-        const isWin = RESULTS_WIN.includes(m.result)
-        const isLoss = RESULTS_LOSS.includes(m.result)
-        const isFusen = m.kimarite === 'fusen'
-        const isToday = m.day === currentDay
+    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'nowrap',maxWidth:240}}>
+      {Array.from({length:15}).map((_, idx) => {
+        const m = record[idx]
+        const isWin = m && RESULTS_WIN.includes(m.result)
+        const isLoss = m && RESULTS_LOSS.includes(m.result)
+        const isAbsent = m?.result === 'absent'
+        const isFusen = m?.kimarite === 'fusen'
+        const noResult = !m || !RESULTS_WIN.concat(RESULTS_LOSS, ['absent']).includes(m.result)
+        const isToday = m?.day === currentDay
         return (
           <span key={idx} style={{
-            width:13,height:13,borderRadius:'50%',
-            background: isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : m.result==='absent' ? '#888' : 'transparent',
-            border: '1.5px solid var(--ink)',
+            width:11,height:11,borderRadius:'50%',
+            background: noResult ? 'transparent' : isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : isAbsent ? '#888' : 'transparent',
+            border: noResult ? '1px dashed var(--light)' : '1.5px solid var(--ink)',
             boxSizing:'border-box',
             display:'inline-block',flexShrink:0,
             opacity: isFusen ? 0.5 : 1,
@@ -52,17 +55,8 @@ function MatchDots({ record, currentDay }) {
           }} />
         )
       })}
-      {Array.from({length: Math.max(0, 15 - record.length)}).map((_, idx) => (
-        <span key={`e-${idx}`} style={{
-          width:13,height:13,borderRadius:'50%',
-          background:'transparent',
-          border:'1px dashed var(--light)',
-          boxSizing:'border-box',
-          display:'inline-block',flexShrink:0,
-        }} />
-      ))}
       <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
-        {record.filter(m => RESULTS_PLAYED.includes(m.result)).length}/15
+        {record.filter(m => RESULTS_WIN.concat(RESULTS_LOSS).includes(m.result)).length}/15
       </span>
     </div>
   )
