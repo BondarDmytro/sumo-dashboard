@@ -4,6 +4,7 @@ import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
 import TournamentTabsWrapper from './components/TournamentTabsWrapper'
 import RikishiCard from './components/RikishiCard'
+import YushoWinner from './components/YushoWinner'
 
 export const revalidate = 60
 
@@ -84,7 +85,6 @@ async function getBashoData() {
 
   const maxWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
 
-  // Оновлюємо статуси на основі реального maxWins
   normalized.forEach(r => {
     if (r.kyujo) { r.status = 'kyujo'; return }
     if (r.wins === maxWins) r.status = 'lead'
@@ -115,7 +115,29 @@ async function getBashoData() {
     })
   })
 
-  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h }
+  // Визначення переможця після завершення
+  const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
+    r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
+  )
+  const isFinished = currentDay >= 15 && allPlayed
+
+  let winner = null
+  let playoff = null
+
+  if (isFinished) {
+    const topWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
+    const tied = normalized.filter(r => r.wins === topWins && !r.kyujo)
+    winner = tied.sort((a, b) => (a.rankValue || 999) - (b.rankValue || 999))[0] || null
+
+    if (winner && tied.length > 1) {
+      const playoffMatch = winner.record.find(m => m.day >= 16)
+      if (playoffMatch) {
+        playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
+      }
+    }
+  }
+
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished }
 }
 
 function getRankShort(rank) {
@@ -132,7 +154,7 @@ function getRankShort(rank) {
 }
 
 export default async function Home() {
-  const { rikishi, leaders, chasers, currentDay, maxWins, h2h } = await getBashoData()
+  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
   const hasPlayoff = currentDay >= 15 && leaders.length > 1
@@ -146,7 +168,15 @@ export default async function Home() {
         daysLeft={15 - currentDay}
         contendersCount={contenders.length}
         hasPlayoff={hasPlayoff}
+        isFinished={isFinished}
       />
+
+      {isFinished && winner && (
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
+          <YushoWinner winner={winner} playoff={playoff} bashoLabel="Натсу Басьо 2026" bashoLabelEn="Natsu Basho 2026" />
+        </div>
+      )}
+
       <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
         <TournamentStatus
           leaders={leaders}
@@ -155,11 +185,13 @@ export default async function Home() {
           maxWins={maxWins}
           kyujoCount={kyujo.length}
           contendersCount={contenders.length}
+          isFinished={isFinished}
         />
         <TournamentTabsWrapper
           contenders={contenders}
           currentDay={currentDay}
           allRikishi={rikishi}
+          isFinished={isFinished}
         />
         <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
         <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />

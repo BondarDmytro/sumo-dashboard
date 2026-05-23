@@ -4,16 +4,17 @@ import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff }) {
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished }) {
   const { lang } = useLang()
   const router = useRouter()
 
   useEffect(() => {
+    if (isFinished) return
     const interval = setInterval(() => {
       router.refresh()
     }, 60000)
     return () => clearInterval(interval)
-  }, [router])
+  }, [router, isFinished])
 
   return (
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
@@ -29,20 +30,29 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
           </span>
         </h1>
         <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'0.85rem',color:'#b8c7c8'}}>
-          <span>
-            <b style={{color:'#f5f0e8'}}>{lang === 'en' ? 'Day' : 'День'} {currentDay}</b> {lang === 'en' ? 'of 15' : 'з 15'}
-          </span>
-          <span>
-            <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {lang === 'en' ? 'days remaining' : 'днів залишилось'}
-          </span>
-          <span>
-            <b style={{color:'#f5f0e8'}}>{contendersCount}</b> {lang === 'en' ? 'contenders' : 'претендентів'}
-          </span>
-          {hasPlayoff && (
-            <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'2px 10px',borderRadius:2}}>
-              <span>⚡</span>
-              <b style={{color:'#b8860b'}}>{lang === 'en' ? 'Possible playoff!' : 'Можливий плей-оф!'}</b>
+          {isFinished ? (
+            <span style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'4px 14px',borderRadius:2}}>
+              <span>🏆</span>
+              <b style={{color:'#b8860b'}}>{lang === 'en' ? 'Tournament finished' : 'Турнір завершено'}</b>
             </span>
+          ) : (
+            <>
+              <span>
+                <b style={{color:'#f5f0e8'}}>{lang === 'en' ? 'Day' : 'День'} {currentDay}</b> {lang === 'en' ? 'of 15' : 'з 15'}
+              </span>
+              <span>
+                <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {lang === 'en' ? 'days remaining' : 'днів залишилось'}
+              </span>
+              <span>
+                <b style={{color:'#f5f0e8'}}>{contendersCount}</b> {lang === 'en' ? 'contenders' : 'претендентів'}
+              </span>
+              {hasPlayoff && (
+                <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'2px 10px',borderRadius:2}}>
+                  <span>⚡</span>
+                  <b style={{color:'#b8860b'}}>{lang === 'en' ? 'Possible playoff!' : 'Можливий плей-оф!'}</b>
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>

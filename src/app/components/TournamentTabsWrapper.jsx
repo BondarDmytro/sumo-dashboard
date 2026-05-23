@@ -6,7 +6,7 @@ import TournamentTable from './TournamentTable'
 import TorikumiView from './TorikumiView'
 import { useBios } from './BiosProvider'
 
-export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [] }) {
+export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false }) {
   const [tab, setTab] = useState('standings')
   const { lang } = useLang()
   const bios = useBios()
@@ -14,7 +14,10 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
 
   const tabs = [
     { id: 'standings', label: lang === 'en' ? 'Standings' : 'Таблиця' },
-    { id: 'torikumi', label: lang === 'en' ? `Day ${nextDay} schedule` : `Розклад дня ${nextDay}` },
+    ...(!isFinished && nextDay <= 15 ? [{
+      id: 'torikumi',
+      label: lang === 'en' ? `Day ${nextDay} schedule` : `Розклад дня ${nextDay}`
+    }] : []),
   ]
 
   return (
