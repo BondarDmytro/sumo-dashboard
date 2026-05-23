@@ -65,13 +65,21 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
   const isSanyaku = (rank) =>
     ['Yokozuna','Ozeki','Sekiwake','Komusubi'].some(r => rank?.includes(r))
 
-  const sanyaku = matches
+const getSanyakuRank = (m) => {
+    const e = getRankValue(m.eastRank)
+    const w = getRankValue(m.westRank)
+    if (isSanyaku(m.eastRank) && isSanyaku(m.westRank)) return Math.min(e, w)
+    if (isSanyaku(m.eastRank)) return e
+    return w
+  }
+
+const sanyaku = matches
     .filter(m => isSanyaku(m.eastRank) || isSanyaku(m.westRank))
-    .sort((a, b) => getRankValue(a.eastRank) - getRankValue(b.eastRank))
+    .sort((a, b) => b.matchNo - a.matchNo)
 
   const maegashira = matches
     .filter(m => !isSanyaku(m.eastRank) && !isSanyaku(m.westRank))
-    .sort((a, b) => getRankValue(a.eastRank) - getRankValue(b.eastRank))
+    .sort((a, b) => b.matchNo - a.matchNo)
 
   const renderMatch = (m) => {
     const eastFlag = bios[m.eastId]?.country?.flag || '🇯🇵'
