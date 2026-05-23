@@ -1,9 +1,19 @@
 'use client'
 
 import { useLang } from './LangProvider'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff }) {
   const { lang } = useLang()
+  const router = useRouter()
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [router])
 
   return (
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
