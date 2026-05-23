@@ -221,7 +221,7 @@ export default async function Home() {
        <TournamentTabsWrapper
           contenders={contenders}
           currentDay={currentDay}
-          h2h={h2h}
+          allRikishi={rikishi}
         />
         
 
