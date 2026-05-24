@@ -155,28 +155,55 @@ async function getBashoData() {
     })
   })
 
+  // Визначення переможця після завершення
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
-  const isFinished = currentDay >= 15 && allPlayed
+
+  const topWinsCheck = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
+  const tiedCheck = normalized.filter(r => r.wins === topWinsCheck && !r.kyujo)
+  const needsPlayoff = tiedCheck.length > 1
+  const playoffPlayed = needsPlayoff && tiedCheck.some(r =>
+    r.record.some(m => m.day >= 16 && RESULTS_PLAYED.includes(m.result))
+  )
+
+  const isFinished = currentDay >= 15 && allPlayed && (!needsPlayoff || playoffPlayed)
 
   let winner = null
   let playoff = null
 
   if (isFinished) {
-    const topWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
-    const tied = normalized.filter(r => r.wins === topWins && !r.kyujo)
-    winner = tied.sort((a, b) => (a.rankValue || 999) - (b.rankValue || 999))[0] || null
+    // Якщо був плей-оф — шукаємо переможця по матчу дня 16+
+    if (needsPlayoff && playoffPlayed) {
+      for (const r of tiedCheck) {
+        const playoffMatch = r.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
+        if (playoffMatch) {
+          winner = r
+          playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
+          break
+        }
+      }
+    } else {
+      winner = tiedCheck[0] || null
+    }
+  }
 
-    if (winner && tied.length > 1) {
-      const playoffMatch = winner.record.find(m => m.day >= 16)
-      if (playoffMatch) {
-        playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
+  // Якщо є офіційний переможець в API — використовуємо його
+  const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
+  if (officialWinner && allPlayed) {
+    const officialR = normalized.find(r => String(r._id) === String(officialWinner.rikishiId))
+    if (officialR) {
+      winner = officialR
+      const isFinishedOfficial = currentDay >= 15 && allPlayed
+      if (isFinishedOfficial && !isFinished) {
+        // API вже знає переможця — турнір завершено
       }
     }
   }
 
-  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, specialPrizes, yushoData }
+  const isFinishedFinal = currentDay >= 15 && allPlayed && (officialWinner ? true : (!needsPlayoff || playoffPlayed))
+
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished: isFinishedFinal, specialPrizes, yushoData }
 }
 
 function getRankShort(rank) {
@@ -196,7 +223,7 @@ export default async function Home() {
   const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, specialPrizes, yushoData } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
-  const hasPlayoff = currentDay >= 15 && leaders.length > 1
+  const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
   const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)
 
