@@ -155,7 +155,6 @@ async function getBashoData() {
     })
   })
 
-  // Визначення переможця
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
@@ -167,7 +166,6 @@ async function getBashoData() {
     r.record.some(m => m.day >= 16 && RESULTS_PLAYED.includes(m.result))
   )
 
-  // Використовуємо офіційний результат API якщо є
   const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
   const isFinished = currentDay >= 15 && allPlayed && (officialWinner || !needsPlayoff || playoffPlayed)
 
@@ -177,7 +175,6 @@ async function getBashoData() {
   if (isFinished) {
     if (officialWinner) {
       winner = normalized.find(r => String(r._id) === String(officialWinner.rikishiId)) || null
-      // Шукаємо плей-оф матч
       if (winner && needsPlayoff) {
         const playoffMatch = winner.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
         if (playoffMatch) {
@@ -232,13 +229,13 @@ export default async function Home() {
         isFinished={isFinished}
       />
 
-      {/* Банер плей-офу — поки не зіграний */}
+      {/* Банер плей-офу */}
       {!isFinished && hasPlayoff && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <div style={{background:'var(--bg2)',border:'2px solid #b8860b',borderRadius:4,padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',right:'1rem',top:'50%',transform:'translateY(-50%)',fontSize:'5rem',opacity:0.08,pointerEvents:'none'}}>⚡</div>
             <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b',marginBottom:'0.75rem'}}>
-              ⚡ {leaders.length > 1 ? 'Плей-оф — визначення переможця юшо' : ''}
+              Плей-оф — визначення переможця юшо
             </div>
             <div style={{display:'flex',alignItems:'center',gap:'1.5rem',flexWrap:'wrap'}}>
               {leaders.map((r, i) => (
@@ -261,7 +258,7 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Банер переможця — після завершення */}
+      {/* Банер переможця */}
       {isFinished && winner && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <YushoWinner winner={winner} playoff={playoff} bashoLabel="Натсу Басьо 2026" bashoLabelEn="Natsu Basho 2026" />
@@ -276,7 +273,7 @@ export default async function Home() {
           maxWins={maxWins}
           kyujoCount={kyujo.length}
           contendersCount={contenders.length}
-          isFinished={isFinished}
+          isFinished={isFinished || hasPlayoff}
         />
         <TournamentTabsWrapper
           contenders={contenders}
