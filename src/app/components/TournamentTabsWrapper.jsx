@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { useLang } from './LangProvider'
 import TournamentTable from './TournamentTable'
 import TorikumiView from './TorikumiView'
+import PrizeMoney from './PrizeMoney'
 import { useBios } from './BiosProvider'
 
-export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false }) {
+export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
   const [tab, setTab] = useState('standings')
   const { lang } = useLang()
   const bios = useBios()
-  const nextDay = currentDay + 1
 
   const tabs = [
     { id: 'standings', label: lang === 'en' ? 'Standings' : 'Таблиця' },
@@ -18,6 +18,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       id: 'torikumi',
       label: lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
     }] : []),
+    { id: 'prizes', label: lang === 'en' ? 'Prize money' : 'Призові' },
   ]
 
   return (
@@ -39,6 +40,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       </div>
       {tab === 'standings' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
       {tab === 'torikumi' && <TorikumiView currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
+      {tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
     </>
   )
 }

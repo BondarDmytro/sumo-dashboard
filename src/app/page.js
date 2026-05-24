@@ -18,15 +18,19 @@ async function getBashoData() {
   const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
-  const [banzukeRes, torikumiRes] = await Promise.all([
+  const [banzukeRes, torikumiRes, bashoInfoRes] = await Promise.all([
     fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', { next: { revalidate: 60 } }),
     fetch(`https://sumo-api.com/api/basho/202605/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
+    fetch('https://sumo-api.com/api/basho/202605', { next: { revalidate: 60 } }),
   ])
+
   const banzuke = await banzukeRes.json()
   const torikumiData = await torikumiRes.json()
+  const bashoInfo = await bashoInfoRes.json()
+  const specialPrizes = bashoInfo.specialPrizes || []
+  const yushoData = bashoInfo.yusho || []
   const todayMatches = torikumiData.torikumi || []
 
-  // Мапа суперників на сьогодні
   const todayOpponent = {}
   todayMatches.forEach(m => {
     todayOpponent[m.eastShikona] = m.westShikona
@@ -79,12 +83,10 @@ async function getBashoData() {
         : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
       const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
 
-      // Форма для дня 15
       const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
       const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
       const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
 
-      // Розклад дня 15
       const todayOppName = todayOpponent[r.name]
       const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
       const oppRankValue = todayOppRikishi?.rankValue || 500
@@ -95,19 +97,15 @@ async function getBashoData() {
 
     if (r.losses >= 5 || maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
 
-    // Поточний рекорд (60%)
     let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
     if (maxWins < 13) base *= 0.6
 
-    // Ранг (15%)
     const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
 
-    // Форма — останні 5 днів (10%)
     const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
     const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
     const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
 
-    // Розклад — суперник сьогодні (15%)
     const todayOppName = todayOpponent[r.name]
     const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
     const oppRankValue = todayOppRikishi?.rankValue || 500
@@ -157,7 +155,6 @@ async function getBashoData() {
     })
   })
 
-  // Визначення переможця після завершення
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
@@ -179,7 +176,7 @@ async function getBashoData() {
     }
   }
 
-  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished }
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, specialPrizes, yushoData }
 }
 
 function getRankShort(rank) {
@@ -196,7 +193,7 @@ function getRankShort(rank) {
 }
 
 export default async function Home() {
-  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished } = await getBashoData()
+  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, specialPrizes, yushoData } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
   const hasPlayoff = currentDay >= 15 && leaders.length > 1
@@ -234,6 +231,8 @@ export default async function Home() {
           currentDay={currentDay}
           allRikishi={rikishi}
           isFinished={isFinished}
+          specialPrizes={specialPrizes}
+          yushoData={yushoData}
         />
         <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
         <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />

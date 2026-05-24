@@ -90,7 +90,8 @@ export default function CompactGrid({ items, isKyujo, currentDay }) {
             })}
           </div>
         </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,color:'var(--mid)'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,
+          color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>
           {r.wins}–{r.losses}
         </div>
       </div>
