@@ -66,38 +66,74 @@ function RikishiDetail({ r, lang }) {
 
   return (
     <div>
+      {/* Верхній блок: фото + ім'я + біо */}
       <div style={{display:'flex',alignItems:'flex-start',gap:'1.5rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
-        <div style={{flex:1,minWidth:200}}>
-          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:6}}>
-            <img
-              src={`/rikishi/${r.id}.jpg`}
-              alt={r.name}
-              width={80}
-              height={80}
-              style={{borderRadius:'50%',objectFit:'cover',flexShrink:0,border:'2px solid var(--border)'}}
-              onError={e=>{e.target.style.display='none'}}
-            />
-            <div>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                <span style={{fontSize:'1.8rem'}}>{r.country?.flag}</span>
-                <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{r.name}</div>
-              </div>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>{r.nameJp}</div>
-            </div>
+
+        {/* Фото — прямокутне */}
+        <img
+          src={`/rikishi/${r.id}.jpg`}
+          alt={r.name}
+          style={{
+            width: 108,
+            height: 189,
+            objectFit: 'cover',
+            objectPosition: 'top',
+            borderRadius: 4,
+            border: '2px solid var(--border)',
+            flexShrink: 0,
+            display: 'block',
+          }}
+          onError={e => { e.target.style.display = 'none' }}
+        />
+
+        {/* Ім'я, ранг, юшо, сансьо */}
+        <div style={{flex:1,minWidth:180,paddingTop:4}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+            <span style={{fontSize:'1.8rem'}}>{r.country?.flag}</span>
+            <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{r.name}</div>
           </div>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:6}}>{r.nameJp}</div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{r.rank}</div>
+
           {r.stats?.yusho > 0 && (
-            <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
-              {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
-                <span key={i} style={{fontSize:'1rem'}}>🏆</span>
-              ))}
-              <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
-                {r.stats.yusho}× {lang === 'en' ? 'yusho' : 'юшо'}
-              </span>
-            </div>
-          )}
+  <div style={{marginBottom:6}}>
+    <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
+      {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
+        <span key={i} style={{fontSize:'1rem'}}>🏆</span>
+      ))}
+      <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
+        {r.stats.yusho}× {lang === 'en' ? 'yusho' : 'юшо'}
+      </span>
+    </div>
+    {/* Розбивка по дивізіонах */}
+    {Object.keys(r.stats.yushoByDivision || {}).length > 0 && (
+      <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+        {Object.entries(r.stats.yushoByDivision)
+          .filter(([, count]) => count > 0)
+          .sort(([a], [b]) => {
+            const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
+            return order.indexOf(a) - order.indexOf(b)
+          })
+          .map(([division, count]) => (
+            <span key={division} style={{
+              fontFamily:'monospace',
+              fontSize:'0.58rem',
+              background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg2)',
+              border: division === 'Makuuchi' ? '1px solid rgba(184,134,11,0.4)' : '1px solid var(--border)',
+              color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
+              padding:'2px 7px',
+              borderRadius:2,
+            }}>
+              {division} ×{count}
+            </span>
+          ))}
+      </div>
+    )}
+  </div>
+)}
+
           {sanshoList.length > 0 && (
-            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:6}}>
+            <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
               {sanshoList.map(([name, count]) => (
                 <span key={name} style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 7px',borderRadius:2,color:'var(--mid)'}}>
                   {name} ×{count}
@@ -107,6 +143,7 @@ function RikishiDetail({ r, lang }) {
           )}
         </div>
 
+        {/* Біо-сітка */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,minWidth:260}}>
           {bioLabels.map((label, idx) => (
             <div key={label} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>
@@ -117,6 +154,7 @@ function RikishiDetail({ r, lang }) {
         </div>
       </div>
 
+      {/* Кар'єрна статистика */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
         {lang === 'en' ? 'Career statistics' : "Кар'єрна статистика"}
       </div>
@@ -145,6 +183,7 @@ function RikishiDetail({ r, lang }) {
         </div>
       </div>
 
+      {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
         {lang === 'en' ? 'Natsu Basho 2026' : 'Натсу Басьо 2026'} — {r.wins}–{r.losses}
       </div>

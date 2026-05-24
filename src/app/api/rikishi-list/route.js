@@ -81,15 +81,16 @@ export async function GET() {
             kimarite: m.kimarite,
           })),
           stats: {
-            totalMatches: stats.totalMatches || 0,
-            totalWins: stats.totalWins || 0,
-            totalLosses: stats.totalLosses || 0,
-            yusho: stats.yusho || 0,
-            makuuchiMatches: stats.totalByDivision?.Makuuchi || 0,
-            makuuchiWins: stats.winsByDivision?.Makuuchi || 0,
-            makuuchiBasho: stats.bashoByDivision?.Makuuchi || 0,
-            sansho: stats.sansho || {},
-          }
+          totalMatches: stats.totalMatches || 0,
+          totalWins: stats.totalWins || 0,
+          totalLosses: stats.totalLosses || 0,
+          yusho: stats.yusho || 0,
+          yushoByDivision: stats.yushoByDivision || {},
+          makuuchiMatches: stats.totalByDivision?.Makuuchi || 0,
+          makuuchiWins: stats.winsByDivision?.Makuuchi || 0,
+          makuuchiBasho: stats.bashoByDivision?.Makuuchi || 0,
+          sansho: stats.sansho || {},
+        }
         }
       })
     )

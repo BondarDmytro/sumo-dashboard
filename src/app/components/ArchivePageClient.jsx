@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
 
 const BASHOS = [
+  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
   { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', location: 'Осака', locationEn: 'Osaka' },
   { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
   { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
@@ -111,7 +112,6 @@ export default function ArchivePageClient() {
                 ? (playoffMatch.westShikona || playoffMatch.westEn || playoffMatch.west)
                 : (playoffMatch.eastShikona || playoffMatch.eastEn || playoffMatch.east)
               playoff = {
-                winner: bashoInfo.yusho.find(y => y.type === 'Makuuchi')?.shikonaEn,
                 loser,
                 kimarite: playoffMatch.kimarite,
               }
@@ -119,7 +119,7 @@ export default function ArchivePageClient() {
           } catch(e) {}
         }
 
-        setData({ rikishi: processed, maxWins, winner, playoff })
+        setData({ rikishi: processed, maxWins, winner, playoff, winnerId: officialWinnerId })
       } catch(e) {
         console.error(e)
       } finally {
@@ -145,6 +145,7 @@ export default function ArchivePageClient() {
           <span style={{color:'#b8860b'}}>{lang === 'en' ? ' — Previous basho' : ' — Попередні басьо'}</span>
         </h1>
 
+        {/* Кнопки вибору басьо */}
         <div style={{display:'flex',gap:8,marginBottom:'2rem',flexWrap:'wrap'}}>
           {BASHOS.map(b => (
             <button key={b.id} onClick={() => setSelectedBasho(b)} style={{
@@ -170,31 +171,97 @@ export default function ArchivePageClient() {
 
         {data && !loading && (
           <>
+            {/* Банер переможця з фото */}
             {data.winner && (
-              <div style={{background:'var(--bg2)',border:'1px solid var(--border)',borderLeft:'4px solid #b8860b',padding:'1rem 1.5rem',marginBottom:'2rem',display:'flex',alignItems:'center',gap:'1rem',flexWrap:'wrap'}}>
-                <div style={{fontSize:'2rem'}}>🏆</div>
-                <div>
-                  <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',letterSpacing:'0.1em',textTransform:'uppercase'}}>
-                    {lang === 'en' ? 'Winner' : 'Переможець'} {lang === 'en' ? selectedBasho.labelEn : selectedBasho.label}
-                  </div>
-                  <div style={{fontWeight:800,fontSize:'1.2rem',marginTop:2}}>
-                    {data.winner.flag} {data.winner.name}
-                  </div>
-                  <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:2}}>
-                    {data.winner.rankFull} · {data.winner.wins}–{data.winner.losses}
-                  </div>
-                  {data.playoff && (
-                    <div style={{marginTop:6,display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.15)',border:'1px solid rgba(184,134,11,0.4)',padding:'3px 10px',borderRadius:2}}>
-                      <span style={{fontSize:'0.75rem'}}>⚡</span>
-                      <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600}}>
-                        {lang === 'en' ? 'Playoff vs' : 'Плей-оф проти'} {data.playoff.loser} · {data.playoff.kimarite}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+  <div style={{
+    background:'var(--bg2)',
+    border:'2px solid #b8860b',
+    borderRadius:4,
+    marginBottom:'2rem',
+    position:'relative',
+    overflow:'hidden',
+    display:'flex',
+    minHeight:260,
+  }}>
+    {/* Фонове тло — трофей */}
+    <div style={{
+      position:'absolute',right:'-0.02em',top:'-0.1em',
+      fontSize:'clamp(4rem,10vw,8rem)',
+      fontWeight:800,opacity:0.08,lineHeight:1,
+      pointerEvents:'none',color:'#b8860b',
+    }}>🏆</div>
 
+    {/* Фото — зліва, на всю висоту */}
+    <img
+      src={`/rikishi/${data.winner.id}.jpg`}
+      alt={data.winner.name}
+      style={{
+        width:180,
+        minHeight:'100%',
+        objectFit:'cover',
+        objectPosition:'top',
+        display:'block',
+        flexShrink:0,
+      }}
+      onError={e=>{e.target.style.display='none'}}
+    />
+
+    {/* Інфо — справа */}
+    <div style={{
+      position:'relative',zIndex:1,
+      flex:1,
+      display:'flex',
+      flexDirection:'column',
+      justifyContent:'center',
+      padding:'1.75rem 2rem',
+      gap:'0.75rem',
+    }}>
+      <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b'}}>
+        {lang === 'en'
+          ? `${selectedBasho.labelEn} — Yusho`
+          : `${selectedBasho.label} — Юшо`}
+      </div>
+
+      <div>
+        <div style={{fontWeight:800,fontSize:'clamp(1.4rem,3vw,2.2rem)',lineHeight:1,color:'var(--ink)'}}>
+          {data.winner.flag} {data.winner.name}
+        </div>
+        <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:6}}>
+          {data.winner.rankFull}
+        </div>
+      </div>
+
+      <div style={{display:'inline-block'}}>
+        <div style={{background:'var(--card)',padding:'0.6rem 1.25rem',borderRadius:2,border:'1px solid var(--border)',display:'inline-block'}}>
+          <div style={{fontFamily:'Georgia,serif',fontSize:'1.8rem',fontWeight:800,color:'#b8860b',lineHeight:1}}>
+            {data.winner.wins}–{data.winner.losses}
+          </div>
+          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>
+            {lang === 'en' ? 'Final record' : 'Фінальний рекорд'}
+          </div>
+        </div>
+      </div>
+
+      {data.playoff && (
+        <div style={{
+          display:'inline-flex',alignItems:'center',gap:8,alignSelf:'flex-start',
+          background:'rgba(184,134,11,0.15)',
+          border:'1px solid rgba(184,134,11,0.4)',
+          padding:'6px 14px',borderRadius:2,
+        }}>
+          <span>⚡</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.68rem',color:'#b8860b',fontWeight:600}}>
+            {lang === 'en'
+              ? `Won in playoff vs ${data.playoff.loser} · ${data.playoff.kimarite}`
+              : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+            {/* Таблиця результатів */}
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
                 <thead>

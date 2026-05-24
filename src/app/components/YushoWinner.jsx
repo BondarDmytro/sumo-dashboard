@@ -16,11 +16,13 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
       background:'var(--bg2)',
       border:'2px solid #b8860b',
       borderRadius:4,
-      padding:'2rem',
       marginBottom:'2rem',
       position:'relative',
       overflow:'hidden',
+      display:'flex',
+      minHeight:260,
     }}>
+      {/* Фонове тло — трофей */}
       <div style={{
         position:'absolute',right:'-0.02em',top:'-0.1em',
         fontSize:'clamp(4rem,10vw,8rem)',
@@ -28,30 +30,46 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
         pointerEvents:'none',color:'#b8860b',
       }}>🏆</div>
 
-      <div style={{position:'relative',zIndex:1}}>
-        <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b',marginBottom:'0.5rem'}}>
+      {/* Фото — зліва, на всю висоту */}
+      <img
+        src={`/rikishi/${winner._id}.jpg`}
+        alt={winner.name}
+        style={{
+          width:180,
+          minHeight:'100%',
+          objectFit:'cover',
+          objectPosition:'top',
+          display:'block',
+          flexShrink:0,
+        }}
+        onError={e=>{e.target.style.display='none'}}
+      />
+
+      {/* Інфо — справа */}
+      <div style={{
+        position:'relative',zIndex:1,
+        flex:1,
+        display:'flex',
+        flexDirection:'column',
+        justifyContent:'center',
+        padding:'1.75rem 2rem',
+        gap:'0.75rem',
+      }}>
+        <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b'}}>
           {lang === 'en' ? `${label} — Yusho` : `${label} — Юшо`}
         </div>
 
-        <div style={{display:'flex',alignItems:'center',gap:'1.5rem',flexWrap:'wrap'}}>
-          <img
-            src={`/rikishi/${winner._id}.jpg`}
-            alt={winner.name}
-            width={100}
-            height={100}
-            style={{borderRadius:'50%',objectFit:'cover',border:'3px solid #b8860b',flexShrink:0}}
-            onError={e=>{e.target.style.display='none'}}
-          />
-          <div style={{flex:1,minWidth:200}}>
-            <h2 style={{fontSize:'clamp(1.5rem,4vw,2.5rem)',fontWeight:800,margin:0,lineHeight:1,color:'var(--ink)'}}>
-              {flag} {winner.name}
-            </h2>
-            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginTop:6}}>
-              {winner.rankFull}
-            </div>
+        <div>
+          <h2 style={{fontSize:'clamp(1.4rem,3vw,2.2rem)',fontWeight:800,margin:0,lineHeight:1,color:'var(--ink)'}}>
+            {flag} {winner.name}
+          </h2>
+          <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginTop:6}}>
+            {winner.rankFull}
           </div>
+        </div>
 
-          <div style={{textAlign:'center',background:'var(--card)',padding:'0.75rem 1.5rem',borderRadius:2,border:'1px solid var(--border)'}}>
+        <div style={{display:'inline-block'}}>
+          <div style={{background:'var(--card)',padding:'0.75rem 1.5rem',borderRadius:2,border:'1px solid var(--border)',display:'inline-block'}}>
             <div style={{fontFamily:'Georgia,serif',fontSize:'2.2rem',fontWeight:800,color:'#b8860b',lineHeight:1}}>
               {winner.wins}–{winner.losses}
             </div>
@@ -63,8 +81,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
 
         {playoff && (
           <div style={{
-            marginTop:'1rem',
-            display:'inline-flex',alignItems:'center',gap:8,
+            display:'inline-flex',alignItems:'center',gap:8,alignSelf:'flex-start',
             background:'rgba(184,134,11,0.15)',
             border:'1px solid rgba(184,134,11,0.4)',
             padding:'6px 14px',borderRadius:2,
