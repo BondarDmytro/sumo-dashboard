@@ -1,9 +1,10 @@
 'use client'
-
 import { useLang } from './LangProvider'
 
-export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount }) {
+export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount, isFinished }) {
   const { lang } = useLang()
+
+  if (isFinished) return null
 
   const stats = [
     {
@@ -17,12 +18,12 @@ export default function TournamentStatus({ leaders, chasers, currentDay, maxWins
       label: lang === 'en' ? 'Chasers' : 'Переслідувачі',
       sub: `${lang === 'en' ? 'record' : 'рекорд'} ${maxWins-1}–${chasers[0]?.losses ?? '?'}`,
     },
-    {
+    ...(15 - currentDay > 0 ? [{
       num: 15 - currentDay,
       label: lang === 'en' ? 'Days remaining' : 'Днів залишилось',
       sub: lang === 'en' ? 'to final' : 'до фіналу',
       color: '#01ddff'
-    },
+    }] : []),
     {
       num: kyujoCount,
       label: lang === 'en' ? 'Kyujo' : 'Кюджо',
