@@ -6,7 +6,7 @@ export async function GET(request) {
 
   try {
     const res = await fetch(
-      `https://sumo-api.com/api/rikishi/${id1}/matches?limit=500`,
+      `https://sumo-api.com/api/rikishi/${id1}/matches?limit=2000`,
       { next: { revalidate: 3600 } }
     )
     const data = await res.json()
