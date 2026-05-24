@@ -25,9 +25,9 @@ export default function TournamentFooter({ contenders, h2h }) {
 
       <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
         {lang === 'en' ? (
-          <><b style={{color:'var(--ink)'}}>Data:</b> sumo-api.com · updated every 5 minutes · <b style={{color:'var(--ink)'}}>Methodology:</b> current record (60%), rank (15%), schedule (15%), form (10%). Fusen (✦) — win by opponent withdrawal. Not a bet.</>
+          <><b style={{color:'var(--ink)'}}>Data:</b> sumo-api.com · updates every 60 seconds · <b style={{color:'var(--ink)'}}>Methodology:</b> current record (60%), rank (15%), remaining schedule difficulty (15%), recent form last 5 days (10%). Fusen (✦) — win by opponent withdrawal. Not a bet.</>
         ) : (
-          <><b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 5 хвилин · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), розклад (15%), форма (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.</>
+          <><b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 60 секунд · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), складність розкладу (15%), форма останніх 5 днів (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.</>
         )}
       </div>
     </>

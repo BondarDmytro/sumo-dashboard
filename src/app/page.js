@@ -73,10 +73,38 @@ async function getBashoData() {
     }
 
     if (r.losses >= 5 || maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
+
+    // Поточний рекорд (60%)
     let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
-    const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
     if (maxWins < 13) base *= 0.6
-    return { ...r, yushoChance: Math.round(base * rankBonus * 10) / 10, chanceDelta: 0 }
+
+    // Ранг (15%)
+    const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
+
+    // Форма — останні 5 днів (10%)
+    const recentMatches = r.record
+      .filter(m => RESULTS_PLAYED.includes(m.result))
+      .slice(-5)
+    const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
+    const formBonus = recentMatches.length > 0
+      ? 0.9 + (recentWins / recentMatches.length) * 0.2
+      : 1.0
+
+    // Розклад — середній ранг суперників що залишились (15%)
+    const playedOpponents = new Set(r.record.filter(m => RESULTS_PLAYED.includes(m.result)).map(m => m.opponent))
+    const remainingOpponents = processed.filter(x =>
+      x.name !== r.name &&
+      !x.kyujo &&
+      !playedOpponents.has(x.name)
+    )
+    const avgOpponentRank = remainingOpponents.length > 0
+      ? remainingOpponents.reduce((s, x) => s + (x.rankValue || 999), 0) / remainingOpponents.length
+      : 500
+    // Важкіші суперники = менший бонус, легші = більший
+    const scheduleBonus = avgOpponentRank <= 200 ? 0.9 : avgOpponentRank <= 400 ? 1.0 : 1.1
+
+    const finalChance = base * rankBonus * formBonus * scheduleBonus
+    return { ...r, yushoChance: Math.round(finalChance * 10) / 10, chanceDelta: 0 }
   })
 
   const total = withChances.reduce((s, r) => s + r.yushoChance, 0)

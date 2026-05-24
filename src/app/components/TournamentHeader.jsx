@@ -40,9 +40,11 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
               <span>
                 <b style={{color:'#f5f0e8'}}>{lang === 'en' ? 'Day' : 'День'} {currentDay}</b> {lang === 'en' ? 'of 15' : 'з 15'}
               </span>
-              <span>
-                <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {lang === 'en' ? 'days remaining' : 'днів залишилось'}
-              </span>
+              {daysLeft > 0 && (
+                <span>
+                  <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {lang === 'en' ? 'days remaining' : 'днів залишилось'}
+                </span>
+              )}
               <span>
                 <b style={{color:'#f5f0e8'}}>{contendersCount}</b> {lang === 'en' ? 'contenders' : 'претендентів'}
               </span>
