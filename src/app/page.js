@@ -61,6 +61,10 @@ async function getBashoData() {
       const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
       const leaders = processed.filter(x => x.wins === maxW && !x.kyujo)
       const hasPlayoff = leaders.length > 1
+      const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
+      const remaining = 15 - played
+      const myMax = r.wins + remaining
+      if (myMax < maxW) return { ...r, yushoChance: 0, chanceDelta: 0 }
       const base = r.wins === maxW
         ? (hasPlayoff ? 90 / leaders.length : 90)
         : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
