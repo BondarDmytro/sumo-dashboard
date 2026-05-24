@@ -119,7 +119,7 @@ async function getBashoData() {
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
-  const isFinished = currentDay >= 15 && allPlayed
+  const isFinished = currentDay > 15 && allPlayed
 
   let winner = null
   let playoff = null

@@ -14,9 +14,9 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
 
   const tabs = [
     { id: 'standings', label: lang === 'en' ? 'Standings' : 'Таблиця' },
-    ...(!isFinished && nextDay <= 15 ? [{
+    ...(!isFinished && currentDay <= 15 ? [{
       id: 'torikumi',
-      label: lang === 'en' ? `Day ${nextDay} schedule` : `Розклад дня ${nextDay}`
+      label: lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
     }] : []),
   ]
 

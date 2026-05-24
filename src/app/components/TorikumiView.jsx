@@ -18,7 +18,7 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
   const [matches, setMatches] = useState([])
   const [h2hData, setH2hData] = useState({})
   const [loading, setLoading] = useState(true)
-  const nextDay = currentDay + 1
+  const nextDay = currentDay
 
   useEffect(() => {
     if (nextDay > 15) { setLoading(false); return }

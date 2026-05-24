@@ -68,11 +68,21 @@ function RikishiDetail({ r, lang }) {
     <div>
       <div style={{display:'flex',alignItems:'flex-start',gap:'1.5rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
         <div style={{flex:1,minWidth:200}}>
-          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
-            <span style={{fontSize:'2.2rem'}}>{r.country?.flag}</span>
+          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:6}}>
+            <img
+              src={`/rikishi/${r.id}.jpg`}
+              alt={r.name}
+              width={80}
+              height={80}
+              style={{borderRadius:'50%',objectFit:'cover',flexShrink:0,border:'2px solid var(--border)'}}
+              onError={e=>{e.target.style.display='none'}}
+            />
             <div>
-              <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{r.name}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginTop:3}}>{r.nameJp}</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:'1.8rem'}}>{r.country?.flag}</span>
+                <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{r.name}</div>
+              </div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>{r.nameJp}</div>
             </div>
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{r.rank}</div>
