@@ -34,6 +34,14 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
         </div>
 
         <div style={{display:'flex',alignItems:'center',gap:'1.5rem',flexWrap:'wrap'}}>
+          <img
+            src={`/rikishi/${winner._id}.jpg`}
+            alt={winner.name}
+            width={100}
+            height={100}
+            style={{borderRadius:'50%',objectFit:'cover',border:'3px solid #b8860b',flexShrink:0}}
+            onError={e=>{e.target.style.display='none'}}
+          />
           <div style={{flex:1,minWidth:200}}>
             <h2 style={{fontSize:'clamp(1.5rem,4vw,2.5rem)',fontWeight:800,margin:0,lineHeight:1,color:'var(--ink)'}}>
               {flag} {winner.name}
