@@ -155,7 +155,7 @@ async function getBashoData() {
     })
   })
 
-  // Визначення переможця після завершення
+  // Визначення переможця
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
@@ -167,14 +167,24 @@ async function getBashoData() {
     r.record.some(m => m.day >= 16 && RESULTS_PLAYED.includes(m.result))
   )
 
-  const isFinished = currentDay >= 15 && allPlayed && (!needsPlayoff || playoffPlayed)
+  // Використовуємо офіційний результат API якщо є
+  const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
+  const isFinished = currentDay >= 15 && allPlayed && (officialWinner || !needsPlayoff || playoffPlayed)
 
   let winner = null
   let playoff = null
 
   if (isFinished) {
-    // Якщо був плей-оф — шукаємо переможця по матчу дня 16+
-    if (needsPlayoff && playoffPlayed) {
+    if (officialWinner) {
+      winner = normalized.find(r => String(r._id) === String(officialWinner.rikishiId)) || null
+      // Шукаємо плей-оф матч
+      if (winner && needsPlayoff) {
+        const playoffMatch = winner.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
+        if (playoffMatch) {
+          playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
+        }
+      }
+    } else if (needsPlayoff && playoffPlayed) {
       for (const r of tiedCheck) {
         const playoffMatch = r.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
         if (playoffMatch) {
@@ -188,22 +198,7 @@ async function getBashoData() {
     }
   }
 
-  // Якщо є офіційний переможець в API — використовуємо його
-  const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
-  if (officialWinner && allPlayed) {
-    const officialR = normalized.find(r => String(r._id) === String(officialWinner.rikishiId))
-    if (officialR) {
-      winner = officialR
-      const isFinishedOfficial = currentDay >= 15 && allPlayed
-      if (isFinishedOfficial && !isFinished) {
-        // API вже знає переможця — турнір завершено
-      }
-    }
-  }
-
-  const isFinishedFinal = currentDay >= 15 && allPlayed && (officialWinner ? true : (!needsPlayoff || playoffPlayed))
-
-  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished: isFinishedFinal, specialPrizes, yushoData }
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, needsPlayoff, specialPrizes, yushoData }
 }
 
 function getRankShort(rank) {
@@ -220,7 +215,7 @@ function getRankShort(rank) {
 }
 
 export default async function Home() {
-  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, specialPrizes, yushoData } = await getBashoData()
+  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, needsPlayoff, specialPrizes, yushoData } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
@@ -237,6 +232,36 @@ export default async function Home() {
         isFinished={isFinished}
       />
 
+      {/* Банер плей-офу — поки не зіграний */}
+      {!isFinished && hasPlayoff && (
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
+          <div style={{background:'var(--bg2)',border:'2px solid #b8860b',borderRadius:4,padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',right:'1rem',top:'50%',transform:'translateY(-50%)',fontSize:'5rem',opacity:0.08,pointerEvents:'none'}}>⚡</div>
+            <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b',marginBottom:'0.75rem'}}>
+              ⚡ {leaders.length > 1 ? 'Плей-оф — визначення переможця юшо' : ''}
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:'1.5rem',flexWrap:'wrap'}}>
+              {leaders.map((r, i) => (
+                <div key={r._id} style={{display:'flex',alignItems:'center',gap:'1rem'}}>
+                  {i > 0 && (
+                    <span style={{fontFamily:'Georgia,serif',fontSize:'1.8rem',color:'#b8860b',fontWeight:800}}>vs</span>
+                  )}
+                  <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'0.75rem 1.25rem',borderRadius:2,textAlign:'center',minWidth:120}}>
+                    <div style={{fontWeight:800,fontSize:'1rem'}}>{r.name}</div>
+                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:2}}>{r.rankFull}</div>
+                    <div style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,color:'#b8860b',marginTop:6}}>{r.wins}–{r.losses}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:'0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>
+              Очікується додатковий бій для визначення переможця
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Банер переможця — після завершення */}
       {isFinished && winner && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <YushoWinner winner={winner} playoff={playoff} bashoLabel="Натсу Басьо 2026" bashoLabelEn="Natsu Basho 2026" />
