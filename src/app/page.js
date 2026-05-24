@@ -13,16 +13,27 @@ const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 async function getBashoData() {
-  const res = await fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', {
-    next: { revalidate: 60 }
-  })
-  const banzuke = await res.json()
-  const all = [...(banzuke.east || []), ...(banzuke.west || [])]
-
   const bashoStart = new Date('2026-05-10')
   const today = new Date()
   const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
+
+  const [banzukeRes, torikumiRes] = await Promise.all([
+    fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/202605/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
+  ])
+  const banzuke = await banzukeRes.json()
+  const torikumiData = await torikumiRes.json()
+  const todayMatches = torikumiData.torikumi || []
+
+  // Мапа суперників на сьогодні
+  const todayOpponent = {}
+  todayMatches.forEach(m => {
+    todayOpponent[m.eastShikona] = m.westShikona
+    todayOpponent[m.westShikona] = m.eastShikona
+  })
+
+  const all = [...(banzuke.east || []), ...(banzuke.west || [])]
 
   const processed = all.map(r => {
     const record = r.record || []
@@ -61,15 +72,25 @@ async function getBashoData() {
       const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
       const leaders = processed.filter(x => x.wins === maxW && !x.kyujo)
       const hasPlayoff = leaders.length > 1
-      const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
-      const remaining = 15 - played
       const myMax = r.wins + remaining
       if (myMax < maxW) return { ...r, yushoChance: 0, chanceDelta: 0 }
       const base = r.wins === maxW
         ? (hasPlayoff ? 90 / leaders.length : 90)
         : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
       const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
-      return { ...r, yushoChance: Math.round(base * rankBonus * 10) / 10, chanceDelta: 0 }
+
+      // Форма для дня 15
+      const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
+      const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
+      const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
+
+      // Розклад дня 15
+      const todayOppName = todayOpponent[r.name]
+      const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
+      const oppRankValue = todayOppRikishi?.rankValue || 500
+      const scheduleBonus = oppRankValue <= 200 ? 0.85 : oppRankValue <= 400 ? 1.0 : 1.15
+
+      return { ...r, yushoChance: Math.round(base * rankBonus * formBonus * scheduleBonus * 10) / 10, chanceDelta: 0 }
     }
 
     if (r.losses >= 5 || maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
@@ -82,26 +103,15 @@ async function getBashoData() {
     const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
 
     // Форма — останні 5 днів (10%)
-    const recentMatches = r.record
-      .filter(m => RESULTS_PLAYED.includes(m.result))
-      .slice(-5)
+    const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
     const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
-    const formBonus = recentMatches.length > 0
-      ? 0.9 + (recentWins / recentMatches.length) * 0.2
-      : 1.0
+    const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
 
-    // Розклад — середній ранг суперників що залишились (15%)
-    const playedOpponents = new Set(r.record.filter(m => RESULTS_PLAYED.includes(m.result)).map(m => m.opponent))
-    const remainingOpponents = processed.filter(x =>
-      x.name !== r.name &&
-      !x.kyujo &&
-      !playedOpponents.has(x.name)
-    )
-    const avgOpponentRank = remainingOpponents.length > 0
-      ? remainingOpponents.reduce((s, x) => s + (x.rankValue || 999), 0) / remainingOpponents.length
-      : 500
-    // Важкіші суперники = менший бонус, легші = більший
-    const scheduleBonus = avgOpponentRank <= 200 ? 0.9 : avgOpponentRank <= 400 ? 1.0 : 1.1
+    // Розклад — суперник сьогодні (15%)
+    const todayOppName = todayOpponent[r.name]
+    const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
+    const oppRankValue = todayOppRikishi?.rankValue || 500
+    const scheduleBonus = oppRankValue <= 200 ? 0.85 : oppRankValue <= 400 ? 1.0 : 1.15
 
     const finalChance = base * rankBonus * formBonus * scheduleBonus
     return { ...r, yushoChance: Math.round(finalChance * 10) / 10, chanceDelta: 0 }
@@ -151,7 +161,7 @@ async function getBashoData() {
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
   )
-  const isFinished = currentDay > 15 && allPlayed
+  const isFinished = currentDay >= 15 && allPlayed
 
   let winner = null
   let playoff = null
