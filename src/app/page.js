@@ -82,35 +82,27 @@ async function getBashoData() {
         ? (hasPlayoff ? 90 / leaders.length : 90)
         : r.wins >= maxW - 1 ? 30 : r.wins >= maxW - 2 ? 5 : 0
       const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
-
       const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
       const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
       const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
-
       const todayOppName = todayOpponent[r.name]
       const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
       const oppRankValue = todayOppRikishi?.rankValue || 500
       const scheduleBonus = oppRankValue <= 200 ? 0.85 : oppRankValue <= 400 ? 1.0 : 1.15
-
       return { ...r, yushoChance: Math.round(base * rankBonus * formBonus * scheduleBonus * 10) / 10, chanceDelta: 0 }
     }
 
     if (r.losses >= 5 || maxWins < 11) return { ...r, yushoChance: 0, chanceDelta: 0 }
-
     let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
     if (maxWins < 13) base *= 0.6
-
     const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0
-
     const recentMatches = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).slice(-5)
     const recentWins = recentMatches.filter(m => RESULTS_WIN.includes(m.result)).length
     const formBonus = recentMatches.length > 0 ? 0.9 + (recentWins / recentMatches.length) * 0.2 : 1.0
-
     const todayOppName = todayOpponent[r.name]
     const todayOppRikishi = todayOppName ? processed.find(x => x.name === todayOppName) : null
     const oppRankValue = todayOppRikishi?.rankValue || 500
     const scheduleBonus = oppRankValue <= 200 ? 0.85 : oppRankValue <= 400 ? 1.0 : 1.15
-
     const finalChance = base * rankBonus * formBonus * scheduleBonus
     return { ...r, yushoChance: Math.round(finalChance * 10) / 10, chanceDelta: 0 }
   })
@@ -162,18 +154,40 @@ async function getBashoData() {
   const topWinsCheck = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
   const tiedCheck = normalized.filter(r => r.wins === topWinsCheck && !r.kyujo)
   const needsPlayoff = tiedCheck.length > 1
-  const playoffPlayed = needsPlayoff && tiedCheck.some(r =>
-    r.record.some(m => m.day >= 16 && RESULTS_PLAYED.includes(m.result))
-  )
 
-  const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
-  const isFinished = currentDay >= 15 && allPlayed && (officialWinner || !needsPlayoff || playoffPlayed)
-
-  let winner = null
+  let playoffWinner = null
   let playoff = null
 
+  if (allPlayed && needsPlayoff) {
+    try {
+      const playoffRes = await fetch(
+        `https://sumo-api.com/api/rikishi/${tiedCheck[0]._id}/matches?limit=20`,
+        { next: { revalidate: 60 } }
+      )
+      const playoffData = await playoffRes.json()
+      const playoffMatch = playoffData.records?.find(m =>
+        m.bashoId === '202605' && m.day >= 16
+      )
+      if (playoffMatch) {
+        playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null
+        const loserName = playoffMatch.winnerId === playoffMatch.eastId
+          ? playoffMatch.westShikona
+          : playoffMatch.eastShikona
+        playoff = { loser: loserName, kimarite: playoffMatch.kimarite }
+      }
+    } catch(e) {}
+  }
+
+  const officialWinner = yushoData.find(y => y.type === 'Makuuchi')
+  const isFinished = currentDay >= 15 && allPlayed && (
+    officialWinner || playoffWinner || !needsPlayoff
+  )
+
+  let winner = null
   if (isFinished) {
-    if (officialWinner) {
+    if (playoffWinner) {
+      winner = playoffWinner
+    } else if (officialWinner) {
       winner = normalized.find(r => String(r._id) === String(officialWinner.rikishiId)) || null
       if (winner && needsPlayoff) {
         const playoffMatch = winner.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
@@ -181,21 +195,14 @@ async function getBashoData() {
           playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
         }
       }
-    } else if (needsPlayoff && playoffPlayed) {
-      for (const r of tiedCheck) {
-        const playoffMatch = r.record.find(m => m.day >= 16 && RESULTS_WIN.includes(m.result))
-        if (playoffMatch) {
-          winner = r
-          playoff = { loser: playoffMatch.opponent, kimarite: playoffMatch.kimarite }
-          break
-        }
-      }
     } else {
       winner = tiedCheck[0] || null
     }
   }
 
-  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, needsPlayoff, specialPrizes, yushoData }
+  const showPlayoffBanner = allPlayed && needsPlayoff && !isFinished
+
+  return { rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData }
 }
 
 function getRankShort(rank) {
@@ -212,7 +219,7 @@ function getRankShort(rank) {
 }
 
 export default async function Home() {
-  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, needsPlayoff, specialPrizes, yushoData } = await getBashoData()
+  const { rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
@@ -229,8 +236,7 @@ export default async function Home() {
         isFinished={isFinished}
       />
 
-      {/* Банер плей-офу */}
-      {!isFinished && hasPlayoff && (
+      {showPlayoffBanner && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <div style={{background:'var(--bg2)',border:'2px solid #b8860b',borderRadius:4,padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',right:'1rem',top:'50%',transform:'translateY(-50%)',fontSize:'5rem',opacity:0.08,pointerEvents:'none'}}>⚡</div>
@@ -258,7 +264,6 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Банер переможця */}
       {isFinished && winner && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <YushoWinner winner={winner} playoff={playoff} bashoLabel="Натсу Басьо 2026" bashoLabelEn="Natsu Basho 2026" />
@@ -273,7 +278,7 @@ export default async function Home() {
           maxWins={maxWins}
           kyujoCount={kyujo.length}
           contendersCount={contenders.length}
-          isFinished={isFinished || hasPlayoff}
+          isFinished={isFinished || showPlayoffBanner}
         />
         <TournamentTabsWrapper
           contenders={contenders}
