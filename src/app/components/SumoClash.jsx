@@ -230,121 +230,18 @@ function playSound(ctx,type){
 
 // ── Музичні теми ────────────────────────────────────────────
 const MUSIC_THEMES = [
-  {
-    id:'dohyo', label:{uk:'Дохьо',en:'Dohyo'},
-    desc:{uk:'Урочиста медитативна',en:'Ceremonial meditative'},
-    play:(ctx,gain)=>{
-      // Пентатонічна в До мінор — урочиста
-      const notes=[261,311,349,392,466,523,622]
-      let stopped=false;const ids=[]
-      function n(t){
-        if(stopped) return
-        const freq=notes[Math.floor(Math.random()*notes.length)]
-        const o=ctx.createOscillator();const g=ctx.createGain()
-        o.connect(g);g.connect(gain)
-        o.type=Math.random()>0.6?'triangle':'sine'
-        o.frequency.value=freq*(Math.random()>0.7?0.5:1)
-        const now=ctx.currentTime
-        g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(0.08,now+0.15)
-        g.gain.setValueAtTime(0.08,now+t*0.5);g.gain.exponentialRampToValueAtTime(0.001,now+t*0.9)
-        o.start(now);o.stop(now+t)
-        const id=setTimeout(()=>n(1+Math.random()*1.5),t*600)
-        ids.push(id)
-      }
-      for(let i=0;i<4;i++){const id=setTimeout(()=>n(1.2+Math.random()),i*700);ids.push(id)}
-      return()=>{stopped=true;ids.forEach(clearTimeout)}
-    }
-  },
-  {
-    id:'taiko', label:{uk:'Тайко',en:'Taiko'},
-    desc:{uk:'Барабанний ритм',en:'Drum rhythm'},
-    play:(ctx,gain)=>{
-      let stopped=false;const ids=[]
-      const pattern=[0,0.4,0.8,1.2,1.6,2.0,2.4,2.8]
-      const accents=[0,0.8,1.6,2.4]
-      function beat(t){
-        if(stopped) return
-        const isAccent=accents.some(a=>Math.abs(t%3.2-a)<0.01)
-        const buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate)
-        const d=buf.getChannelData(0)
-        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length)*0.5
-        const s=ctx.createBufferSource();s.buffer=buf
-        const g=ctx.createGain();g.gain.value=isAccent?0.35:0.18
-        const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=isAccent?300:200
-        s.connect(f);f.connect(g);g.connect(gain);s.start(ctx.currentTime)
-        // Тон
-        const o=ctx.createOscillator();const gn=ctx.createGain();o.connect(gn);gn.connect(gain)
-        o.frequency.setValueAtTime(isAccent?80:60,ctx.currentTime)
-        o.frequency.exponentialRampToValueAtTime(30,ctx.currentTime+0.12)
-        gn.gain.setValueAtTime(isAccent?0.4:0.2,ctx.currentTime);gn.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15)
-        o.start(ctx.currentTime);o.stop(ctx.currentTime+0.15)
-      }
-      let elapsed=0
-      function tick(){
-        if(stopped) return
-        const interval=0.4
-        beat(elapsed);elapsed+=interval
-        const id=setTimeout(tick,interval*1000*(0.9+Math.random()*0.2))
-        ids.push(id)
-      }
-      tick()
-      return()=>{stopped=true;ids.forEach(clearTimeout)}
-    }
-  },
-  {
-    id:'yokozuna', label:{uk:'Йокодзуна',en:'Yokozuna'},
-    desc:{uk:'Епічна битва',en:'Epic battle'},
-    play:(ctx,gain)=>{
-      const scale=[220,246,261,329,369,440,493,523,659]
-      let stopped=false;const ids=[]
-      let voice=0
-      function melody(v){
-        if(stopped) return
-        const freq=scale[Math.floor(Math.random()*scale.length)]*(v===0?1:v===1?2:0.5)
-        const o=ctx.createOscillator();const g=ctx.createGain()
-        o.connect(g);g.connect(gain)
-        o.type=v===0?'sawtooth':v===1?'triangle':'sine'
-        o.frequency.setValueAtTime(freq,ctx.currentTime)
-        if(v===0) o.frequency.linearRampToValueAtTime(freq*(Math.random()>0.5?1.05:0.95),ctx.currentTime+0.2)
-        const dur=0.5+Math.random()*0.8
-        g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(v===2?0.03:0.06,ctx.currentTime+0.05)
-        g.gain.setValueAtTime(v===2?0.03:0.06,ctx.currentTime+dur*0.6);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur)
-        o.start(ctx.currentTime);o.stop(ctx.currentTime+dur)
-        const id=setTimeout(()=>melody(v),(dur*0.7)*1000*(0.8+Math.random()*0.4))
-        ids.push(id)
-      }
-      for(let i=0;i<3;i++){const id=setTimeout(()=>melody(i),i*300);ids.push(id)}
-      return()=>{stopped=true;ids.forEach(clearTimeout)}
-    }
-  },
-  {
-    id:'shrine', label:{uk:'Святиня',en:'Shrine'},
-    desc:{uk:'Спокійна сакуральна',en:'Peaceful sakura'},
-    play:(ctx,gain)=>{
-      const pentatonic=[261,293,329,392,440,523,587,659,784,880]
-      let stopped=false;const ids=[]
-      function chime(){
-        if(stopped) return
-        const freq=pentatonic[Math.floor(Math.random()*pentatonic.length)]
-        const o=ctx.createOscillator();const g=ctx.createGain()
-        o.connect(g);g.connect(gain)
-        o.type='sine';o.frequency.value=freq
-        const now=ctx.currentTime
-        g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(0.12,now+0.03)
-        g.gain.exponentialRampToValueAtTime(0.001,now+1.5)
-        o.start(now);o.stop(now+1.5)
-        const id=setTimeout(chime,300+Math.random()*1200)
-        ids.push(id)
-      }
-      for(let i=0;i<2;i++){const id=setTimeout(chime,i*400);ids.push(id)}
-      return()=>{stopped=true;ids.forEach(clearTimeout)}
-    }
-  },
+  { id:'dohyo',    label:{uk:'Дохьо',    en:'Dohyo'},    desc:{uk:'Урочиста',    en:'Ceremonial'} },
+  { id:'taiko',    label:{uk:'Тайко',    en:'Taiko'},    desc:{uk:'Барабани',    en:'Drums'} },
+  { id:'yokozuna', label:{uk:'Йокодзуна',en:'Yokozuna'}, desc:{uk:'Епічна битва',en:'Epic battle'} },
+  { id:'shrine',   label:{uk:'Святиня',  en:'Shrine'},   desc:{uk:'Спокійна',   en:'Peaceful'} },
 ]
 
-function startBgMusic(ctx, gain, themeId) {
-  const theme=MUSIC_THEMES.find(t=>t.id===themeId)||MUSIC_THEMES[0]
-  return theme.play(ctx,gain)
+function startBgMusic(themeId) {
+  const audio = new Audio(`/sounds/${themeId}.mp3`)
+  audio.loop = true
+  audio.volume = 0.35
+  audio.play().catch(()=>{})
+  return () => { audio.pause(); audio.currentTime = 0 }
 }
 
 // ── Стилі ───────────────────────────────────────────────────
@@ -899,7 +796,7 @@ export default function SumoClash({onClose,lang='uk'}){
   const t=(uk,en)=>lang==='en'?en:uk
   const audioCtxRef=useRef(null)
   const musicGainRef=useRef(null)
-  const stopMusicRef=useRef(null)
+  const audioRef=useRef(null)
   const [sfxOn,setSfxOn]=useState(true)
   const [musicOn,setMusicOn]=useState(false)
   const [musicTheme,setMusicTheme]=useState('dohyo')
@@ -916,22 +813,27 @@ export default function SumoClash({onClose,lang='uk'}){
   function stopCurrentMusic(){if(stopMusicRef.current){stopMusicRef.current();stopMusicRef.current=null}}
 
   function toggleMusic(){
-    const ctx=ensureCtx()
-    if(musicOn){stopCurrentMusic();if(musicGainRef.current)musicGainRef.current.gain.value=0;setMusicOn(false)}
-    else{if(musicGainRef.current)musicGainRef.current.gain.value=0.2;stopMusicRef.current=startBgMusic(ctx,musicGainRef.current,musicTheme);setMusicOn(true)}
+  if(musicOn){
+    if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;audioRef.current=null}
+    setMusicOn(false)
+  } else {
+    const audio=new Audio(`/sounds/${musicTheme}.mp3`)
+    audio.loop=true;audio.volume=0.35;audio.play().catch(()=>{})
+    audioRef.current=audio;setMusicOn(true)
   }
+}
 
   function changeTheme(themeId){
-    setMusicTheme(themeId)
-    if(musicOn){
-      stopCurrentMusic()
-      const ctx=ensureCtx()
-      if(musicGainRef.current)musicGainRef.current.gain.value=0.2
-      stopMusicRef.current=startBgMusic(ctx,musicGainRef.current,themeId)
-    }
+  setMusicTheme(themeId)
+  if(musicOn){
+    if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0}
+    const audio=new Audio(`/sounds/${themeId}.mp3`)
+    audio.loop=true;audio.volume=0.35;audio.play().catch(()=>{})
+    audioRef.current=audio
   }
+}
 
-  useEffect(()=>()=>{stopCurrentMusic()},[])
+  useEffect(()=>()=>{if(audioRef.current){audioRef.current.pause();audioRef.current=null}},[])
 
   return(
     <>
