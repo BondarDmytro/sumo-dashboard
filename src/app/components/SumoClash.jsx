@@ -540,20 +540,34 @@ function MultiGame({lang,onBack}) {
       setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
       setScreen('draft')
     }
-    if (status==='battle'&&(screen==='draft'||screen==='roundResult')) {
-      setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
-      setPlayerSelected(null)
-      setSubmitting(false)
-      setRoundNum(session.roundNum||0)
-      setScreen('battle')
+        if (status==='battle'&&session.roundNum>roundNum) {
+    setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
+    setPlayerSelected(null)
+    setSubmitting(false)
+    setRoundNum(session.roundNum||0)
+    setScreen('battle')
     }
-    if (status==='roundResult'&&screen==='battle') {
-      setScreen('roundResult')
-    }
+    if (status==='battle'&&screen==='draft') {
+  setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
+  setPlayerSelected(null)
+  setSubmitting(false)
+  setRoundNum(session.roundNum||0)
+  setScreen('battle')
+}
+if (status==='battle'&&screen==='roundResult') {
+  setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
+  setPlayerSelected(null)
+  setSubmitting(false)
+  setRoundNum(session.roundNum||0)
+  setScreen('battle')
+}
+if (status==='roundResult'&&screen==='battle') {
+  setScreen('roundResult')
+}
     if (status==='gameOver'&&screen!=='gameOver') {
       setScreen('gameOver')
     }
-  },[session?.status,session?.roundNum,session?.p2?.joined])
+  },[session?.status,session?.roundNum,session?.p2?.joined,session?.battleTrigger])
 
   async function createSession() {
     const code=generateCode()
@@ -729,10 +743,14 @@ function MultiGame({lang,onBack}) {
           myReady={myReady} oppReady={oppReady} onSubmit={submitCard}
           roundLog={session?.roundLog||[]} phase={screen}
           onNext={async ()=>{
-            if (role==='host') {
-                await update(ref(db,`clash/${sessionId}`),{status:'battle'})
-            }
-            }}
+  if (role==='host') {
+    await update(ref(db,`clash/${sessionId}`),{
+      status: 'battle',
+      battleTrigger: (session?.battleTrigger||0) + 1, 
+      
+    })
+  }
+}}
           myCard={myLastCard} oppCard={oppLastCard} lang={lang}
         />
       )}
