@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { db } from '../lib/firebase'
 import { ref, set, get, onValue, update, off } from 'firebase/database'
 
@@ -42,11 +42,11 @@ const MAEGASHIRA = [
 ]
 
 const HEAL_CARDS = [
-  { id:'H1', type:'heal', heal:5,  label:'+5 HP',  color:'#c0392b', emoji:'🩹' },
-  { id:'H2', type:'heal', heal:5,  label:'+5 HP',  color:'#c0392b', emoji:'🩹' },
-  { id:'H3', type:'heal', heal:5,  label:'+5 HP',  color:'#c0392b', emoji:'🩹' },
-  { id:'H4', type:'heal', heal:7,  label:'+7 HP',  color:'#e74c3c', emoji:'💊' },
-  { id:'H5', type:'heal', heal:7,  label:'+7 HP',  color:'#e74c3c', emoji:'💊' },
+  { id:'H1', type:'heal', heal:5,  label:'+5 HP', color:'#c0392b', emoji:'🩹' },
+  { id:'H2', type:'heal', heal:5,  label:'+5 HP', color:'#c0392b', emoji:'🩹' },
+  { id:'H3', type:'heal', heal:5,  label:'+5 HP', color:'#c0392b', emoji:'🩹' },
+  { id:'H4', type:'heal', heal:7,  label:'+7 HP', color:'#e74c3c', emoji:'💊' },
+  { id:'H5', type:'heal', heal:7,  label:'+7 HP', color:'#e74c3c', emoji:'💊' },
   { id:'H6', type:'heal', heal:10, label:'+10 HP', color:'#922b21', emoji:'❤️‍🔥' },
 ]
 
@@ -78,7 +78,6 @@ function cpuChooseCard(hand) {
 function resolveRound(pCard, oCard, pHp, oHp) {
   let newPHp = pHp, newOHp = oHp
   const logs = []
-
   if (pCard.type === 'heal') {
     const h = Math.min(MAX_HP, pHp + pCard.heal) - pHp
     newPHp = Math.min(MAX_HP, pHp + pCard.heal)
@@ -106,25 +105,32 @@ function resolveRound(pCard, oCard, pHp, oHp) {
     newPHp = Math.max(0, newPHp - oCard.atk)
     logs.push({ text: `${oCard.rankShort} → ${oCard.atk} dmg (unblocked)`, color:'#c0392b' })
   }
-
-  const pDmgTotal = pCard.type==='rikishi' ? Math.max(0, pCard.atk - (oCard.type==='rikishi'?oCard.def:0)) : 0
-  const oDmgTotal = oCard.type==='rikishi' ? Math.max(0, oCard.atk - (pCard.type==='rikishi'?pCard.def:0)) : 0
+  const pDmgTotal = pCard.type==='rikishi' ? Math.max(0, pCard.atk-(oCard.type==='rikishi'?oCard.def:0)) : 0
+  const oDmgTotal = oCard.type==='rikishi' ? Math.max(0, oCard.atk-(pCard.type==='rikishi'?pCard.def:0)) : 0
   const roundWinner = pDmgTotal > oDmgTotal ? 'p' : oDmgTotal > pDmgTotal ? 'o' : 'tie'
-
   return { newPHp, newOHp, logs, roundWinner }
 }
+
+const ANIM_STYLES = `
+@keyframes slideIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes clash   { 0%{transform:translateX(0)} 30%{transform:translateX(14px)} 60%{transform:translateX(-8px)} 100%{transform:translateX(0)} }
+@keyframes clashR  { 0%{transform:translateX(0)} 30%{transform:translateX(-14px)} 60%{transform:translateX(8px)} 100%{transform:translateX(0)} }
+@keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.5} }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes pop     { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+`
 
 function HPBar({ hp }) {
   const pct = Math.max(0, (hp / MAX_HP) * 100)
   const color = pct > 60 ? '#1a6b5c' : pct > 30 ? '#b8860b' : '#c0392b'
   return (
     <div>
-      <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
         <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>HP</span>
-        <span style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,color}}>{hp}/{MAX_HP}</span>
+        <span style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,color}}>{hp}/{MAX_HP}</span>
       </div>
-      <div style={{height:7,background:'var(--bg2)',borderRadius:3,overflow:'hidden'}}>
-        <div style={{height:'100%',width:`${pct}%`,background:color,borderRadius:3,transition:'width 0.4s'}} />
+      <div style={{height:8,background:'var(--bg2)',borderRadius:4,overflow:'hidden'}}>
+        <div style={{height:'100%',width:`${pct}%`,background:color,borderRadius:4,transition:'width 0.6s cubic-bezier(.4,0,.2,1)'}} />
       </div>
     </div>
   )
@@ -133,14 +139,7 @@ function HPBar({ hp }) {
 function GameCard({ card, selected, onClick, disabled, small, showBack }) {
   if (!card) return null
   if (showBack) return (
-    <div style={{
-      width:small?72:96, height:small?100:134,
-      borderRadius:6,
-      background:'linear-gradient(135deg,#1a1a2e,#0f3460)',
-      border:'2px solid #b8860b',
-      display:'flex',alignItems:'center',justifyContent:'center',
-      flexShrink:0,
-    }}>
+    <div style={{width:small?72:96,height:small?100:134,borderRadius:8,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
       <span style={{fontSize:'1.4rem',opacity:0.5}}>相</span>
     </div>
   )
@@ -148,18 +147,15 @@ function GameCard({ card, selected, onClick, disabled, small, showBack }) {
   const color = isHeal ? card.color : (card.color || 'var(--mid)')
   return (
     <div onClick={disabled ? undefined : onClick} style={{
-      width:small?72:96, height:small?100:134,
-      borderRadius:6,
-      border:`2px solid ${selected ? '#b8860b' : color}`,
-      background: selected ? 'rgba(184,134,11,0.2)' : 'var(--card)',
-      cursor: disabled ? 'default' : 'pointer',
+      width:small?72:96, height:small?100:134, borderRadius:8,
+      border:`2px solid ${selected?'#b8860b':color}`,
+      background:selected?'rgba(184,134,11,0.2)':'var(--card)',
+      cursor:disabled?'default':'pointer',
       display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',
       padding:small?'5px 4px':'8px 6px',
-      boxShadow: selected ? '0 0 12px rgba(184,134,11,0.5)' : 'none',
-      transition:'all 0.15s',
-      opacity: disabled ? 0.5 : 1,
-      transform: selected ? 'translateY(-8px)' : 'none',
-      flexShrink:0,
+      boxShadow:selected?'0 0 16px rgba(184,134,11,0.6)':'none',
+      transition:'all 0.18s', opacity:disabled?0.6:1,
+      transform:selected?'translateY(-10px) scale(1.04)':'none', flexShrink:0,
     }}>
       {isHeal ? (
         <>
@@ -169,121 +165,131 @@ function GameCard({ card, selected, onClick, disabled, small, showBack }) {
         </>
       ) : (
         <>
-          <div style={{fontFamily:'monospace',fontSize:small?'0.62rem':'0.72rem',color,fontWeight:700,lineHeight:1,textAlign:'center'}}>
-            {card.rankShort}
-          </div>
-          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+          <div style={{fontFamily:'monospace',fontSize:small?'0.62rem':'0.75rem',color,fontWeight:700,lineHeight:1,textAlign:'center'}}>{card.rankShort}</div>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
             <div style={{display:'flex',alignItems:'center',gap:3}}>
               <span style={{fontSize:'0.55rem',color:'#e74c3c'}}>⚔</span>
-              <span style={{fontFamily:'monospace',fontSize:small?'0.85rem':'1rem',fontWeight:800,color:'#e74c3c'}}>{card.atk}</span>
+              <span style={{fontFamily:'monospace',fontSize:small?'0.9rem':'1.05rem',fontWeight:800,color:'#e74c3c'}}>{card.atk}</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:3}}>
               <span style={{fontSize:'0.55rem',color:'#3498db'}}>🛡</span>
-              <span style={{fontFamily:'monospace',fontSize:small?'0.85rem':'1rem',fontWeight:800,color:'#3498db'}}>{card.def}</span>
+              <span style={{fontFamily:'monospace',fontSize:small?'0.9rem':'1.05rem',fontWeight:800,color:'#3498db'}}>{card.def}</span>
             </div>
           </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)',textAlign:'center'}}>
-            {card.rank}
-          </div>
+          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)',textAlign:'center'}}>{card.rank}</div>
         </>
       )}
     </div>
   )
 }
 
-function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabel, myHand, oppHand, playerSelected, onSelect, myReady, oppReady, onSubmit, roundLog, phase, onNext, lang }) {
+function RoundResult({ myCard, oppCard, roundLog, myLabel, oppLabel, onNext, roundNum, lang }) {
   const t = (uk, en) => lang === 'en' ? en : uk
-  const isRoundResult = phase === 'roundResult'
-
+  const [step, setStep] = useState(0)
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 100)
+    const t2 = setTimeout(() => setStep(2), 700)
+    const t3 = setTimeout(() => setStep(3), 1000)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+  }, [])
   return (
     <div>
-      <div style={{display:'flex',justifyContent:'space-between',marginBottom:'0.75rem'}}>
-        <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-          {t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}
+      <div style={{display:'flex',justifyContent:'space-around',alignItems:'center',marginBottom:'1.25rem',gap:16,opacity:step>=1?1:0,transition:'opacity 0.3s'}}>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:8}}>{myLabel}</div>
+          <div style={{animation:step>=1?'clash 0.5s ease 0.2s both':'none'}}>
+            <GameCard card={myCard} disabled />
+          </div>
         </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-          {myWins}–{oppWins}
+        <div style={{fontFamily:'Georgia,serif',fontSize:'1.3rem',fontWeight:800,color:'#b8860b',animation:step>=1?'pop 0.4s ease 0.4s both':'none'}}>VS</div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:8}}>{oppLabel}</div>
+          <div style={{animation:step>=1?'clashR 0.5s ease 0.2s both':'none'}}>
+            <GameCard card={oppCard} disabled />
+          </div>
         </div>
       </div>
+      <div style={{background:'var(--bg2)',borderRadius:4,padding:'1rem',marginBottom:'1rem',opacity:step>=2?1:0,transform:step>=2?'none':'translateY(8px)',transition:'all 0.3s'}}>
+        {roundLog.length === 0
+          ? <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>—</div>
+          : roundLog.map((l,i) => (
+              <div key={i} style={{fontFamily:'monospace',fontSize:'0.78rem',color:l.color,lineHeight:1.8,animation:`fadeIn 0.3s ease ${0.1*i}s both`}}>{l.text}</div>
+            ))
+        }
+      </div>
+      <button onClick={onNext} style={{width:'100%',padding:'0.8rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,opacity:step>=3?1:0,transform:step>=3?'none':'translateY(8px)',transition:'all 0.3s'}}>
+        {roundNum >= MAX_ROUNDS ? t('Результат','Results') : t('Наступний раунд ›','Next round ›')}
+      </button>
+    </div>
+  )
+}
 
+function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabel, myHand, oppHand, playerSelected, onSelect, myReady, oppReady, onSubmit, roundLog, phase, onNext, lang, myCard, oppCard }) {
+  const t = (uk, en) => lang === 'en' ? en : uk
+  const isRoundResult = phase === 'roundResult'
+  const deduped = arr => [...new Map(arr.filter(Boolean).map(c => [c.id, c])).values()]
+  return (
+    <div style={{animation:'slideIn 0.25s ease'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.75rem'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.78rem',color:'var(--mid)'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</div>
+        <div style={{fontFamily:'monospace',fontSize:'0.78rem',fontWeight:700,color:'var(--ink)'}}>{myWins}–{oppWins}</div>
+      </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:'1.25rem'}}>
-        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(26,107,92,0.3)'}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#1a6b5c',marginBottom:6,textTransform:'uppercase'}}>{myLabel}</div>
+        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(26,107,92,0.3)'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#1a6b5c',marginBottom:6,textTransform:'uppercase',fontWeight:700}}>{myLabel}</div>
           <HPBar hp={myHp} />
         </div>
-        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(192,57,43,0.3)'}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#c0392b',marginBottom:6,textTransform:'uppercase'}}>{oppLabel}</div>
+        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(192,57,43,0.3)'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#c0392b',marginBottom:6,textTransform:'uppercase',fontWeight:700}}>{oppLabel}</div>
           <HPBar hp={oppHp} />
         </div>
       </div>
-
       {isRoundResult ? (
-        <>
-          <div style={{background:'var(--bg2)',borderRadius:2,padding:'1rem',marginBottom:'1rem'}}>
-            {roundLog.map((l,i) => (
-              <div key={i} style={{fontFamily:'monospace',fontSize:'0.75rem',color:l.color,lineHeight:1.7}}>{l.text}</div>
-            ))}
-          </div>
-          <button onClick={onNext} style={{
-            width:'100%',padding:'0.75rem',
-            background:'var(--ink)',color:'var(--bg)',
-            border:'none',borderRadius:2,
-            fontFamily:'monospace',fontSize:'0.85rem',
-            letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,
-          }}>
-            {roundNum >= MAX_ROUNDS ? t('Результат','Results') : t('Наступний раунд','Next round')}
-          </button>
-        </>
+        <RoundResult myCard={myCard} oppCard={oppCard} roundLog={roundLog} myLabel={myLabel} oppLabel={oppLabel} onNext={onNext} roundNum={roundNum} lang={lang} />
       ) : (
         <>
           <div style={{marginBottom:'1rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>
-              {t('Ваша рука','Your hand')} ({myHand.length})
+            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.08em'}}>
+              {t('Ваша рука','Your hand')} ({deduped(myHand).length})
             </div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              {myHand.map(c => (
-                <GameCard key={c.id} card={c}
-                  selected={playerSelected?.id===c.id}
-                  onClick={() => !myReady && onSelect(c)}
-                  disabled={myReady}
-                />
+              {deduped(myHand).map((c,i) => (
+                <div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`}}>
+                  <GameCard card={c} selected={playerSelected?.id===c.id} onClick={() => !myReady && onSelect(c)} disabled={myReady} />
+                </div>
               ))}
             </div>
           </div>
-
           <div style={{marginBottom:'1rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.08em'}}>
               {oppLabel} ({oppHand})
             </div>
             <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-              {Array.from({length:Math.min(oppHand,6)}).map((_,i) => (
-                <GameCard key={i} card={FULL_DECK[0]} showBack small />
+              {Array.from({length:Math.min(oppHand,8)}).map((_,i) => (
+                <div key={i} style={{animation:`slideIn 0.2s ease ${i*0.04}s both`}}>
+                  <GameCard card={FULL_DECK[0]} showBack small />
+                </div>
               ))}
             </div>
           </div>
-
           {oppReady && !myReady && (
-            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'#1a6b5c',marginBottom:'0.75rem',textAlign:'center'}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'#1a6b5c',marginBottom:'0.75rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>
               ✓ {t('Суперник готовий','Opponent ready')}
             </div>
           )}
           {myReady && (
-            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginBottom:'0.75rem',textAlign:'center'}}>
-              {t('Очікуємо суперника...','Waiting for opponent...')}
+            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginBottom:'0.75rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>
+              ⏳ {t('Очікуємо суперника...','Waiting for opponent...')}
             </div>
           )}
-
-          <button onClick={onSubmit} disabled={!playerSelected || myReady} style={{
-            width:'100%',padding:'0.75rem',
+          <button onClick={onSubmit} disabled={!playerSelected||myReady} style={{
+            width:'100%',padding:'0.8rem',
             background:(!playerSelected||myReady)?'var(--bg2)':'#b8860b',
             color:(!playerSelected||myReady)?'var(--mid)':'#fff',
-            border:'none',borderRadius:2,
-            fontFamily:'monospace',fontSize:'0.85rem',
-            letterSpacing:'0.1em',
-            cursor:(!playerSelected||myReady)?'default':'pointer',
-            fontWeight:700,
+            border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.85rem',
+            letterSpacing:'0.1em',cursor:(!playerSelected||myReady)?'default':'pointer',fontWeight:700,transition:'all 0.2s',
           }}>
-            {myReady ? t('Підтверджено ✓','Confirmed ✓') : !playerSelected ? t('Оберіть карту','Select a card') : t('Підтвердити','Confirm')}
+            {myReady ? t('Підтверджено ✓','Confirmed ✓') : !playerSelected ? t('Оберіть карту','Select a card') : t('⚔ Підтвердити','⚔ Confirm')}
           </button>
         </>
       )}
@@ -297,36 +303,28 @@ function GameOverScreen({ myHp, oppHp, myWins, oppWins, myLabel, oppLabel, onBac
   const isKachiKoshi = myWins > oppWins
   const ties = MAX_ROUNDS - myWins - oppWins
   return (
-    <div style={{textAlign:'center'}}>
-      <div style={{fontSize:'3rem',marginBottom:'0.5rem'}}>{playerWon ? '🏆' : '💪'}</div>
-      <div style={{fontFamily:'Georgia,serif',fontSize:'1.5rem',fontWeight:800,color:playerWon?'#b8860b':'#c0392b',marginBottom:'0.75rem'}}>
+    <div style={{textAlign:'center',animation:'slideIn 0.3s ease'}}>
+      <div style={{fontSize:'3.5rem',marginBottom:'0.5rem',animation:'pop 0.5s ease'}}>{playerWon?'🏆':'💪'}</div>
+      <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:playerWon?'#b8860b':'#c0392b',marginBottom:'0.75rem'}}>
         {playerWon ? t('Юшо! Ви перемогли!','Yusho! You win!') : t('Маке-коші.','Make-koshi.')}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'1rem 0'}}>
-        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(26,107,92,0.3)'}}>
+        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(26,107,92,0.3)'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#1a6b5c',marginBottom:6}}>{myLabel} HP</div>
           <HPBar hp={myHp} />
         </div>
-        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(192,57,43,0.3)'}}>
+        <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(192,57,43,0.3)'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#c0392b',marginBottom:6}}>{oppLabel} HP</div>
           <HPBar hp={oppHp} />
         </div>
       </div>
-      <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,marginBottom:'1.25rem'}}>
-        <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:6}}>
-          {t('Раунди','Rounds')}: {myWins}W – {oppWins}L – {ties}D
-        </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:800,color:isKachiKoshi?'#1a6b5c':'#c0392b'}}>
+      <div style={{background:'var(--bg2)',padding:'1rem',borderRadius:4,marginBottom:'1.25rem'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginBottom:6}}>{t('Раунди','Rounds')}: {myWins}W – {oppWins}L – {ties}D</div>
+        <div style={{fontFamily:'monospace',fontSize:'1rem',fontWeight:800,color:isKachiKoshi?'#1a6b5c':'#c0392b'}}>
           {isKachiKoshi ? '勝ち越し Kachi-koshi' : '負け越し Make-koshi'}
         </div>
       </div>
-      <button onClick={onBack} style={{
-        background:'var(--ink)',color:'var(--bg)',
-        border:'none',borderRadius:2,
-        padding:'0.7rem 2rem',
-        fontFamily:'monospace',fontSize:'0.85rem',
-        letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,
-      }}>
+      <button onClick={onBack} style={{background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,padding:'0.8rem 2.5rem',fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}>
         {t('В меню','Menu')}
       </button>
     </div>
@@ -345,6 +343,8 @@ function CpuGame({ lang, onBack }) {
   const [playerHp, setPlayerHp] = useState(MAX_HP)
   const [cpuHp, setCpuHp] = useState(MAX_HP)
   const [playerSelected, setPlayerSelected] = useState(null)
+  const [lastMyCard, setLastMyCard] = useState(null)
+  const [lastOppCard, setLastOppCard] = useState(null)
   const [roundLog, setRoundLog] = useState([])
   const [roundNum, setRoundNum] = useState(0)
   const [playerWins, setPlayerWins] = useState(0)
@@ -363,48 +363,34 @@ function CpuGame({ lang, onBack }) {
     const newHand = [...playerHand, card]
     const newDraw = drawPile.filter(c => !draftPool.find(d => d.id===c.id))
     if (draftRound < 4) {
-      setPlayerHand(newHand)
-      setDrawPile(newDraw)
-      setDraftPool(newDraw.slice(0,5))
-      setDraftRound(r => r+1)
+      setPlayerHand(newHand); setDrawPile(newDraw)
+      setDraftPool(newDraw.slice(0,5)); setDraftRound(r => r+1)
     } else {
-      setPlayerHand(newHand)
-      setDrawPile(newDraw)
-      setPhase('battle')
+      setPlayerHand(newHand); setDrawPile(newDraw); setPhase('battle')
     }
   }
 
   function fight() {
     if (!playerSelected) return
     const cCard = cpuChooseCard(cpuHand)
+    setLastMyCard(playerSelected); setLastOppCard(cCard)
     const { newPHp, newOHp, logs, roundWinner } = resolveRound(playerSelected, cCard, playerHp, cpuHp)
-    setPlayerHp(newPHp)
-    setCpuHp(newOHp)
-    setRoundLog(logs)
-    if (roundWinner === 'p') setPlayerWins(w => w+1)
-    else if (roundWinner === 'o') setCpuWins(w => w+1)
-
-    let newPlayerHand = playerHand.filter(c => c.id !== playerSelected.id)
-    let newCpuHand = cpuHand.filter(c => c.id !== cCard.id)
+    setPlayerHp(newPHp); setCpuHp(newOHp); setRoundLog(logs)
+    if (roundWinner==='p') setPlayerWins(w=>w+1)
+    else if (roundWinner==='o') setCpuWins(w=>w+1)
+    let newPH = playerHand.filter(c=>c.id!==playerSelected.id)
+    let newCH = cpuHand.filter(c=>c.id!==cCard.id)
     let newDraw = drawPile
-    if (newDraw.length > 0) { newPlayerHand = [...newPlayerHand, newDraw[0]]; newDraw = newDraw.slice(1) }
-    if (newDraw.length > 0) {
-      const idx = Math.floor(Math.random() * Math.min(3, newDraw.length))
-      newCpuHand = [...newCpuHand, newDraw[idx]]
-      newDraw = newDraw.filter((_,i) => i !== idx)
-    }
-    setPlayerHand(newPlayerHand)
-    setCpuHand(newCpuHand)
-    setDrawPile(newDraw)
+    if (newDraw.length>0){newPH=[...newPH,newDraw[0]];newDraw=newDraw.slice(1)}
+    if (newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
+    setPlayerHand(newPH); setCpuHand(newCH); setDrawPile(newDraw)
     setPhase('roundResult')
   }
 
   function nextRound() {
-    const nr = roundNum + 1
-    setRoundNum(nr)
-    setPlayerSelected(null)
-    setRoundLog([])
-    if (nr >= MAX_ROUNDS || playerHand.length === 0) setPhase('gameOver')
+    const nr = roundNum+1
+    setRoundNum(nr); setPlayerSelected(null); setRoundLog([])
+    if (nr>=MAX_ROUNDS||playerHand.length===0) setPhase('gameOver')
     else setPhase('battle')
   }
 
@@ -413,53 +399,38 @@ function CpuGame({ lang, onBack }) {
       <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
         ‹ {t('Назад','Back')}
       </button>
-
-      {phase === 'draft' && (
-        <div>
-          <div style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>
-            {t('Оберіть команду','Draft your team')}
-          </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',marginBottom:'1.25rem'}}>
-            {t('Раунд','Round')} {draftRound+1}/5
-          </div>
-          {playerHand.length > 0 && (
+      {phase==='draft' && (
+        <div style={{animation:'slideIn 0.25s ease'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',marginBottom:'1.25rem'}}>{t('Раунд','Round')} {draftRound+1}/5</div>
+          {playerHand.length>0 && (
             <div style={{marginBottom:'1.25rem'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>
-                {t('Рука','Hand')} ({playerHand.length}/5)
-              </div>
-              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                {playerHand.map(c => <GameCard key={c.id} card={c} small disabled />)}
-              </div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/5)</div>
+              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled />)}</div>
             </div>
           )}
           <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
-            {draftPool.map(c => <GameCard key={c.id} card={c} onClick={() => pickDraft(c)} />)}
+            {draftPool.map((c,i)=>(
+              <div key={c.id} style={{animation:`pop 0.3s ease ${i*0.06}s both`}}>
+                <GameCard card={c} onClick={()=>pickDraft(c)} />
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      {(phase === 'battle' || phase === 'roundResult') && (
+      {(phase==='battle'||phase==='roundResult') && (
         <BattleLayout
-          myHp={playerHp} oppHp={cpuHp}
-          myWins={playerWins} oppWins={cpuWins}
-          roundNum={roundNum+1}
-          myLabel={t('Ви','You')} oppLabel="CPU"
+          myHp={playerHp} oppHp={cpuHp} myWins={playerWins} oppWins={cpuWins}
+          roundNum={roundNum+1} myLabel={t('Ви','You')} oppLabel="CPU"
           myHand={playerHand} oppHand={cpuHand.length}
           playerSelected={playerSelected} onSelect={setPlayerSelected}
-          myReady={false} oppReady={false}
-          onSubmit={fight}
+          myReady={false} oppReady={false} onSubmit={fight}
           roundLog={roundLog} phase={phase} onNext={nextRound}
-          lang={lang}
+          myCard={lastMyCard} oppCard={lastOppCard} lang={lang}
         />
       )}
-
-      {phase === 'gameOver' && (
-        <GameOverScreen
-          myHp={playerHp} oppHp={cpuHp}
-          myWins={playerWins} oppWins={cpuWins}
-          myLabel={t('Ви','You')} oppLabel="CPU"
-          onBack={onBack} lang={lang}
-        />
+      {phase==='gameOver' && (
+        <GameOverScreen myHp={playerHp} oppHp={cpuHp} myWins={playerWins} oppWins={cpuWins} myLabel={t('Ви','You')} oppLabel="CPU" onBack={onBack} lang={lang} />
       )}
     </div>
   )
@@ -480,12 +451,17 @@ function MultiGame({ lang, onBack }) {
   const [playerSelected, setPlayerSelected] = useState(null)
   const [roundNum, setRoundNum] = useState(0)
   const [submitting, setSubmitting] = useState(false)
-  const [processing, setProcessing] = useState(false)
+  const processing = useRef(false)
+  const roleRef = useRef(null)
+  const sessionIdRef = useRef('')
+
+  useEffect(() => { roleRef.current = role }, [role])
+  useEffect(() => { sessionIdRef.current = sessionId }, [sessionId])
 
   const myKey = role === 'host' ? 'p1' : 'p2'
   const oppKey = role === 'host' ? 'p2' : 'p1'
 
-  // Головний слухач — також розраховує раунд для host
+  // Єдиний listener — підписується раз при зміні sessionId
   useEffect(() => {
     if (!sessionId) return
     const sessionRef = ref(db, `clash/${sessionId}`)
@@ -494,20 +470,23 @@ function MultiGame({ lang, onBack }) {
       if (!data) return
       setSession(data)
 
-      // Host розраховує раунд коли обидва ready
+      const currentRole = roleRef.current
+      const currentSessionId = sessionIdRef.current
+
       if (
-        role === 'host' &&
-        !processing &&
+        currentRole === 'host' &&
+        !processing.current &&
         data.status === 'battle' &&
         data.p1?.ready === true &&
         data.p2?.ready === true &&
         data.p1?.selectedCard &&
         data.p2?.selectedCard
       ) {
-        setProcessing(true)
+        processing.current = true
+
         const p1Card = getCardById(data.p1.selectedCard)
         const p2Card = getCardById(data.p2.selectedCard)
-        if (!p1Card || !p2Card) { setProcessing(false); return }
+        if (!p1Card || !p2Card) { processing.current = false; return }
 
         const { newPHp, newOHp, logs, roundWinner } = resolveRound(p1Card, p2Card, data.p1.hp, data.p2.hp)
         const newRound = (data.roundNum || 0) + 1
@@ -517,9 +496,7 @@ function MultiGame({ lang, onBack }) {
         const p1HandFiltered = (data.p1.hand||[]).filter(id => id !== data.p1.selectedCard)
         const p2HandFiltered = (data.p2.hand||[]).filter(id => id !== data.p2.selectedCard)
         const drawRemaining = deckArr.filter(c =>
-          !usedIds.has(c.id) &&
-          !p1HandFiltered.includes(c.id) &&
-          !p2HandFiltered.includes(c.id)
+          !usedIds.has(c.id) && !p1HandFiltered.includes(c.id) && !p2HandFiltered.includes(c.id)
         )
 
         let fp1 = p1HandFiltered, fp2 = p2HandFiltered
@@ -529,26 +506,27 @@ function MultiGame({ lang, onBack }) {
         const isOver = newRound >= MAX_ROUNDS || fp1.length === 0 || fp2.length === 0
 
         update(ref(db), {
-          [`clash/${sessionId}/p1/hp`]: newPHp,
-          [`clash/${sessionId}/p2/hp`]: newOHp,
-          [`clash/${sessionId}/p1/hand`]: fp1,
-          [`clash/${sessionId}/p2/hand`]: fp2,
-          [`clash/${sessionId}/p1/wins`]: (data.p1.wins||0) + (roundWinner==='p'?1:0),
-          [`clash/${sessionId}/p2/wins`]: (data.p2.wins||0) + (roundWinner==='o'?1:0),
-          [`clash/${sessionId}/p1/ready`]: false,
-          [`clash/${sessionId}/p2/ready`]: false,
-          [`clash/${sessionId}/p1/selectedCard`]: null,
-          [`clash/${sessionId}/p2/selectedCard`]: null,
-          [`clash/${sessionId}/roundNum`]: newRound,
-          [`clash/${sessionId}/roundLog`]: logs,
-          [`clash/${sessionId}/status`]: isOver ? 'gameOver' : 'roundResult',
-        }).then(() => setProcessing(false))
+          [`clash/${currentSessionId}/p1/hp`]: newPHp,
+          [`clash/${currentSessionId}/p2/hp`]: newOHp,
+          [`clash/${currentSessionId}/p1/hand`]: fp1,
+          [`clash/${currentSessionId}/p2/hand`]: fp2,
+          [`clash/${currentSessionId}/p1/wins`]: (data.p1.wins||0) + (roundWinner==='p'?1:0),
+          [`clash/${currentSessionId}/p2/wins`]: (data.p2.wins||0) + (roundWinner==='o'?1:0),
+          [`clash/${currentSessionId}/p1/ready`]: false,
+          [`clash/${currentSessionId}/p2/ready`]: false,
+          [`clash/${currentSessionId}/lastCards`]: { p1: data.p1.selectedCard, p2: data.p2.selectedCard },
+          [`clash/${currentSessionId}/p1/selectedCard`]: null,
+          [`clash/${currentSessionId}/p2/selectedCard`]: null,
+          [`clash/${currentSessionId}/roundNum`]: newRound,
+          [`clash/${currentSessionId}/roundLog`]: logs,
+          [`clash/${currentSessionId}/status`]: isOver ? 'gameOver' : 'roundResult',
+        }).then(() => { processing.current = false })
       }
     })
     return () => off(sessionRef)
-  }, [sessionId, role, processing])
+  }, [sessionId]) // тільки sessionId — НЕ role, НЕ processing
 
-  // Синхронізація екрану
+  // Синхронізація екрану з Firebase
   useEffect(() => {
     if (!session || !role) return
     const status = session.status
@@ -560,13 +538,11 @@ function MultiGame({ lang, onBack }) {
       const pool = (session[myKey]?.draftPool || []).map(id => getCardById(id)).filter(Boolean)
       setDraftPool(pool)
       setDraftRound(session[myKey]?.draftRound || 0)
-      const hand = (session[myKey]?.hand || []).map(id => getCardById(id)).filter(Boolean)
-      setPlayerHand(hand)
+      setPlayerHand((session[myKey]?.hand || []).map(id => getCardById(id)).filter(Boolean))
       setScreen('draft')
     }
     if (status === 'battle' && (screen === 'draft' || screen === 'roundResult')) {
-      const hand = (session[myKey]?.hand || []).map(id => getCardById(id)).filter(Boolean)
-      setPlayerHand(hand)
+      setPlayerHand((session[myKey]?.hand || []).map(id => getCardById(id)).filter(Boolean))
       setPlayerSelected(null)
       setSubmitting(false)
       setRoundNum(session.roundNum || 0)
@@ -583,19 +559,16 @@ function MultiGame({ lang, onBack }) {
   async function createSession() {
     const code = generateCode()
     const shuffled = shuffle(FULL_DECK)
-    const p1Pool = shuffled.slice(0,5).map(c => c.id)
-    const p2Pool = shuffled.slice(5,10).map(c => c.id)
     await set(ref(db, `clash/${code}`), {
-      status: 'waiting',
-      deck: shuffled.map(c => c.id),
-      deckIdx: 10,
-      roundNum: 0,
-      roundLog: [],
-      p1: { joined:true, hp:MAX_HP, hand:[], draftPool:p1Pool, draftRound:0, wins:0, ready:false, draftDone:false },
-      p2: { joined:false, hp:MAX_HP, hand:[], draftPool:p2Pool, draftRound:0, wins:0, ready:false, draftDone:false },
+      status: 'waiting', deck: shuffled.map(c=>c.id), deckIdx: 10,
+      roundNum: 0, roundLog: [], lastCards: null,
+      p1: { joined:true, hp:MAX_HP, hand:[], draftPool:shuffled.slice(0,5).map(c=>c.id), draftRound:0, wins:0, ready:false, draftDone:false, selectedCard:null },
+      p2: { joined:false, hp:MAX_HP, hand:[], draftPool:shuffled.slice(5,10).map(c=>c.id), draftRound:0, wins:0, ready:false, draftDone:false, selectedCard:null },
     })
-    setSessionId(code)
     setRole('host')
+    roleRef.current = 'host'
+    setSessionId(code)
+    sessionIdRef.current = code
     setScreen('waiting')
   }
 
@@ -606,11 +579,11 @@ function MultiGame({ lang, onBack }) {
     if (!snap.exists()) { setError(t('Сесію не знайдено','Session not found')); return }
     const data = snap.val()
     if (data.p2?.joined) { setError(t('Гра вже заповнена','Game is full')); return }
-    await update(ref(db, `clash/${code}/p2`), {
-      joined:true, hp:MAX_HP, hand:[], wins:0, ready:false, draftDone:false,
-    })
-    setSessionId(code)
+    await update(ref(db, `clash/${code}/p2`), { joined:true, hp:MAX_HP, hand:[], wins:0, ready:false, draftDone:false, selectedCard:null })
     setRole('guest')
+    roleRef.current = 'guest'
+    setSessionId(code)
+    sessionIdRef.current = code
     setScreen('waiting')
   }
 
@@ -618,38 +591,32 @@ function MultiGame({ lang, onBack }) {
     const snap = await get(ref(db, `clash/${sessionId}`))
     const data = snap.val()
     const myData = data[myKey]
-    const currentHand = [...(myData.hand || []), card.id]
-    const newDraftRound = (myData.draftRound || 0) + 1
+    const currentHand = [...new Set([...(myData.hand||[]), card.id])]
+    const newDraftRound = (myData.draftRound||0) + 1
     const isDone = newDraftRound >= 5
 
-    let updates = {}
-    updates[`clash/${sessionId}/${myKey}/hand`] = currentHand
-    updates[`clash/${sessionId}/${myKey}/draftRound`] = newDraftRound
-    updates[`clash/${sessionId}/${myKey}/draftDone`] = isDone
-
+    let updates = {
+      [`clash/${sessionId}/${myKey}/hand`]: currentHand,
+      [`clash/${sessionId}/${myKey}/draftRound`]: newDraftRound,
+      [`clash/${sessionId}/${myKey}/draftDone`]: isDone,
+    }
     if (!isDone) {
       const deckIdx = data.deckIdx || 10
-      const deck = data.deck
-      const offset = role === 'host' ? 0 : 5
-      const nextPool = deck.slice(deckIdx + offset, deckIdx + offset + 5)
-      updates[`clash/${sessionId}/${myKey}/draftPool`] = nextPool
-      if (role === 'host') updates[`clash/${sessionId}/deckIdx`] = deckIdx + 10
+      const offset = role==='host' ? 0 : 5
+      updates[`clash/${sessionId}/${myKey}/draftPool`] = data.deck.slice(deckIdx+offset, deckIdx+offset+5)
+      if (role==='host') updates[`clash/${sessionId}/deckIdx`] = deckIdx+10
     }
-
     await update(ref(db), updates)
 
-    const newHandCards = currentHand.map(id => getCardById(id)).filter(Boolean)
-    setPlayerHand(newHandCards)
+    setPlayerHand(currentHand.map(id=>getCardById(id)).filter(Boolean))
     setDraftRound(newDraftRound)
 
     if (isDone && data[oppKey]?.draftDone) {
       await update(ref(db, `clash/${sessionId}`), { status: 'battle' })
     }
-
     if (!isDone) {
       const newSnap = await get(ref(db, `clash/${sessionId}/${myKey}/draftPool`))
-      const pool = (newSnap.val() || []).map(id => getCardById(id)).filter(Boolean)
-      setDraftPool(pool)
+      setDraftPool((newSnap.val()||[]).map(id=>getCardById(id)).filter(Boolean))
     }
   }
 
@@ -669,13 +636,16 @@ function MultiGame({ lang, onBack }) {
   const myReady = session?.[myKey]?.ready ?? false
   const oppReady = session?.[oppKey]?.ready ?? false
   const totalRounds = session?.roundNum ?? 0
-  const oppHandCount = (session?.[oppKey]?.hand || []).length
+  const oppHandCount = (session?.[oppKey]?.hand||[]).length
   const myHandCards = playerHand.length > 0
     ? playerHand
-    : (session?.[myKey]?.hand || []).map(id => getCardById(id)).filter(Boolean)
+    : (session?.[myKey]?.hand||[]).map(id=>getCardById(id)).filter(Boolean)
   const myDraftPool = draftPool.length > 0
     ? draftPool
-    : (session?.[myKey]?.draftPool || []).map(id => getCardById(id)).filter(Boolean)
+    : (session?.[myKey]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean)
+  const lastCards = session?.lastCards
+  const myLastCard = lastCards ? getCardById(lastCards[myKey]) : null
+  const oppLastCard = lastCards ? getCardById(lastCards[oppKey]) : null
 
   return (
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
@@ -683,40 +653,18 @@ function MultiGame({ lang, onBack }) {
         ‹ {t('Назад','Back')}
       </button>
 
-      {screen === 'lobby' && (
-        <div style={{textAlign:'center'}}>
-          <div style={{fontSize:'1.8rem',marginBottom:'0.75rem'}}>🌐</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,marginBottom:'1.5rem'}}>
-            {t('Мультиплеєр','Multiplayer')}
-          </div>
-          <button onClick={createSession} style={{
-            width:'100%',padding:'0.75rem',background:'#b8860b',color:'#fff',
-            border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.78rem',
-            letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,marginBottom:'1rem',
-          }}>
+      {screen==='lobby' && (
+        <div style={{textAlign:'center',animation:'slideIn 0.25s ease'}}>
+          <div style={{fontSize:'2rem',marginBottom:'0.75rem'}}>🌐</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,marginBottom:'1.5rem'}}>{t('Мультиплеєр','Multiplayer')}</div>
+          <button onClick={createSession} style={{width:'100%',padding:'0.8rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.8rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,marginBottom:'1rem'}}>
             {t('Створити гру','Create game')}
           </button>
-          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:'0.75rem'}}>
-            {t('або','or')}
-          </div>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:'0.75rem'}}>{t('або','or')}</div>
           <div style={{display:'flex',gap:8,marginBottom:'0.5rem'}}>
-            <input
-              value={inputCode}
-              onChange={e => setInputCode(e.target.value.toUpperCase())}
-              placeholder={t('Код сесії...','Session code...')}
-              maxLength={6}
-              style={{
-                flex:1,padding:'0.6rem 0.75rem',
-                background:'var(--bg2)',border:'1px solid var(--border)',
-                color:'var(--ink)',fontFamily:'monospace',fontSize:'0.85rem',
-                borderRadius:2,outline:'none',letterSpacing:'0.2em',textTransform:'uppercase',
-              }}
-            />
-            <button onClick={joinSession} style={{
-              padding:'0.6rem 1.25rem',background:'var(--ink)',color:'var(--bg)',
-              border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.75rem',
-              cursor:'pointer',fontWeight:700,
-            }}>
+            <input value={inputCode} onChange={e=>setInputCode(e.target.value.toUpperCase())} placeholder={t('Код сесії...','Session code...')} maxLength={6}
+              style={{flex:1,padding:'0.65rem 0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'monospace',fontSize:'0.9rem',borderRadius:4,outline:'none',letterSpacing:'0.2em',textTransform:'uppercase'}} />
+            <button onClick={joinSession} style={{padding:'0.65rem 1.25rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>
               {t('Приєднатись','Join')}
             </button>
           </div>
@@ -724,80 +672,66 @@ function MultiGame({ lang, onBack }) {
         </div>
       )}
 
-      {screen === 'waiting' && (
-        <div style={{textAlign:'center',paddingTop:'2rem'}}>
-          <div style={{fontSize:'2rem',marginBottom:'1rem'}}>⏳</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.78rem',color:'var(--mid)',marginBottom:'1.5rem'}}>
-            {role === 'host'
-              ? t('Очікуємо суперника...','Waiting for opponent...')
-              : t('Підключаємось...','Connecting...')}
+      {screen==='waiting' && (
+        <div style={{textAlign:'center',paddingTop:'2rem',animation:'slideIn 0.25s ease'}}>
+          <div style={{fontSize:'2rem',marginBottom:'1rem',animation:'pulse 1.5s ease infinite'}}>⏳</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.8rem',color:'var(--mid)',marginBottom:'1.5rem'}}>
+            {role==='host' ? t('Очікуємо суперника...','Waiting for opponent...') : t('Підключаємось...','Connecting...')}
           </div>
-          {role === 'host' && (
-            <div style={{background:'var(--bg2)',padding:'1.25rem',borderRadius:2,display:'inline-block'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:8}}>
-                {t('Код сесії','Session code')}
-              </div>
-              <div style={{fontFamily:'monospace',fontSize:'2.5rem',fontWeight:800,color:'#b8860b',letterSpacing:'0.3em'}}>
-                {sessionId}
-              </div>
+          {role==='host' && (
+            <div style={{background:'var(--bg2)',padding:'1.5rem',borderRadius:4,display:'inline-block',animation:'pop 0.4s ease'}}>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:8}}>{t('Код сесії','Session code')}</div>
+              <div style={{fontFamily:'monospace',fontSize:'2.8rem',fontWeight:800,color:'#b8860b',letterSpacing:'0.35em'}}>{sessionId}</div>
             </div>
           )}
         </div>
       )}
 
-      {screen === 'draft' && (
-        <div>
-          <div style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>
-            {t('Оберіть команду','Draft your team')}
-          </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',marginBottom:'1.25rem'}}>
-            {t('Раунд','Round')} {draftRound+1}/5
-          </div>
-          {myHandCards.length > 0 && (
+      {screen==='draft' && (
+        <div style={{animation:'slideIn 0.25s ease'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',marginBottom:'1.25rem'}}>{t('Раунд','Round')} {draftRound+1}/5</div>
+          {myHandCards.length>0 && (
             <div style={{marginBottom:'1.25rem'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>
-                {t('Рука','Hand')} ({myHandCards.length})
-              </div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({myHandCards.length})</div>
               <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                {myHandCards.map(c => <GameCard key={c.id} card={c} small disabled />)}
+                {[...new Map(myHandCards.filter(Boolean).map(c=>[c.id,c])).values()].map(c=>(
+                  <GameCard key={c.id} card={c} small disabled />
+                ))}
               </div>
             </div>
           )}
           {!session?.[myKey]?.draftDone ? (
             <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
-              {myDraftPool.map(c => c && <GameCard key={c.id} card={c} onClick={() => pickDraft(c)} />)}
+              {myDraftPool.map((c,i)=>c&&(
+                <div key={c.id} style={{animation:`pop 0.3s ease ${i*0.06}s both`}}>
+                  <GameCard card={c} onClick={()=>pickDraft(c)} />
+                </div>
+              ))}
             </div>
           ) : (
-            <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',marginTop:'1rem'}}>
-              {t('Очікуємо суперника...','Waiting for opponent...')}
+            <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',textAlign:'center',marginTop:'1rem',animation:'pulse 1.5s ease infinite'}}>
+              ⏳ {t('Очікуємо суперника...','Waiting for opponent...')}
             </div>
           )}
         </div>
       )}
 
-      {(screen === 'battle' || screen === 'roundResult') && (
+      {(screen==='battle'||screen==='roundResult') && (
         <BattleLayout
-          myHp={myHp} oppHp={oppHp}
-          myWins={myWins} oppWins={oppWins}
-          roundNum={totalRounds+1}
-          myLabel={t('Ви','You')} oppLabel={t('Суперник','Opponent')}
+          myHp={myHp} oppHp={oppHp} myWins={myWins} oppWins={oppWins}
+          roundNum={totalRounds+1} myLabel={t('Ви','You')} oppLabel={t('Суперник','Opponent')}
           myHand={myHandCards} oppHand={oppHandCount}
           playerSelected={playerSelected} onSelect={setPlayerSelected}
-          myReady={myReady} oppReady={oppReady}
-          onSubmit={submitCard}
+          myReady={myReady} oppReady={oppReady} onSubmit={submitCard}
           roundLog={session?.roundLog||[]} phase={screen}
-          onNext={() => {}}
-          lang={lang}
+          onNext={() => setScreen('battle')}
+          myCard={myLastCard} oppCard={oppLastCard} lang={lang}
         />
       )}
 
-      {screen === 'gameOver' && (
-        <GameOverScreen
-          myHp={myHp} oppHp={oppHp}
-          myWins={myWins} oppWins={oppWins}
-          myLabel={t('Ви','You')} oppLabel={t('Суперник','Opponent')}
-          onBack={onBack} lang={lang}
-        />
+      {screen==='gameOver' && (
+        <GameOverScreen myHp={myHp} oppHp={oppHp} myWins={myWins} oppWins={oppWins} myLabel={t('Ви','You')} oppLabel={t('Суперник','Opponent')} onBack={onBack} lang={lang} />
       )}
     </div>
   )
@@ -807,76 +741,41 @@ function MultiGame({ lang, onBack }) {
 export default function SumoClash({ onClose, lang = 'uk' }) {
   const [mode, setMode] = useState('menu')
   const t = (uk, en) => lang === 'en' ? en : uk
-
   return (
-    <div onClick={onClose} style={{
-      position:'fixed',inset:0,
-      background:'rgba(0,0,0,0.92)',
-      zIndex:2000,
-      display:'flex',alignItems:'center',justifyContent:'center',
-      padding:'0.75rem',
-      backdropFilter:'blur(4px)',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:'var(--card)',
-        border:'1px solid var(--border)',
-        borderRadius:4,
-        maxWidth:960,width:'100%',
-        maxHeight:'96vh',
-        display:'flex',flexDirection:'column',
-        overflow:'hidden',
-      }}>
-        <div style={{
-          borderBottom:'1px solid var(--border)',
-          padding:'0.75rem 1.25rem',
-          display:'flex',alignItems:'center',justifyContent:'space-between',
-          flexShrink:0,
-        }}>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <span>⚔️</span>
-            <span style={{fontFamily:'monospace',fontSize:'0.78rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mid)'}}>
-              {t('Сумо Клеш','Sumo Clash')}
-            </span>
-            {mode !== 'menu' && (
-              <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--light)'}}>
-                · {mode === 'cpu' ? 'vs CPU' : t('Мультиплеєр','Multiplayer')}
-              </span>
-            )}
+    <>
+      <style>{ANIM_STYLES}</style>
+      <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:960,width:'100%',maxHeight:'96vh',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+          <div style={{borderBottom:'1px solid var(--border)',padding:'0.8rem 1.25rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span>⚔️</span>
+              <span style={{fontFamily:'monospace',fontSize:'0.8rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mid)'}}>{t('Сумо Клеш','Sumo Clash')}</span>
+              {mode!=='menu' && <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--light)'}}>· {mode==='cpu'?'vs CPU':t('Мультиплеєр','Multiplayer')}</span>}
+            </div>
+            <button onClick={onClose} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1}}>✕</button>
           </div>
-          <button onClick={onClose} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.2rem',cursor:'pointer'}}>✕</button>
+
+          {mode==='menu' && (
+            <div style={{flex:1,padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1.25rem',animation:'slideIn 0.3s ease'}}>
+              <div style={{fontSize:'2.8rem',animation:'pop 0.4s ease'}}>⚔️</div>
+              <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:'#b8860b'}}>{t('Сумо Клеш','Sumo Clash')}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',textAlign:'center',lineHeight:1.7,marginBottom:'0.5rem'}}>
+                {t('15 раундів · Драфт · ATK vs DEF · HP битва','15 rounds · Draft · ATK vs DEF · HP battle')}
+              </div>
+              <button onClick={()=>setMode('cpu')} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}
+                onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                🤖 {t('Проти CPU','vs CPU')}
+              </button>
+              <button onClick={()=>setMode('multi')} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}
+                onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                🌐 {t('Мультиплеєр','Multiplayer')}
+              </button>
+            </div>
+          )}
+          {mode==='cpu' && <CpuGame lang={lang} onBack={()=>setMode('menu')} />}
+          {mode==='multi' && <MultiGame lang={lang} onBack={()=>setMode('menu')} />}
         </div>
-
-        {mode === 'menu' && (
-          <div style={{flex:1,padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1.25rem'}}>
-            <div style={{fontSize:'2.5rem'}}>⚔️</div>
-            <div style={{fontFamily:'Georgia,serif',fontSize:'1.5rem',fontWeight:800,color:'#b8860b'}}>
-              {t('Сумо Клеш','Sumo Clash')}
-            </div>
-            <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center',lineHeight:1.7,marginBottom:'0.5rem'}}>
-              {t('15 раундів · Драфт · ATK vs DEF · HP битва','15 rounds · Draft · ATK vs DEF · HP battle')}
-            </div>
-            <button onClick={() => setMode('cpu')} style={{
-              width:'100%',maxWidth:320,padding:'0.85rem',
-              background:'#b8860b',color:'#fff',border:'none',borderRadius:2,
-              fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',
-              cursor:'pointer',fontWeight:700,
-            }}>
-              🤖 {t('Проти CPU','vs CPU')}
-            </button>
-            <button onClick={() => setMode('multi')} style={{
-              width:'100%',maxWidth:320,padding:'0.85rem',
-              background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:2,
-              fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',
-              cursor:'pointer',fontWeight:700,
-            }}>
-              🌐 {t('Мультиплеєр','Multiplayer')}
-            </button>
-          </div>
-        )}
-
-        {mode === 'cpu' && <CpuGame lang={lang} onBack={() => setMode('menu')} />}
-        {mode === 'multi' && <MultiGame lang={lang} onBack={() => setMode('menu')} />}
       </div>
-    </div>
+    </>
   )
 }
