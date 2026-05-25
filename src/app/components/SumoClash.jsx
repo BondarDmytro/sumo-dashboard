@@ -728,7 +728,11 @@ function MultiGame({lang,onBack}) {
           playerSelected={playerSelected} onSelect={setPlayerSelected}
           myReady={myReady} oppReady={oppReady} onSubmit={submitCard}
           roundLog={session?.roundLog||[]} phase={screen}
-          onNext={()=>setScreen('battle')}
+          onNext={async ()=>{
+            if (role==='host') {
+                await update(ref(db,`clash/${sessionId}`),{status:'battle'})
+            }
+            }}
           myCard={myLastCard} oppCard={oppLastCard} lang={lang}
         />
       )}
