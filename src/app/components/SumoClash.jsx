@@ -465,13 +465,14 @@ function MultiGame({lang,onBack}) {
       if (
         roleRef.current==='host' &&
         !processingRef.current &&
+        !data.processing &&
         data.status==='battle' &&
         data.p1?.ready===true &&
         data.p2?.ready===true &&
         data.p1?.selectedCard &&
         data.p2?.selectedCard
       ) {
-        processingRef.current=true
+ processingRef.current=true
         doResolveRound(data, sessionIdRef.current)
           .then(()=>{ processingRef.current=false })
           .catch(()=>{ processingRef.current=false })
@@ -481,6 +482,9 @@ function MultiGame({lang,onBack}) {
   },[sessionId])
 
   async function doResolveRound(data, sid) {
+    // Атомарно блокуємо повторний запуск через Firebase
+    await update(ref(db, `clash/${sid}`), { processing: true })
+
     const p1Card=getCardById(data.p1.selectedCard)
     const p2Card=getCardById(data.p2.selectedCard)
     if (!p1Card||!p2Card) return
@@ -517,6 +521,7 @@ function MultiGame({lang,onBack}) {
       [`clash/${sid}/roundNum`]:newRound,
       [`clash/${sid}/roundLog`]:logs,
       [`clash/${sid}/status`]:isOver?'gameOver':'roundResult',
+      [`clash/${sid}/processing`]: false,
     })
   }
 
