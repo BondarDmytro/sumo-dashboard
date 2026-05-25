@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
+import SumoQuiz from './SumoQuiz'
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -28,17 +29,17 @@ function ThemeIcon({ dark }) {
 
 function IconBtn({ href, title, color, children }) {
   const style = {
-    background:'transparent',
-    border:'1px solid rgba(255,255,255,0.15)',
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.15)',
     color: color || '#6b6560',
-    width:34, height:34, borderRadius:'50%',
-    display:'flex', alignItems:'center', justifyContent:'center',
-    textDecoration:'none', cursor:'pointer',
-    transition:'opacity 0.2s, border-color 0.2s',
-    flexShrink:0,
+    width: 34, height: 34, borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    textDecoration: 'none', cursor: 'pointer',
+    transition: 'opacity 0.2s, border-color 0.2s',
+    flexShrink: 0,
   }
-  const enter = e => { e.currentTarget.style.opacity='0.75'; e.currentTarget.style.borderColor='rgba(255,255,255,0.35)' }
-  const leave = e => { e.currentTarget.style.opacity='1'; e.currentTarget.style.borderColor='rgba(255,255,255,0.15)' }
+  const enter = e => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }
+  const leave = e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }
   if (href) return (
     <a href={href} target="_blank" rel="noopener noreferrer" title={title} style={style} onMouseEnter={enter} onMouseLeave={leave}>
       {children}
@@ -47,11 +48,119 @@ function IconBtn({ href, title, color, children }) {
   return null
 }
 
+function GamesMenu({ onClose, onOpenQuiz, lang }) {
+  const games = [
+    {
+      id: 'quiz',
+      emoji: '🧠',
+      title: lang === 'en' ? 'Sumo Quiz' : 'Сумо Квіз',
+      desc: lang === 'en' ? '15 questions · Easy → Hard · Kachi-koshi or Make-koshi' : '15 питань · Легкі → Важкі · Качі-коші або Маке-коші',
+      ready: true,
+    },
+    {
+      id: 'snap',
+      emoji: '🃏',
+      title: lang === 'en' ? 'Rikishi Snap' : 'П\'яничка',
+      desc: lang === 'en' ? 'Card battle · Yokozuna loses to the weakest' : 'Карткова битва · Йокодзуна програє найслабшому',
+      ready: false,
+    },
+    {
+      id: 'clash',
+      emoji: '⚔️',
+      title: lang === 'en' ? 'Sumo Clash' : 'Сумо Клеш',
+      desc: lang === 'en' ? 'Strategic card game · Techniques & ranks' : 'Стратегічна карткова гра · Техніки та ранги',
+      ready: false,
+    },
+  ]
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.85)',
+        zIndex: 2000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+        backdropFilter: 'blur(4px)',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderRadius: 4,
+          maxWidth: 480,
+          width: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          borderBottom: '1px solid var(--border)',
+          padding: '0.75rem 1rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--mid)' }}>
+            {lang === 'en' ? '🎮 Games' : '🎮 Ігри'}
+          </div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--mid)', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>
+            {'✕'}
+          </button>
+        </div>
+
+        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {games.map(g => (
+            <div
+              key={g.id}
+              onClick={g.ready ? onOpenQuiz : undefined}
+              style={{
+                background: 'var(--bg2)',
+                border: '1px solid var(--border)',
+                borderLeft: `3px solid ${g.ready ? '#b8860b' : 'var(--border)'}`,
+                borderRadius: 2,
+                padding: '1rem',
+                cursor: g.ready ? 'pointer' : 'default',
+                opacity: g.ready ? 1 : 0.55,
+                display: 'flex', alignItems: 'center', gap: 14,
+                transition: 'border-color 0.15s',
+              }}
+              onMouseEnter={e => { if (g.ready) e.currentTarget.style.borderColor = 'var(--ink)' }}
+              onMouseLeave={e => { if (g.ready) e.currentTarget.style.borderColor = 'var(--border)' }}
+            >
+              <span style={{ fontSize: '1.8rem', flexShrink: 0 }}>{g.emoji}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{g.title}</div>
+                  {!g.ready && (
+                    <span style={{
+                      fontFamily: 'monospace', fontSize: '0.52rem',
+                      background: 'var(--bg2)', border: '1px solid var(--border)',
+                      color: 'var(--mid)', padding: '1px 6px', borderRadius: 2,
+                      letterSpacing: '0.08em',
+                    }}>
+                      {lang === 'en' ? 'IN DEV' : 'В РОЗРОБЦІ'}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'var(--mid)' }}>{g.desc}</div>
+              </div>
+              {g.ready && <span style={{ color: 'var(--mid)', fontSize: '1.2rem' }}>{'›'}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function NavBar() {
   const path = usePathname()
   const isStudio = path.startsWith('/studio')
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [gamesOpen, setGamesOpen] = useState(false)
+  const [quizOpen, setQuizOpen] = useState(false)
   const { lang, setLanguage, t } = useLang()
 
   useEffect(() => {
@@ -81,98 +190,132 @@ export default function NavBar() {
   ]
 
   return (
-    <nav style={{
-      background:'var(--header)',
-      borderBottom:'1px solid rgba(255,255,255,0.08)',
-      position:'sticky', top:0, zIndex:100,
-    }}>
-      <div style={{maxWidth:1100,margin:'0 auto',padding:'0 1.5rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+    <>
+      <nav style={{
+        background: 'var(--header)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        position: 'sticky', top: 0, zIndex: 100,
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-        {/* Вкладки — зліва */}
-        <div style={{display:'flex'}}>
-          {tabs.map(t => (
-            <Link key={t.href} href={t.href} style={{
-              display:'inline-block',
-              padding:'0.75rem 1.25rem',
-              fontFamily:'monospace',
-              fontSize:'0.72rem',
-              letterSpacing:'0.12em',
-              textTransform:'uppercase',
-              color: path === t.href ? '#f5f0e8' : '#6b6560',
-              textDecoration:'none',
-              borderBottom: path === t.href ? '2px solid #b8860b' : '2px solid transparent',
-              transition:'color 0.2s',
-            }}>
-              {t.label}
-            </Link>
-          ))}
-        </div>
+          {/* Вкладки + кнопка ігор зліва */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {tabs.map(tab => (
+              <Link key={tab.href} href={tab.href} style={{
+                display: 'inline-block',
+                padding: '0.75rem 1.25rem',
+                fontFamily: 'monospace',
+                fontSize: '0.72rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: path === tab.href ? '#f5f0e8' : '#6b6560',
+                textDecoration: 'none',
+                borderBottom: path === tab.href ? '2px solid #b8860b' : '2px solid transparent',
+                transition: 'color 0.2s',
+              }}>
+                {tab.label}
+              </Link>
+            ))}
 
-        {/* Іконки + мова — справа */}
-        <div style={{display:'flex',alignItems:'center',gap:8}}>
-          {mounted && (
-            <>
-              <IconBtn href="https://www.youtube.com/@kachikoshiua" title="YouTube" color="#FF0000">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/>
-                </svg>
-              </IconBtn>
-
-              <IconBtn href="https://t.me/kachikoshiua" title="Telegram" color="#29B6F6">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.9 8.2l-2 9.4c-.1.6-.5.8-.9.5l-2.5-1.9-1.2 1.1c-.1.1-.3.2-.6.2l.2-2.6 4.9-4.4c.2-.2 0-.3-.3-.1L6.4 14.6 4 13.9c-.5-.2-.5-.5.1-.7l11.5-4.4c.5-.2.9.1.3.4z"/>
-                </svg>
-              </IconBtn>
-
-              <IconBtn href="https://sumosite-production.up.railway.app/" title="Сайт" color="#f5f0e8">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="2" y1="12" x2="22" y2="12"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-              </IconBtn>
-
+            {mounted && (
               <button
-                onClick={toggle}
-                title={dark ? 'Світла тема' : 'Темна тема'}
+                onClick={() => setGamesOpen(true)}
+                title={lang === 'en' ? 'Games' : 'Ігри'}
                 style={{
-                  background:'transparent',
-                  border:'1px solid rgba(255,255,255,0.15)',
-                  color:'#b8860b',
-                  width:34, height:34, borderRadius:'50%',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  cursor:'pointer', transition:'opacity 0.2s, border-color 0.2s', flexShrink:0,
+                  marginLeft: 12,
+                  background: '#b8860b',
+                  border: 'none',
+                  color: '#fff',
+                  width: 36, height: 36, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '1.1rem',
+                  flexShrink: 0,
+                  transition: 'opacity 0.2s',
+                  boxShadow: '0 0 0 2px rgba(184,134,11,0.3)',
                 }}
-                onMouseEnter={e=>{e.currentTarget.style.opacity='0.75';e.currentTarget.style.borderColor='rgba(255,255,255,0.35)'}}
-                onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
-                <ThemeIcon dark={dark} />
+                🎮
               </button>
+            )}
+          </div>
 
-              <div style={{width:1,height:20,background:'rgba(255,255,255,0.15)',margin:'0 2px'}} />
+          {/* Іконки справа */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {mounted && (
+              <>
+                <IconBtn href="https://www.youtube.com/@kachikoshiua" title="YouTube" color="#FF0000">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/>
+                  </svg>
+                </IconBtn>
 
-              <button
-                onClick={() => setLanguage(lang === 'uk' ? 'en' : 'uk')}
-                title={lang === 'uk' ? 'Switch to English' : 'Перейти на українську'}
-                style={{
-                  background:'transparent',
-                  border:'1px solid rgba(255,255,255,0.15)',
-                  color:'#f5f0e8',
-                  width:34, height:34, borderRadius:'50%',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  cursor:'pointer', transition:'opacity 0.2s, border-color 0.2s', flexShrink:0,
-                  fontSize:'1rem',
-                }}
-                onMouseEnter={e=>{e.currentTarget.style.opacity='0.75';e.currentTarget.style.borderColor='rgba(255,255,255,0.35)'}}
-                onMouseLeave={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.borderColor='rgba(255,255,255,0.15)'}}
-              >
-                {lang === 'uk' ? '🇬🇧' : '🇺🇦'}
-              </button>
-            </>
-          )}
+                <IconBtn href="https://t.me/kachikoshiua" title="Telegram" color="#29B6F6">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.9 8.2l-2 9.4c-.1.6-.5.8-.9.5l-2.5-1.9-1.2 1.1c-.1.1-.3.2-.6.2l.2-2.6 4.9-4.4c.2-.2 0-.3-.3-.1L6.4 14.6 4 13.9c-.5-.2-.5-.5.1-.7l11.5-4.4c.5-.2.9.1.3.4z"/>
+                  </svg>
+                </IconBtn>
+
+                <IconBtn href="https://sumosite-production.up.railway.app/" title="Сайт" color="#f5f0e8">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </IconBtn>
+
+                <button
+                  onClick={toggle}
+                  title={dark ? 'Світла тема' : 'Темна тема'}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#b8860b',
+                    width: 34, height: 34, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'opacity 0.2s, border-color 0.2s', flexShrink: 0,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }}
+                >
+                  <ThemeIcon dark={dark} />
+                </button>
+
+                <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.15)', margin: '0 2px' }} />
+
+                <button
+                  onClick={() => setLanguage(lang === 'uk' ? 'en' : 'uk')}
+                  title={lang === 'uk' ? 'Switch to English' : 'Перейти на українську'}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#f5f0e8',
+                    width: 34, height: 34, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'opacity 0.2s, border-color 0.2s', flexShrink: 0,
+                    fontSize: '1rem',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)' }}
+                >
+                  {lang === 'uk' ? '🇬🇧' : '🇺🇦'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
+      </nav>
 
-      </div>
-    </nav>
+      {gamesOpen && (
+        <GamesMenu
+          onClose={() => setGamesOpen(false)}
+          onOpenQuiz={() => { setGamesOpen(false); setQuizOpen(true) }}
+          lang={lang}
+        />
+      )}
+      {quizOpen && <SumoQuiz onClose={() => setQuizOpen(false)} />}
+    </>
   )
 }
