@@ -8,61 +8,53 @@ export default function RikishiCard({ r, index }) {
 
   return (
     <div style={{background:'var(--card)',border:'1px solid var(--border)',borderTop:`3px solid ${barColor}`,borderRadius:2,overflow:'hidden'}}>
-      
-      {/* Фото — прямокутне зверху */}
-      <div style={{position:'relative',width:'100%',paddingTop:'75%',background:'var(--bg2)'}}>
+      {/* Фото — менша висота */}
+      <div style={{position:'relative',width:'100%',paddingTop:'60%',background:'var(--bg2)'}}>
         <img
           src={`/rikishi/${r._id}.jpg`}
           alt={r.name}
-          style={{
-            position:'absolute',
-            top:0,left:0,
-            width:'100%',
-            height:'100%',
-            objectFit:'cover',
-            objectPosition:'top',
-            display:'block',
-          }}
+          style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',display:'block'}}
           onError={e=>{e.target.style.display='none'}}
         />
-        {/* Номер позиції */}
         <div style={{
           position:'absolute',top:8,left:8,
-          width:28,height:28,borderRadius:'50%',
+          width:26,height:26,borderRadius:'50%',
           background:bgColor,color:textColor,
           display:'flex',alignItems:'center',justifyContent:'center',
-          fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace',
+          fontSize:'0.68rem',fontWeight:500,fontFamily:'monospace',
         }}>
           {index+1}
         </div>
       </div>
 
       {/* Контент */}
-      <div style={{padding:'1rem 1.25rem'}}>
-        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,marginBottom:'0.75rem'}}>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:'1rem'}}>{r.name}</div>
-            <div style={{fontSize:'0.72rem',color:'var(--mid)'}}>{r.rankFull} · <span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 5px',borderRadius:2}}>{r.rank}</span></div>
+      <div style={{padding:'0.75rem 1rem'}}>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,marginBottom:'0.5rem'}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:'0.95rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+            <div style={{fontSize:'0.68rem',color:'var(--mid)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+              {r.rankFull} · <span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.rank}</span>
+            </div>
           </div>
           <div style={{textAlign:'right',flexShrink:0}}>
-            <div style={{fontFamily:'monospace',fontWeight:500,fontSize:'0.9rem'}}>{r.wins}–{r.losses}</div>
-            <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'2px 7px',borderRadius:2,background:r.status==='lead'?'#d4edda':'#fff3cd',color:r.status==='lead'?'#155724':'#856404'}}>
+            <div style={{fontFamily:'monospace',fontWeight:500,fontSize:'0.85rem'}}>{r.wins}–{r.losses}</div>
+            <span style={{fontFamily:'monospace',fontSize:'0.58rem',padding:'1px 6px',borderRadius:2,background:r.status==='lead'?'#d4edda':'#fff3cd',color:r.status==='lead'?'#155724':'#856404'}}>
               {r.status==='lead'?'лідер':'-1'}
             </span>
           </div>
         </div>
 
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:'0.5rem'}}>
-          <div style={{flex:1,height:6,background:'var(--bg2)',borderRadius:1}}>
-            <div style={{height:'100%',width:`${r.yushoChance}%`,background:barColor,borderRadius:1}}></div>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:'0.4rem'}}>
+          <div style={{flex:1,height:5,background:'var(--bg2)',borderRadius:1}}>
+            <div style={{height:'100%',width:`${r.yushoChance}%`,background:barColor,borderRadius:1}}/>
           </div>
-          <span style={{fontFamily:'Georgia,serif',fontSize:'1.1rem',fontWeight:600,color:barColor,minWidth:44,textAlign:'right'}}>{r.yushoChance}%</span>
-          <span style={{fontFamily:'monospace',fontSize:'0.65rem',fontWeight:500,color:r.chanceDelta>0?'#1a6b5c':r.chanceDelta<0?'#c0392b':'var(--mid)',minWidth:32,textAlign:'right'}}>
+          <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.6rem',fontWeight:500,color:r.chanceDelta>0?'#1a6b5c':r.chanceDelta<0?'#c0392b':'var(--mid)',minWidth:28,textAlign:'right'}}>
             {r.chanceDelta>0?`▲+${r.chanceDelta}`:r.chanceDelta<0?`▼${r.chanceDelta}`:'–'}
           </span>
         </div>
 
-        <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic'}}>
+        <div style={{fontSize:'0.68rem',color:'var(--mid)',fontStyle:'italic',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
           {r.note} · день {r.nextOpponent ? `vs ${r.nextOpponent}` : '—'}
         </div>
       </div>

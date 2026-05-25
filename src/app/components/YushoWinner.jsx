@@ -60,7 +60,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
           gap:'0.6rem',
           minWidth:0,
         }}>
-          <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'#b8860b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
             {lang === 'en' ? `${label} — Yusho` : `${label} — Юшо`}
           </div>
 
