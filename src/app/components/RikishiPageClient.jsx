@@ -6,6 +6,24 @@ import { useLang } from './LangProvider'
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 
+const NATSU_2026_DAYS = {
+  1:'https://www.youtube.com/watch?v=iDs67K0MBkw',
+  2:'https://www.youtube.com/watch?v=SB8XBdvcQWk',
+  3:'https://www.youtube.com/watch?v=g_EIsaBPfDQ',
+  4:'https://www.youtube.com/watch?v=o4iuuEN6YsU',
+  5:'https://www.youtube.com/watch?v=AptBKGxomI0',
+  6:'https://www.youtube.com/watch?v=70fQmPz40fU',
+  7:'https://www.youtube.com/watch?v=smcdd9yQBmQ',
+  8:'https://www.youtube.com/watch?v=acJs0UxC9uQ',
+  9:'https://www.youtube.com/watch?v=5nffQM7J2uU',
+  10:'https://www.youtube.com/watch?v=zWx2S4W5h8U',
+  11:'https://www.youtube.com/watch?v=9XK1pBIQhO4',
+  12:'https://www.youtube.com/watch?v=FcfRtn6fxx0',
+  13:'https://www.youtube.com/watch?v=9w-Wf-uBwiE',
+  14:'https://www.youtube.com/watch?v=9TY-ZfGygb8',
+  15:'https://www.youtube.com/watch?v=AXl2YrIZ2w8',
+}
+
 const PINNED_VIDEOS = {
   '202605-12-day16': 'https://www.youtube.com/watch?v=dqkC7MPlufc',
 }
@@ -46,7 +64,7 @@ function RikishiListCard({ r, onClick, selected }) {
   )
 }
 
-function RikishiDetail({ r, lang }) {
+function RikishiDetail({ r, lang, onBack, isMobile }) {
   if (!r) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300,color:'var(--mid)',fontFamily:'monospace',fontSize:'0.8rem'}}>
       {lang === 'en' ? '← Select a rikishi from the list' : '← Виберіть рікіші зі списку'}
@@ -54,11 +72,9 @@ function RikishiDetail({ r, lang }) {
   )
 
   const sanshoList = Object.entries(r.stats?.sansho || {}).filter(([,v]) => v > 0)
-
   const bioLabels = lang === 'en'
     ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut']
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
-
   const bioValues = [
     r.country?.name,
     r.age ? `${r.age} ${lang === 'en' ? 'y.o.' : 'р.'}` : '—',
@@ -67,43 +83,51 @@ function RikishiDetail({ r, lang }) {
     r.heya || '—',
     r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—',
   ]
-
   const hasPlayoff = String(r.id) === '12'
 
   return (
     <div>
-      {/* Верхній блок: фото + ім'я + біо */}
-      <div style={{display:'flex',alignItems:'flex-start',gap:'1.5rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
+      {/* Кнопка назад — тільки на мобільному */}
+      {isMobile && onBack && (
+        <button onClick={onBack} style={{
+          display:'flex',alignItems:'center',gap:6,
+          background:'transparent',border:'none',
+          color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem',
+          cursor:'pointer',padding:'0 0 1rem 0',
+          letterSpacing:'0.05em',
+        }}>
+          {'‹'} {lang === 'en' ? 'Back to list' : 'До списку'}
+        </button>
+      )}
 
+      {/* Верхній блок: фото + ім'я + біо */}
+      <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
         <img
           src={`/rikishi/${r.id}.jpg`}
           alt={r.name}
           style={{
-            width:108,
-            height:189,
-            objectFit:'cover',
-            objectPosition:'top',
-            borderRadius:4,
-            border:'2px solid var(--border)',
-            flexShrink:0,
-            display:'block',
+            width: isMobile ? 90 : 108,
+            height: isMobile ? 158 : 189,
+            objectFit:'cover',objectPosition:'top',
+            borderRadius:4,border:'2px solid var(--border)',
+            flexShrink:0,display:'block',
           }}
           onError={e => { e.target.style.display = 'none' }}
         />
 
-        <div style={{flex:1,minWidth:180,paddingTop:4}}>
+        <div style={{flex:1,minWidth:150,paddingTop:4}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-            <span style={{fontSize:'1.8rem'}}>{r.country?.flag}</span>
-            <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{r.name}</div>
+            <span style={{fontSize:'1.5rem'}}>{r.country?.flag}</span>
+            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1}}>{r.name}</div>
           </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:6}}>{r.nameJp}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:4}}>{r.nameJp}</div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{r.rank}</div>
 
           {r.stats?.yusho > 0 && (
             <div style={{marginBottom:6}}>
               <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
                 {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
-                  <span key={i} style={{fontSize:'1rem'}}>{'🏆'}</span>
+                  <span key={i} style={{fontSize:'0.9rem'}}>{'🏆'}</span>
                 ))}
                 <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
                   {r.stats.yusho}{'×'} {lang === 'en' ? 'yusho' : 'юшо'}
@@ -119,13 +143,11 @@ function RikishiDetail({ r, lang }) {
                     })
                     .map(([division, count]) => (
                       <span key={division} style={{
-                        fontFamily:'monospace',
-                        fontSize:'0.58rem',
+                        fontFamily:'monospace',fontSize:'0.58rem',
                         background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg2)',
                         border: division === 'Makuuchi' ? '1px solid rgba(184,134,11,0.4)' : '1px solid var(--border)',
                         color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
-                        padding:'2px 7px',
-                        borderRadius:2,
+                        padding:'2px 7px',borderRadius:2,
                       }}>
                         {division} {count}{'×'}
                       </span>
@@ -146,7 +168,8 @@ function RikishiDetail({ r, lang }) {
           )}
         </div>
 
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,minWidth:260}}>
+        {/* Біо-сітка */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,width:'100%'}}>
           {bioLabels.map((label, idx) => (
             <div key={label} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>
               <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:2}}>{label}</div>
@@ -189,7 +212,7 @@ function RikishiDetail({ r, lang }) {
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
         {lang === 'en' ? 'Natsu Basho 2026' : 'Натсу Басьо 2026'} — {r.wins}–{r.losses}
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:4}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {r.record.map(m => {
           if (!m.result && !m.opponent) return null
           const isWin = RESULTS_WIN.includes(m.result)
@@ -198,15 +221,14 @@ function RikishiDetail({ r, lang }) {
           const isAbsent = m.result === 'absent'
           const isEmpty = !m.result
           const pinnedKey = `202605-${r.id}-day${m.day}`
-          const pinnedUrl = PINNED_VIDEOS[pinnedKey]
+          const pinnedUrl = PINNED_VIDEOS[pinnedKey] || NATSU_2026_DAYS[m.day]
           const ytQuery = encodeURIComponent(`Natsu Basho 2026 Day ${m.day} ${r.name} ${m.opponent || ''}`)
           const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
           return (
             <div key={m.day} style={{
               background:'var(--bg2)',
               border:`1px solid ${isWin ? 'rgba(26,107,92,0.4)' : isLoss ? 'rgba(192,57,43,0.4)' : 'var(--border)'}`,
-              padding:'0.4rem 0.6rem',
-              borderRadius:2,
+              padding:'0.4rem 0.6rem',borderRadius:2,
               opacity: isEmpty ? 0.4 : 1,
             }}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
@@ -228,19 +250,8 @@ function RikishiDetail({ r, lang }) {
               {m.kimarite && (
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
                   <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>{m.kimarite}</div>
-                  <a
-                    href={ytUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{
-                      display:'inline-flex',alignItems:'center',
-                      fontFamily:'monospace',fontSize:'0.5rem',
-                      color:'#fff',background:'#c00',
-                      padding:'1px 5px',borderRadius:2,
-                      textDecoration:'none',flexShrink:0,
-                      lineHeight:1.4,
-                    }} >
+                  <a href={ytUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                    style={{display:'inline-flex',alignItems:'center',fontFamily:'monospace',fontSize:'0.5rem',color:'#fff',background:'#c00',padding:'1px 5px',borderRadius:2,textDecoration:'none',flexShrink:0,lineHeight:1.4}}>
                     {'\u25B6'}
                   </a>
                 </div>
@@ -255,19 +266,13 @@ function RikishiDetail({ r, lang }) {
         })}
       </div>
 
-      {/* Плей-оф блок — тільки для Wakatakakage */}
       {hasPlayoff && (
         <div style={{marginTop:'1rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
             {lang === 'en' ? 'Playoff — Day 16' : 'Плей-оф — День 16'}
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:4}}>
-            <div style={{
-              background:'var(--bg2)',
-              border:'1px solid rgba(184,134,11,0.4)',
-              padding:'0.4rem 0.6rem',
-              borderRadius:2,
-            }}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
+            <div style={{background:'var(--bg2)',border:'1px solid rgba(184,134,11,0.4)',padding:'0.4rem 0.6rem',borderRadius:2}}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
                 <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'var(--ink)'}} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
@@ -277,18 +282,8 @@ function RikishiDetail({ r, lang }) {
               <div style={{fontSize:'0.68rem',fontWeight:600,marginBottom:2}}>Kirishima</div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
                 <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>oshidashi ⚡</div>
-                <a
-                  href="https://www.youtube.com/watch?v=dqkC7MPlufc"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
-                  style={{
-                    display:'inline-flex',alignItems:'center',
-                    fontFamily:'monospace',fontSize:'0.5rem',
-                    color:'#fff',background:'#c00',
-                    padding:'1px 5px',borderRadius:2,
-                    textDecoration:'none',flexShrink:0,
-                    lineHeight:1.4,}}>
+                <a href="https://www.youtube.com/watch?v=dqkC7MPlufc" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                  style={{display:'inline-flex',alignItems:'center',fontFamily:'monospace',fontSize:'0.5rem',color:'#fff',background:'#c00',padding:'1px 5px',borderRadius:2,textDecoration:'none',flexShrink:0,lineHeight:1.4}}>
                   {'\u25B6'}
                 </a>
               </div>
@@ -305,7 +300,16 @@ export default function RikishiPageClient() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
   const { lang } = useLang()
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 700)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     fetch('/api/rikishi-list')
@@ -324,6 +328,11 @@ export default function RikishiPageClient() {
     r.country?.name.toLowerCase().includes(search.toLowerCase())
   ) || []
 
+  function handleSelect(r) {
+    setSelected(r)
+    if (isMobile) setShowDetail(true)
+  }
+
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
@@ -335,7 +344,42 @@ export default function RikishiPageClient() {
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
             {lang === 'en' ? 'Loading...' : 'Завантаження даних...'}
           </div>
+        ) : isMobile ? (
+          /* Мобільний layout */
+          showDetail ? (
+            <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1rem'}}>
+              <RikishiDetail
+                r={selected} lang={lang}
+                isMobile={true}
+                onBack={() => setShowDetail(false)}
+              />
+            </div>
+          ) : (
+            <>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={lang === 'en' ? 'Search...' : 'Пошук...'}
+                style={{
+                  width:'100%',padding:'0.5rem 0.75rem',
+                  background:'var(--bg2)',border:'1px solid var(--border)',
+                  color:'var(--ink)',fontFamily:'monospace',fontSize:'0.75rem',
+                  borderRadius:2,marginBottom:6,outline:'none',boxSizing:'border-box',
+                }}
+              />
+              <div style={{display:'flex',flexDirection:'column',gap:1}}>
+                {filtered.map(r => (
+                  <RikishiListCard
+                    key={r.id} r={r}
+                    onClick={handleSelect}
+                    selected={selected?.id === r.id}
+                  />
+                ))}
+              </div>
+            </>
+          )
         ) : (
+          /* Десктоп layout */
           <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:'1.5rem',alignItems:'start'}}>
             <div style={{position:'sticky',top:52}}>
               <input
@@ -352,17 +396,15 @@ export default function RikishiPageClient() {
               <div style={{maxHeight:'calc(100vh - 140px)',overflowY:'auto',display:'flex',flexDirection:'column',gap:1}}>
                 {filtered.map(r => (
                   <RikishiListCard
-                    key={r.id}
-                    r={r}
+                    key={r.id} r={r}
                     onClick={setSelected}
                     selected={selected?.id === r.id}
                   />
                 ))}
               </div>
             </div>
-
             <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem'}}>
-              <RikishiDetail r={selected} lang={lang} />
+              <RikishiDetail r={selected} lang={lang} isMobile={false} />
             </div>
           </div>
         )}
