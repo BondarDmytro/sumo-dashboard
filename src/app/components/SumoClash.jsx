@@ -1,5 +1,5 @@
 'use client'
-
+import { trackGameLaunch, trackClashMode } from '../lib/gameAnalytics'
 import { useState, useEffect, useRef } from 'react'
 import { db } from '../lib/firebase'
 import { ref, set, get, onValue, update, off } from 'firebase/database'
@@ -800,6 +800,7 @@ export default function SumoClash({onClose,lang='uk'}){
   const [sfxOn,setSfxOn]=useState(true)
   const [musicOn,setMusicOn]=useState(false)
   const [musicTheme,setMusicTheme]=useState('dohyo')
+  const [confirmExit,setConfirmExit]=useState(false)
 
   function ensureCtx(){
     if(!audioCtxRef.current) audioCtxRef.current=createAudioContext()
@@ -838,7 +839,27 @@ export default function SumoClash({onClose,lang='uk'}){
   return(
     <>
       <style>{ANIM_STYLES}</style>
-      <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
+      {confirmExit&&(
+  <div onClick={e=>e.stopPropagation()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:3000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center'}}>
+      <div style={{fontFamily:'Georgia,serif',fontSize:'1.1rem',fontWeight:700,color:'var(--ink)',marginBottom:'0.5rem'}}>
+        {t('Вийти з гри?','Exit game?')}
+      </div>
+      <div style={{fontFamily:'monospace',fontSize:'0.7rem',color:'var(--mid)',marginBottom:'1.25rem'}}>
+        {t('Прогрес поточної гри буде втрачено','Current game progress will be lost')}
+      </div>
+      <div style={{display:'flex',gap:10}}>
+        <button onClick={()=>setConfirmExit(false)} style={{flex:1,padding:'0.7rem',background:'var(--bg2)',color:'var(--ink)',border:'1px solid var(--border)',borderRadius:4,fontFamily:'monospace',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>
+          {t('Залишитись','Stay')}
+        </button>
+        <button onClick={onClose} style={{flex:1,padding:'0.7rem',background:'#c0392b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>
+          {t('Вийти','Exit')}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
         <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:960,width:'100%',maxHeight:'96vh',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
           <div style={{borderBottom:'1px solid var(--border)',padding:'0.8rem 1.25rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -848,7 +869,7 @@ export default function SumoClash({onClose,lang='uk'}){
             </div>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
-              <button onClick={onClose} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1}}>✕</button>
+              <button onClick={()=>setConfirmExit(true)} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1}}>✕</button>
             </div>
           </div>
           {mode==='menu'&&(
@@ -856,10 +877,10 @@ export default function SumoClash({onClose,lang='uk'}){
               <div style={{fontSize:'2.8rem',animation:'pop 0.4s ease'}}>⚔️</div>
               <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:'#b8860b'}}>{t('Сумо Клеш','Sumo Clash')}</div>
               <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',textAlign:'center',lineHeight:1.7,marginBottom:'0.5rem'}}>{t('15 раундів · Ояката · Рікіші · Броня · Удари · Хенка','15 rounds · Oyakata · Rikishi · Armor · Strikes · Henka')}</div>
-              <button onClick={()=>{sfx('click');setMode('cpu')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+              <button onClick={()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
                 🤖 {t('Проти CPU','vs CPU')}
               </button>
-              <button onClick={()=>{sfx('click');setMode('multi')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+              <button onClick={()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
                 🌐 {t('Мультиплеєр','Multiplayer')}
               </button>
             </div>

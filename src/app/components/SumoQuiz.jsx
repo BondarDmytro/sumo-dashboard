@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
+import { trackGameLaunch } from '../lib/gameAnalytics'
+// при старті:
+trackGameLaunch('sumoQuiz')
 
 const QUESTIONS = [
   // ЛЕГКІ (0-29)

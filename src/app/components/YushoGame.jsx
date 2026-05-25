@@ -1,6 +1,9 @@
 'use client'
 
+import { trackGameLaunch } from '../lib/gameAnalytics'
+trackGameLaunch('yushoGame')
 import { useState, useEffect } from 'react'
+
 
 const SUITS = ['🔴', '🔵', '🟡', '🟢']
 const SUIT_NAMES = {
