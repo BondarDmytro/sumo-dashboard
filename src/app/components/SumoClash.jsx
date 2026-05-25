@@ -121,8 +121,8 @@ function HPBar({ hp }) {
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
-        <span style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--mid)'}}>HP</span>
-        <span style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:700,color}}>{hp}/{MAX_HP}</span>
+        <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>HP</span>
+        <span style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,color}}>{hp}/{MAX_HP}</span>
       </div>
       <div style={{height:5,background:'var(--bg2)',borderRadius:3,overflow:'hidden'}}>
         <div style={{height:'100%',width:`${pct}%`,background:color,borderRadius:3,transition:'width 0.4s'}} />
@@ -134,15 +134,15 @@ function HPBar({ hp }) {
 function GameCard({ card, selected, onClick, disabled, small, showBack }) {
   if (!card) return null
   if (showBack) return (
-    <div style={{width:small?60:76,height:small?86:108,borderRadius:6,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-      <span style={{fontSize:'1.1rem',opacity:0.5}}>相</span>
+    <div style={{width:small?72:96,height:small?100:134,borderRadius:6,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+      <span style={{fontSize:'1.4rem',opacity:0.5}}>相</span>
     </div>
   )
   const isHeal = card.type === 'heal'
   const color = isHeal ? card.color : (card.color || 'var(--mid)')
   return (
     <div onClick={disabled ? undefined : onClick} style={{
-      width:small?60:76, height:small?86:108, borderRadius:6,
+      width:small?72:96, height:small?100:134, borderRadius:6,
       border:`2px solid ${selected ? '#b8860b' : color}`,
       background: selected ? 'rgba(184,134,11,0.2)' : 'var(--card)',
       cursor: disabled ? 'default' : 'pointer',
@@ -154,24 +154,24 @@ function GameCard({ card, selected, onClick, disabled, small, showBack }) {
     }}>
       {isHeal ? (
         <>
-          <div style={{fontSize:small?'1rem':'1.3rem'}}>{card.emoji}</div>
-          <div style={{fontFamily:'monospace',fontSize:small?'0.6rem':'0.7rem',fontWeight:800,color:card.color}}>{card.label}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.4rem',color:'var(--mid)'}}>Heal</div>
+          <div style={{fontSize:small?'1.2rem':'1.6rem'}}>{card.emoji}</div>
+          <div style={{fontFamily:'monospace',fontSize:small?'0.72rem':'0.85rem',fontWeight:800,color:card.color}}>{card.label}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)'}}>Heal</div>
         </>
       ) : (
         <>
-          <div style={{fontFamily:'monospace',fontSize:small?'0.5rem':'0.56rem',color,fontWeight:700,lineHeight:1,textAlign:'center'}}>{card.rankShort}</div>
+          <div style={{fontFamily:'monospace',fontSize:small?'0.62rem':'0.72rem',color,fontWeight:700,lineHeight:1,textAlign:'center'}}>{card.rankShort}</div>
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:1}}>
             <div style={{display:'flex',alignItems:'center',gap:2}}>
-              <span style={{fontSize:'0.42rem',color:'#e74c3c'}}>⚔</span>
-              <span style={{fontFamily:'monospace',fontSize:small?'0.7rem':'0.8rem',fontWeight:800,color:'#e74c3c'}}>{card.atk}</span>
+              <span style={{fontSize:'0.55rem',color:'#e74c3c'}}>⚔</span>
+              <span style={{fontFamily:'monospace',fontSize:small?'0.85rem':'1rem',fontWeight:800,color:'#e74c3c'}}>{card.atk}</span>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:2}}>
-              <span style={{fontSize:'0.42rem',color:'#3498db'}}>🛡</span>
-              <span style={{fontFamily:'monospace',fontSize:small?'0.7rem':'0.8rem',fontWeight:800,color:'#3498db'}}>{card.def}</span>
+              <span style={{fontSize:'0.55rem',color:'#3498db'}}>🛡</span>
+              <span style={{fontFamily:'monospace',fontSize:small?'0.85rem':'1rem',fontWeight:800,color:'#3498db'}}>{card.def}</span>
             </div>
           </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.38rem',color:'var(--light)',textAlign:'center'}}>{card.rank}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)',textAlign:'center'}}>{card.rank}</div>
         </>
       )}
     </div>
@@ -185,10 +185,10 @@ function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabe
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',marginBottom:'0.5rem'}}>
-        <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
           {t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}
         </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
+        <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
           {myWins}–{oppWins}
         </div>
       </div>
@@ -198,7 +198,7 @@ function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabe
           <HPBar hp={myHp} />
         </div>
         <div style={{background:'var(--bg2)',padding:'0.6rem',borderRadius:2,border:'1px solid rgba(192,57,43,0.3)'}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'#c0392b',marginBottom:4,textTransform:'uppercase'}}>{oppLabel}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#c0392b',marginBottom:4,textTransform:'uppercase'}}>{oppLabel}</div>
           <HPBar hp={oppHp} />
         </div>
       </div>
@@ -208,14 +208,14 @@ function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabe
           <div style={{background:'var(--bg2)',borderRadius:2,padding:'0.75rem',marginBottom:'1rem'}}>
             {roundLog.map((l,i) => <div key={i} style={{fontFamily:'monospace',fontSize:'0.62rem',color:l.color,lineHeight:1.6}}>{l.text}</div>)}
           </div>
-          <button onClick={onNext} style={{width:'100%',padding:'0.65rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}>
+          <button onClick={onNext} style={{width:'100%',padding:'0.65rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.8rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}>
             {roundNum >= MAX_ROUNDS ? t('Результат','Results') : t('Наступний раунд','Next round')}
           </button>
         </>
       ) : (
         <>
           <div style={{marginBottom:'0.75rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>
               {t('Ваша рука','Your hand')} ({myHand.length})
             </div>
             <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
@@ -246,7 +246,7 @@ function BattleLayout({ myHp, oppHp, myWins, oppWins, roundNum, myLabel, oppLabe
             width:'100%',padding:'0.65rem',
             background:(!playerSelected||myReady)?'var(--bg2)':'#b8860b',
             color:(!playerSelected||myReady)?'var(--mid)':'#fff',
-            border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.72rem',
+            border:'none',borderRadius:2,fontFamily:'monospace',fontSize:'0.8rem',
             letterSpacing:'0.1em',cursor:(!playerSelected||myReady)?'default':'pointer',fontWeight:700,
           }}>
             {myReady ? t('Підтверджено ✓','Confirmed ✓') : !playerSelected ? t('Оберіть карту','Select a card') : t('Підтвердити','Confirm')}
@@ -270,7 +270,7 @@ function GameOverScreen({ myHp, oppHp, myWins, oppWins, myLabel, oppLabel, onBac
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,margin:'1rem 0'}}>
         <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(26,107,92,0.3)'}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'#1a6b5c',marginBottom:4}}>{myLabel} HP</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#1a6b5c',marginBottom:4}}>{myLabel} HP</div>
           <HPBar hp={myHp} />
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:2,border:'1px solid rgba(192,57,43,0.3)'}}>
@@ -286,7 +286,7 @@ function GameOverScreen({ myHp, oppHp, myWins, oppWins, myLabel, oppLabel, onBac
           {isKachiKoshi ? '勝ち越し Kachi-koshi' : '負け越し Make-koshi'}
         </div>
       </div>
-      <button onClick={onBack} style={{background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:2,padding:'0.6rem 1.5rem',fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.1em',cursor:'pointer'}}>
+      <button onClick={onBack} style={{background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:2,padding:'0.6rem 1.5rem',fontFamily:'monospace',fontSize:'0.8rem',letterSpacing:'0.1em',cursor:'pointer'}}>
         {t('В меню','Menu')}
       </button>
     </div>
@@ -387,7 +387,7 @@ function CpuGame({ lang, onBack }) {
           </div>
           {playerHand.length > 0 && (
             <div style={{marginBottom:'1rem'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>{t('Рука','Hand')} ({playerHand.length}/5)</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>{t('Рука','Hand')} ({playerHand.length}/5)</div>
               <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c => <GameCard key={c.id} card={c} small disabled />)}</div>
             </div>
           )}
@@ -656,7 +656,7 @@ function MultiGame({ lang, onBack }) {
           <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',textAlign:'center',marginBottom:'1rem'}}>{t('Раунд','Round')} {draftRound+1}/5</div>
           {myHandCards.length > 0 && (
             <div style={{marginBottom:'1rem'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>{t('Рука','Hand')} ({myHandCards.length})</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6}}>{t('Рука','Hand')} ({myHandCards.length})</div>
               <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{myHandCards.map(c => <GameCard key={c.id} card={c} small disabled />)}</div>
             </div>
           )}
@@ -707,7 +707,7 @@ export default function SumoClash({ onClose, lang = 'uk' }) {
 
   return (
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
-      <div onClick={e => e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:4,maxWidth:500,width:'100%',maxHeight:'92vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div onClick={e => e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:4,maxWidth:960,width:'100%',maxHeight:'96vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{borderBottom:'1px solid var(--border)',padding:'0.65rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <span>⚔️</span>
