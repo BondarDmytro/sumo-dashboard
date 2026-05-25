@@ -40,29 +40,65 @@ function getKimariteCategory(name, lang) {
   return lang === 'en' ? 'Other' : 'Інші'
 }
 
+const KIMARITE_EXT = {
+  'yorikiri':'jpg','kekaeshi':'jpg','oshidashi':'png','hatakikomi':'png',
+  'uwatenage':'jpg','uwatehineri':'png','shitatenage':'jpg','shitatehineri':'png',
+  'yoritaoshi':'png','hikiotoshi':'png','tsukiotoshi':'jpg','oshitaoshi':'jpg',
+  'okuridashi':'jpg','kotenage':'png','sukuinage':'png','tsukidashi':'png',
+  'uwatedashinage':'png','shitatedashinage':'png','sotogake':'jpg','uchigake':'jpg',
+  'katasukashi':'jpg','kubinage':'jpg','tottari':'jpg','kimedashi':'jpg',
+  'amiuchi':'jpg','tsuridashi':'jpg','tsuriotoshi':'jpg','kawazugake':'jpg',
+  'ipponzeoi':'jpg','chongake':'jpg','makiotoshi':'jpg','mitokorozeme':'jpg',
+  'watashikomi':'jpg','kirikaeshi':'jpg','uchimuso':'png','ashitori':'png',
+  'okurinage':'jpg','okuritsuriotoshi':'jpg','fumidashi':'jpg','isamiashi':'jpg',
+  'koshikudake':'jpg',
+}
+const NSK_IMG = (name) => KIMARITE_EXT[name] ? `/kimarite/${name}.${KIMARITE_EXT[name]}` : null
+
 const KIMARITE_INFO = {
-  'yorikiri': { ua: 'Виштовхування суперника за межі дохьо грудьми або тулубом, тримаючи його за маваші. Найпоширеніша техніка в сумо.', en: 'Forcing the opponent out of the ring by pushing with the chest or body while holding the mawashi. The most common technique in sumo.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Sumo_kimari-te_yorikiri.svg/400px-Sumo_kimari-te_yorikiri.svg.png' },
-  'oshidashi': { ua: 'Виштовхування суперника обома руками без захвату маваші. Друга за популярністю техніка.', en: 'Pushing the opponent out with both hands without gripping the mawashi. The second most common technique.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Sumo_kimari-te_oshidashi.svg/400px-Sumo_kimari-te_oshidashi.svg.png' },
-  'hatakikomi': { ua: 'Збивання суперника вниз ударом долонею по спині або плечу.', en: 'Slapping the opponent down by striking the back or shoulder when they lose balance.', img: null },
-  'uwatenage': { ua: 'Кидок суперника через верхній захват маваші зовнішньою рукою.', en: 'Throwing the opponent using an overarm grip on the mawashi with the outer arm.', img: null },
-  'yoritaoshi': { ua: 'Суперника виштовхують і він падає за межами дохьо.', en: 'The opponent is forced out and falls outside the ring.', img: null },
-  'hikiotoshi': { ua: 'Різке притягування суперника вниз за руку або плече.', en: 'Sharply pulling the opponent down by the arm or shoulder.', img: null },
-  'tsukiotoshi': { ua: 'Збивання суперника поштовхом в бік або вниз.', en: 'Knocking the opponent down with a thrust to the side or downward.', img: null },
-  'oshitaoshi': { ua: 'Суперника штовхають і він падає за межами дохьо.', en: 'The opponent is pushed and falls outside the ring.', img: null },
-  'shitatenage': { ua: 'Кидок суперника через нижній захват маваші внутрішньою рукою.', en: 'Throwing the opponent using an underarm grip on the mawashi.', img: null },
-  'okuridashi': { ua: 'Виштовхування суперника ззаду обома руками.', en: 'Pushing the opponent out from behind with both hands.', img: null },
-  'kotenage': { ua: 'Кидок через захват руки суперника під пахву.', en: 'Throwing by gripping the opponent\'s arm under the armpit.', img: null },
-  'sukuinage': { ua: 'Кидок через підхват — захоплення руки суперника знизу.', en: 'A scoop throw — grabbing the opponent\'s arm from below.', img: null },
-  'tsukidashi': { ua: 'Виштовхування суперника серією поштовхів без захвату маваші.', en: 'Pushing the opponent out with a series of thrusts without gripping the mawashi.', img: null },
-  'uwatedashinage': { ua: 'Кидок суперника вниз через верхній захват маваші.', en: 'Pulling the opponent down using an overarm grip on the mawashi.', img: null },
-  'sotogake': { ua: 'Підсічка зовнішньою ногою — зачіп ноги суперника зовні.', en: 'An outer leg trip — hooking the opponent\'s leg from the outside.', img: null },
-  'katasukashi': { ua: 'Суперника перекидають через плече захопивши його руку під пахву.', en: 'The opponent is thrown over the shoulder by grabbing their arm under the armpit.', img: null },
-  'kubinage': { ua: 'Кидок через шию — суперника захоплюють за шию і кидають.', en: 'A headlock throw — grabbing the opponent\'s neck and throwing them.', img: null },
-  'uwatehineri': { ua: 'Скручування суперника через верхній захват маваші.', en: 'Twisting the opponent down using an overarm grip on the mawashi.', img: null },
-  'tottari': { ua: 'Захоплення обох рук суперника і перекидання.', en: 'Grabbing both of the opponent\'s arms and throwing them.', img: null },
-  'uchigake': { ua: 'Підсічка внутрішньою ногою — зачіп ноги суперника зсередини.', en: 'An inner leg trip — hooking the opponent\'s leg from the inside.', img: null },
-  'kimedashi': { ua: 'Виштовхування суперника з фіксацією його рук.', en: 'Forcing the opponent out while pinning their arms.', img: null },
-  'amiuchi': { ua: 'Кидок через закидання руки через плече суперника.', en: 'A throw by swinging the arm over the opponent\'s shoulder.', img: null },
+  'yorikiri':         { ua: 'Виштовхування суперника за межі дохьо грудьми або тулубом, тримаючи його за маваші. Найпоширеніша техніка в сумо.', en: 'Forcing the opponent out of the ring by pushing with the chest or body while holding the mawashi. The most common technique in sumo.', img: NSK_IMG('yorikiri') },
+  'oshidashi':        { ua: 'Виштовхування суперника обома руками без захвату маваші. Друга за популярністю техніка.', en: 'Pushing the opponent out with both hands without gripping the mawashi. The second most common technique.', img: NSK_IMG('oshidashi') },
+  'hatakikomi':       { ua: 'Збивання суперника вниз ударом долонею по спині або плечу.', en: 'Slapping the opponent down by striking the back or shoulder when they lose balance.', img: NSK_IMG('hatakikomi') },
+  'uwatenage':        { ua: 'Кидок суперника через верхній захват маваші зовнішньою рукою.', en: 'Throwing the opponent using an overarm grip on the mawashi with the outer arm.', img: NSK_IMG('uwatenage') },
+  'yoritaoshi':       { ua: 'Суперника виштовхують і він падає за межами дохьо.', en: 'The opponent is forced out and falls outside the ring.', img: NSK_IMG('yoritaoshi') },
+  'hikiotoshi':       { ua: 'Різке притягування суперника вниз за руку або плече.', en: 'Sharply pulling the opponent down by the arm or shoulder.', img: NSK_IMG('hikiotoshi') },
+  'tsukiotoshi':      { ua: 'Збивання суперника поштовхом в бік або вниз.', en: 'Knocking the opponent down with a thrust to the side or downward.', img: NSK_IMG('tsukiotoshi') },
+  'oshitaoshi':       { ua: 'Суперника штовхають і він падає за межами дохьо.', en: 'The opponent is pushed and falls outside the ring.', img: NSK_IMG('oshitaoshi') },
+  'shitatenage':      { ua: 'Кидок суперника через нижній захват маваші внутрішньою рукою.', en: 'Throwing the opponent using an underarm grip on the mawashi.', img: NSK_IMG('shitatenage') },
+  'okuridashi':       { ua: 'Виштовхування суперника ззаду обома руками.', en: 'Pushing the opponent out from behind with both hands.', img: NSK_IMG('okuridashi') },
+  'kotenage':         { ua: 'Кидок через захват руки суперника під пахву.', en: 'Throwing by gripping the opponent\'s arm under the armpit.', img: NSK_IMG('kotenage') },
+  'sukuinage':        { ua: 'Кидок через підхват — захоплення руки суперника знизу.', en: 'A scoop throw — grabbing the opponent\'s arm from below.', img: NSK_IMG('sukuinage') },
+  'tsukidashi':       { ua: 'Виштовхування суперника серією поштовхів без захвату маваші.', en: 'Pushing the opponent out with a series of thrusts without gripping the mawashi.', img: NSK_IMG('tsukidashi') },
+  'uwatedashinage':   { ua: 'Кидок суперника вниз через верхній захват маваші.', en: 'Pulling the opponent down using an overarm grip on the mawashi.', img: NSK_IMG('uwatedashinage') },
+  'sotogake':         { ua: 'Підсічка зовнішньою ногою — зачіп ноги суперника зовні.', en: 'An outer leg trip — hooking the opponent\'s leg from the outside.', img: NSK_IMG('sotogake') },
+  'katasukashi':      { ua: 'Суперника перекидають через плече захопивши його руку під пахву.', en: 'The opponent is thrown over the shoulder by grabbing their arm under the armpit.', img: NSK_IMG('katasukashi') },
+  'kubinage':         { ua: 'Кидок через шию — суперника захоплюють за шию і кидають.', en: 'A headlock throw — grabbing the opponent\'s neck and throwing them.', img: NSK_IMG('kubinage') },
+  'uwatehineri':      { ua: 'Скручування суперника через верхній захват маваші.', en: 'Twisting the opponent down using an overarm grip on the mawashi.', img: NSK_IMG('uwatehineri') },
+  'tottari':          { ua: 'Захоплення обох рук суперника і перекидання.', en: 'Grabbing both of the opponent\'s arms and throwing them.', img: NSK_IMG('tottari') },
+  'uchigake':         { ua: 'Підсічка внутрішньою ногою — зачіп ноги суперника зсередини.', en: 'An inner leg trip — hooking the opponent\'s leg from the inside.', img: NSK_IMG('uchigake') },
+  'kimedashi':        { ua: 'Виштовхування суперника з фіксацією його рук.', en: 'Forcing the opponent out while pinning their arms.', img: NSK_IMG('kimedashi') },
+  'amiuchi':          { ua: 'Кидок через закидання руки через плече суперника.', en: 'A throw by swinging the arm over the opponent\'s shoulder.', img: NSK_IMG('amiuchi') },
+  'shitatedashinage': { ua: 'Кидок суперника вниз через нижній захват маваші.', en: 'Pulling the opponent down using an underarm grip on the mawashi.', img: NSK_IMG('shitatedashinage') },
+  'haritaoshi':       { ua: 'Збивання суперника ляпасом з одночасним поштовхом.', en: 'Slapping the opponent down while simultaneously pushing.', img: NSK_IMG('haritaoshi') },
+  'makiotoshi':       { ua: 'Скручування та збивання суперника вниз.', en: 'Twisting and knocking the opponent down.', img: NSK_IMG('makiotoshi') },
+  'kirikaeshi':       { ua: 'Підсічка з одночасним відштовхуванням тулубом.', en: 'A leg trip combined with a body push.', img: NSK_IMG('kirikaeshi') },
+  'chongake':         { ua: 'Підсічка п\'ятою — зачіп п\'яти суперника.', en: 'A heel trip — hooking the opponent\'s heel.', img: NSK_IMG('chongake') },
+  'kawazugake':       { ua: 'Обхват ноги суперника своєю ногою з падінням на нього.', en: 'Wrapping the leg around the opponent\'s leg and falling on them.', img: NSK_IMG('kawazugake') },
+  'tsuridashi':       { ua: 'Підняття суперника і винесення його за межі дохьо.', en: 'Lifting the opponent and carrying them out of the ring.', img: NSK_IMG('tsuridashi') },
+  'tsuriotoshi':      { ua: 'Підняття суперника і скидання його на землю.', en: 'Lifting the opponent and throwing them to the ground.', img: NSK_IMG('tsuriotoshi') },
+  'fumidashi':        { ua: 'Суперник сам виходить за межі дохьо, переступаючи ногою.', en: 'The opponent steps out of the ring on their own.', img: NSK_IMG('fumidashi') },
+  'isamiashi':        { ua: 'Суперник сам виходить за межі дохьо після власної атаки.', en: 'The opponent steps out of the ring after their own charge.', img: NSK_IMG('isamiashi') },
+  'koshikudake':      { ua: 'Суперник падає через власну нестійкість або втому.', en: 'The opponent falls due to their own instability or exhaustion.', img: NSK_IMG('koshikudake') },
+  'watashikomi':      { ua: 'Захоплення ноги суперника рукою з виштовхуванням.', en: 'Grabbing the opponent\'s leg and forcing them out.', img: NSK_IMG('watashikomi') },
+  'uchimuso':         { ua: 'Удар по внутрішній стороні стегна суперника.', en: 'Striking the opponent\'s inner thigh.', img: NSK_IMG('uchimuso') },
+  'ipponzeoi':        { ua: 'Кидок через спину — класичний кидок через плече.', en: 'A back throw — a classic over-the-shoulder throw.', img: NSK_IMG('ipponzeoi') },
+  'shitatehineri':    { ua: 'Скручування суперника через нижній захват маваші.', en: 'Twisting the opponent down using an underarm grip on the mawashi.', img: NSK_IMG('shitatehineri') },
+  'ashitori':         { ua: 'Захоплення ноги суперника і повалення його на землю.', en: 'Grabbing the opponent\'s leg and bringing them down.', img: NSK_IMG('ashitori') },
+  'kekaeshi':         { ua: 'Відбивання ноги суперника своєю ногою.', en: 'Deflecting the opponent\'s leg with your own foot.', img: NSK_IMG('kekaeshi') },
+  'mitokorozeme':     { ua: 'Одночасна атака в три точки — найрідкісніша техніка.', en: 'Simultaneous attack on three points — the rarest technique.', img: NSK_IMG('mitokorozeme') },
+  'okurinage':        { ua: 'Кидок суперника збоку або ззаду.', en: 'Throwing the opponent from the side or behind.', img: NSK_IMG('okurinage') },
+  'okuritsuriotoshi': { ua: 'Підняття суперника ззаду і скидання його на землю.', en: 'Lifting the opponent from behind and throwing them down.', img: NSK_IMG('okuritsuriotoshi') },
+  'okuriashi':        { ua: 'Виштовхування суперника ззаду поштовхом в спину.', en: 'Pushing the opponent out from behind with a push to the back.', img: NSK_IMG('okuriashi') },
 }
 
 function BanzukeView({ data, lang }) {
@@ -153,15 +189,18 @@ function KimariteModal({ item, onClose, lang }) {
             {lang === 'en' ? info.en : info.ua}
           </p>
         )}
-        {info?.img ? (
-          <div style={{background:'var(--bg2)',borderRadius:2,padding:'1rem',textAlign:'center',marginBottom:'1rem'}}>
-            <img src={info.img} alt={item.kimarite} style={{maxWidth:'100%',maxHeight:220,objectFit:'contain'}} onError={e => { e.target.style.display='none' }} />
-          </div>
-        ) : (
-          <div style={{background:'var(--bg2)',borderRadius:2,padding:'2rem',textAlign:'center',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.75rem',marginBottom:'1rem'}}>
-            {lang === 'en' ? 'Image will be added' : 'Зображення буде додано'}
-          </div>
-        )}
+        <div style={{background:'var(--bg2)',borderRadius:2,padding:'1rem',textAlign:'center',marginBottom:'1rem',minHeight:120,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          {info?.img ? (
+            <img
+              src={info.img}
+              alt={item.kimarite}
+              style={{maxWidth:'100%',maxHeight:220,objectFit:'contain'}}
+              onError={e => { e.target.parentElement.innerHTML = '<span style="font-family:monospace;font-size:0.7rem;color:var(--mid)">—</span>' }}
+            />
+          ) : (
+            <span style={{fontFamily:'monospace',fontSize:'0.7rem',color:'var(--mid)'}}>—</span>
+          )}
+        </div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>

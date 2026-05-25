@@ -6,6 +6,10 @@ import { useLang } from './LangProvider'
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 
+const PINNED_VIDEOS = {
+  '202605-12-day16': 'https://www.youtube.com/watch?v=dqkC7MPlufc',
+}
+
 function WinRate({ wins, total }) {
   const pct = total > 0 ? Math.round(wins / total * 100) : 0
   return (
@@ -64,29 +68,29 @@ function RikishiDetail({ r, lang }) {
     r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—',
   ]
 
+  const hasPlayoff = String(r.id) === '12'
+
   return (
     <div>
       {/* Верхній блок: фото + ім'я + біо */}
       <div style={{display:'flex',alignItems:'flex-start',gap:'1.5rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
 
-        {/* Фото — прямокутне */}
         <img
           src={`/rikishi/${r.id}.jpg`}
           alt={r.name}
           style={{
-            width: 108,
-            height: 189,
-            objectFit: 'cover',
-            objectPosition: 'top',
-            borderRadius: 4,
-            border: '2px solid var(--border)',
-            flexShrink: 0,
-            display: 'block',
+            width:108,
+            height:189,
+            objectFit:'cover',
+            objectPosition:'top',
+            borderRadius:4,
+            border:'2px solid var(--border)',
+            flexShrink:0,
+            display:'block',
           }}
           onError={e => { e.target.style.display = 'none' }}
         />
 
-        {/* Ім'я, ранг, юшо, сансьо */}
         <div style={{flex:1,minWidth:180,paddingTop:4}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
             <span style={{fontSize:'1.8rem'}}>{r.country?.flag}</span>
@@ -96,54 +100,52 @@ function RikishiDetail({ r, lang }) {
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{r.rank}</div>
 
           {r.stats?.yusho > 0 && (
-  <div style={{marginBottom:6}}>
-    <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
-      {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
-        <span key={i} style={{fontSize:'1rem'}}>🏆</span>
-      ))}
-      <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
-        {r.stats.yusho}× {lang === 'en' ? 'yusho' : 'юшо'}
-      </span>
-    </div>
-    {/* Розбивка по дивізіонах */}
-    {Object.keys(r.stats.yushoByDivision || {}).length > 0 && (
-      <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-        {Object.entries(r.stats.yushoByDivision)
-          .filter(([, count]) => count > 0)
-          .sort(([a], [b]) => {
-            const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
-            return order.indexOf(a) - order.indexOf(b)
-          })
-          .map(([division, count]) => (
-            <span key={division} style={{
-              fontFamily:'monospace',
-              fontSize:'0.58rem',
-              background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg2)',
-              border: division === 'Makuuchi' ? '1px solid rgba(184,134,11,0.4)' : '1px solid var(--border)',
-              color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
-              padding:'2px 7px',
-              borderRadius:2,
-            }}>
-              {division} ×{count}
-            </span>
-          ))}
-      </div>
-    )}
-  </div>
-)}
+            <div style={{marginBottom:6}}>
+              <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
+                {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
+                  <span key={i} style={{fontSize:'1rem'}}>{'🏆'}</span>
+                ))}
+                <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
+                  {r.stats.yusho}{'×'} {lang === 'en' ? 'yusho' : 'юшо'}
+                </span>
+              </div>
+              {Object.keys(r.stats.yushoByDivision || {}).length > 0 && (
+                <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                  {Object.entries(r.stats.yushoByDivision)
+                    .filter(([, count]) => count > 0)
+                    .sort(([a], [b]) => {
+                      const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
+                      return order.indexOf(a) - order.indexOf(b)
+                    })
+                    .map(([division, count]) => (
+                      <span key={division} style={{
+                        fontFamily:'monospace',
+                        fontSize:'0.58rem',
+                        background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg2)',
+                        border: division === 'Makuuchi' ? '1px solid rgba(184,134,11,0.4)' : '1px solid var(--border)',
+                        color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
+                        padding:'2px 7px',
+                        borderRadius:2,
+                      }}>
+                        {division} {count}{'×'}
+                      </span>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {sanshoList.length > 0 && (
             <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
               {sanshoList.map(([name, count]) => (
                 <span key={name} style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 7px',borderRadius:2,color:'var(--mid)'}}>
-                  {name} ×{count}
+                  {name} {count}{'×'}
                 </span>
               ))}
             </div>
           )}
         </div>
 
-        {/* Біо-сітка */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,minWidth:260}}>
           {bioLabels.map((label, idx) => (
             <div key={label} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>
@@ -195,6 +197,10 @@ function RikishiDetail({ r, lang }) {
           const isFusen = m.kimarite === 'fusen'
           const isAbsent = m.result === 'absent'
           const isEmpty = !m.result
+          const pinnedKey = `202605-${r.id}-day${m.day}`
+          const pinnedUrl = PINNED_VIDEOS[pinnedKey]
+          const ytQuery = encodeURIComponent(`Natsu Basho 2026 Day ${m.day} ${r.name} ${m.opponent || ''}`)
+          const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
           return (
             <div key={m.day} style={{
               background:'var(--bg2)',
@@ -220,7 +226,24 @@ function RikishiDetail({ r, lang }) {
                 <div style={{fontSize:'0.65rem',color:'var(--light)'}}>—</div>
               )}
               {m.kimarite && (
-                <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)',marginTop:2}}>{m.kimarite}</div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
+                  <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>{m.kimarite}</div>
+                  <a
+                    href={ytUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      display:'inline-flex',alignItems:'center',
+                      fontFamily:'monospace',fontSize:'0.5rem',
+                      color:'#fff',background:'#c00',
+                      padding:'1px 5px',borderRadius:2,
+                      textDecoration:'none',flexShrink:0,
+                      lineHeight:1.4,
+                    }} >
+                    {'\u25B6'}
+                  </a>
+                </div>
               )}
               {isAbsent && (
                 <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'#c0392b',marginTop:2}}>
@@ -231,6 +254,48 @@ function RikishiDetail({ r, lang }) {
           )
         })}
       </div>
+
+      {/* Плей-оф блок — тільки для Wakatakakage */}
+      {hasPlayoff && (
+        <div style={{marginTop:'1rem'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
+            {lang === 'en' ? 'Playoff — Day 16' : 'Плей-оф — День 16'}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(110px,1fr))',gap:4}}>
+            <div style={{
+              background:'var(--bg2)',
+              border:'1px solid rgba(184,134,11,0.4)',
+              padding:'0.4rem 0.6rem',
+              borderRadius:2,
+            }}>
+              <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
+                <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'var(--ink)'}} />
+                <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
+                  {lang === 'en' ? 'Day' : 'День'} 16
+                </span>
+              </div>
+              <div style={{fontSize:'0.68rem',fontWeight:600,marginBottom:2}}>Kirishima</div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
+                <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>oshidashi ⚡</div>
+                <a
+                  href="https://www.youtube.com/watch?v=dqkC7MPlufc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    display:'inline-flex',alignItems:'center',
+                    fontFamily:'monospace',fontSize:'0.5rem',
+                    color:'#fff',background:'#c00',
+                    padding:'1px 5px',borderRadius:2,
+                    textDecoration:'none',flexShrink:0,
+                    lineHeight:1.4,}}>
+                  {'\u25B6'}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
