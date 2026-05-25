@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
 import SumoQuiz from './SumoQuiz'
+import YushoGame from './YushoGame'
+import SumoClash from './SumoClash'
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -46,7 +48,7 @@ function IconBtn({ href, onClick, title, color, children }) {
   return null
 }
 
-function GamesMenu({ onClose, onOpenQuiz, lang }) {
+function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
   const games = [
     {
       id: 'quiz',
@@ -60,14 +62,14 @@ function GamesMenu({ onClose, onOpenQuiz, lang }) {
       emoji: '🃏',
       title: lang === 'en' ? 'Yusho Card Game' : 'Юшо',
       desc: lang === 'en' ? 'Card battle · Collect the full deck' : 'Карткова битва · Зберіть повну колоду',
-      ready: false,
+      ready: true,
     },
     {
       id: 'clash',
       emoji: '⚔️',
       title: lang === 'en' ? 'Sumo Clash' : 'Сумо Клеш',
-      desc: lang === 'en' ? 'Strategic card game · Techniques & ranks' : 'Стратегічна карткова гра · Техніки та ранги',
-      ready: false,
+      desc: lang === 'en' ? 'Strategic card game · Draft · ATK vs DEF · HP battle' : 'Стратегічна карткова гра · Драфт · ATK vs DEF · Битва HP',
+      ready: true,
     },
   ]
 
@@ -101,15 +103,19 @@ function GamesMenu({ onClose, onOpenQuiz, lang }) {
         </div>
         <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {games.map(g => (
-            <div key={g.id} onClick={g.ready ? onOpenQuiz : undefined} style={{
-              background: 'var(--bg2)',
-              border: '1px solid var(--border)',
-              borderLeft: `3px solid ${g.ready ? '#b8860b' : 'var(--border)'}`,
-              borderRadius: 2, padding: '1rem',
-              cursor: g.ready ? 'pointer' : 'default',
-              opacity: g.ready ? 1 : 0.55,
-              display: 'flex', alignItems: 'center', gap: 14,
-            }}>
+            <div
+              key={g.id}
+              onClick={g.ready ? (g.id === 'quiz' ? onOpenQuiz : g.id === 'snap' ? onOpenYusho : onOpenClash) : undefined}
+              style={{
+                background: 'var(--bg2)',
+                border: '1px solid var(--border)',
+                borderLeft: `3px solid ${g.ready ? '#b8860b' : 'var(--border)'}`,
+                borderRadius: 2, padding: '1rem',
+                cursor: g.ready ? 'pointer' : 'default',
+                opacity: g.ready ? 1 : 0.55,
+                display: 'flex', alignItems: 'center', gap: 14,
+              }}
+            >
               <span style={{ fontSize: '1.8rem', flexShrink: 0 }}>{g.emoji}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
@@ -142,6 +148,8 @@ export default function NavBar() {
   const [mounted, setMounted] = useState(false)
   const [gamesOpen, setGamesOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
+  const [yushoOpen, setYushoOpen] = useState(false)
+  const [clashOpen, setClashOpen] = useState(false)
   const { lang, setLanguage, t } = useLang()
 
   useEffect(() => {
@@ -177,7 +185,6 @@ export default function NavBar() {
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         position: 'sticky', top: 0, zIndex: 100,
       }}>
-        {/* Рядок 1: вкладки + кнопка ігор (горизонтальний скрол на мобільному) */}
         <div style={{
           display: 'flex', alignItems: 'center',
           overflowX: 'auto',
@@ -187,8 +194,6 @@ export default function NavBar() {
           maxWidth: 1100, margin: '0 auto',
           padding: '0 0.75rem',
         }}>
-          <style>{`.nav-scroll::-webkit-scrollbar{display:none}`}</style>
-
           {tabs.map(tab => (
             <Link key={tab.href} href={tab.href} style={{
               display: 'inline-block',
@@ -227,7 +232,6 @@ export default function NavBar() {
             </button>
           )}
 
-          {/* Іконки справа — на десктопі */}
           {mounted && (
             <div style={{
               marginLeft: 'auto',
@@ -272,10 +276,14 @@ export default function NavBar() {
         <GamesMenu
           onClose={() => setGamesOpen(false)}
           onOpenQuiz={() => { setGamesOpen(false); setQuizOpen(true) }}
+          onOpenYusho={() => { setGamesOpen(false); setYushoOpen(true) }}
+          onOpenClash={() => { setGamesOpen(false); setClashOpen(true) }}
           lang={lang}
         />
       )}
       {quizOpen && <SumoQuiz onClose={() => setQuizOpen(false)} />}
+      {yushoOpen && <YushoGame onClose={() => setYushoOpen(false)} lang={lang} />}
+      {clashOpen && <SumoClash onClose={() => setClashOpen(false)} lang={lang} />}
     </>
   )
 }
