@@ -283,7 +283,7 @@ function BattleLayout({myHp,oppHp,myWins,oppWins,roundNum,myLabel,oppLabel,myHan
             background:(!playerSelected||myReady)?'var(--bg2)':'#b8860b',
             color:(!playerSelected||myReady)?'var(--mid)':'#fff',
             border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.85rem',
-            letterSpacing:'0.1em',cursor:(!playerSelected||myReady)?'default':'pointer',fontWeight:700,transition:'all 0.2s',
+            letterSpacing:'0.1em',cursor:(!playerSelected||myReady)?'default':'pointer',fontWeight:700,
           }}>
             {myReady?t('Підтверджено ✓','Confirmed ✓'):!playerSelected?t('Оберіть карту','Select a card'):t('⚔ Підтвердити','⚔ Confirm')}
           </button>
@@ -448,98 +448,89 @@ function MultiGame({lang,onBack}) {
   const [roundNum,setRoundNum]=useState(0)
   const [submitting,setSubmitting]=useState(false)
 
-  // Refs для стабільного доступу в listener
   const roleRef=useRef(null)
   const sessionIdRef=useRef('')
   const processingRef=useRef(false)
-  const lastProcessedRoundRef=useRef(-1)
 
-  const myKey=role==='host'?'p1':'p2'
-  const oppKey=role==='host'?'p2':'p1'
-
-  // Listener — підписується ОДИН РАЗ при зміні sessionId
+  // Listener — тільки sessionId в залежностях
   useEffect(()=>{
     if (!sessionId) return
-    const sessionRef2=ref(db,`clash/${sessionId}`)
-    const unsub=onValue(sessionRef2,snap=>{
+    const dbRef=ref(db,`clash/${sessionId}`)
+    const unsub=onValue(dbRef, snap=>{
       const data=snap.val()
       if (!data) return
       setSession(data)
 
-      const currentRole=roleRef.current
-      const currentSessionId=sessionIdRef.current
-      const currentRound=data.roundNum||0
-
-      // Host розраховує раунд — тільки якщо обидва ready і цей раунд ще не оброблявся
+      // Host розраховує раунд через окрему async функцію
       if (
-        currentRole==='host' &&
+        roleRef.current==='host' &&
         !processingRef.current &&
         data.status==='battle' &&
         data.p1?.ready===true &&
         data.p2?.ready===true &&
         data.p1?.selectedCard &&
-        data.p2?.selectedCard &&
-        currentRound===lastProcessedRoundRef.current+1 // захист від повторного запуску
-        // (новий раунд = поточний раунд на 1 більше за останній оброблений)
-        // При першому раунді lastProcessedRoundRef.current = -1, currentRound = 0 → 0 = -1+1 ✓
+        data.p2?.selectedCard
       ) {
         processingRef.current=true
-        lastProcessedRoundRef.current=currentRound
-
-        const p1Card=getCardById(data.p1.selectedCard)
-        const p2Card=getCardById(data.p2.selectedCard)
-        if (!p1Card||!p2Card){processingRef.current=false;return}
-
-        const {newPHp,newOHp,logs,roundWinner}=resolveRound(p1Card,p2Card,data.p1.hp,data.p2.hp)
-        const newRound=currentRound+1
-
-        const usedIds=new Set([data.p1.selectedCard,data.p2.selectedCard])
-        const deckArr=(data.deck||[]).map(id=>getCardById(id)).filter(Boolean)
-        const p1HandFiltered=(data.p1.hand||[]).filter(id=>id!==data.p1.selectedCard)
-        const p2HandFiltered=(data.p2.hand||[]).filter(id=>id!==data.p2.selectedCard)
-        const drawRemaining=deckArr.filter(c=>
-          !usedIds.has(c.id)&&!p1HandFiltered.includes(c.id)&&!p2HandFiltered.includes(c.id)
-        )
-
-        let fp1=[...p1HandFiltered],fp2=[...p2HandFiltered]
-        if (drawRemaining.length>0) fp1=[...fp1,drawRemaining[0].id]
-        if (drawRemaining.length>1) fp2=[...fp2,drawRemaining[1].id]
-
-        const isOver=newRound>=MAX_ROUNDS||fp1.length===0||fp2.length===0
-
-        update(ref(db),{
-          [`clash/${currentSessionId}/p1/hp`]:newPHp,
-          [`clash/${currentSessionId}/p2/hp`]:newOHp,
-          [`clash/${currentSessionId}/p1/hand`]:fp1,
-          [`clash/${currentSessionId}/p2/hand`]:fp2,
-          [`clash/${currentSessionId}/p1/wins`]:(data.p1.wins||0)+(roundWinner==='p'?1:0),
-          [`clash/${currentSessionId}/p2/wins`]:(data.p2.wins||0)+(roundWinner==='o'?1:0),
-          [`clash/${currentSessionId}/p1/ready`]:false,
-          [`clash/${currentSessionId}/p2/ready`]:false,
-          [`clash/${currentSessionId}/lastCards`]:{p1:data.p1.selectedCard,p2:data.p2.selectedCard},
-          [`clash/${currentSessionId}/p1/selectedCard`]:null,
-          [`clash/${currentSessionId}/p2/selectedCard`]:null,
-          [`clash/${currentSessionId}/roundNum`]:newRound,
-          [`clash/${currentSessionId}/roundLog`]:logs,
-          [`clash/${currentSessionId}/status`]:isOver?'gameOver':'roundResult',
-        }).then(()=>{processingRef.current=false})
+        doResolveRound(data, sessionIdRef.current)
+          .then(()=>{ processingRef.current=false })
+          .catch(()=>{ processingRef.current=false })
       }
     })
-    return ()=>off(sessionRef2)
-  },[sessionId]) // ТІЛЬКИ sessionId
+    return ()=>off(dbRef)
+  },[sessionId])
+
+  async function doResolveRound(data, sid) {
+    const p1Card=getCardById(data.p1.selectedCard)
+    const p2Card=getCardById(data.p2.selectedCard)
+    if (!p1Card||!p2Card) return
+
+    const {newPHp,newOHp,logs,roundWinner}=resolveRound(p1Card,p2Card,data.p1.hp,data.p2.hp)
+    const newRound=(data.roundNum||0)+1
+
+    const usedIds=new Set([data.p1.selectedCard,data.p2.selectedCard])
+    const deckArr=(data.deck||[]).map(id=>getCardById(id)).filter(Boolean)
+    const p1HandFiltered=(data.p1.hand||[]).filter(id=>id!==data.p1.selectedCard)
+    const p2HandFiltered=(data.p2.hand||[]).filter(id=>id!==data.p2.selectedCard)
+    const drawRemaining=deckArr.filter(c=>
+      !usedIds.has(c.id)&&!p1HandFiltered.includes(c.id)&&!p2HandFiltered.includes(c.id)
+    )
+
+    let fp1=[...p1HandFiltered],fp2=[...p2HandFiltered]
+    if (drawRemaining.length>0) fp1=[...fp1,drawRemaining[0].id]
+    if (drawRemaining.length>1) fp2=[...fp2,drawRemaining[1].id]
+
+    const isOver=newRound>=MAX_ROUNDS||fp1.length===0||fp2.length===0
+
+    await update(ref(db),{
+      [`clash/${sid}/p1/hp`]:newPHp,
+      [`clash/${sid}/p2/hp`]:newOHp,
+      [`clash/${sid}/p1/hand`]:fp1,
+      [`clash/${sid}/p2/hand`]:fp2,
+      [`clash/${sid}/p1/wins`]:(data.p1.wins||0)+(roundWinner==='p'?1:0),
+      [`clash/${sid}/p2/wins`]:(data.p2.wins||0)+(roundWinner==='o'?1:0),
+      [`clash/${sid}/p1/ready`]:false,
+      [`clash/${sid}/p2/ready`]:false,
+      [`clash/${sid}/lastCards`]:{p1:data.p1.selectedCard,p2:data.p2.selectedCard},
+      [`clash/${sid}/p1/selectedCard`]:null,
+      [`clash/${sid}/p2/selectedCard`]:null,
+      [`clash/${sid}/roundNum`]:newRound,
+      [`clash/${sid}/roundLog`]:logs,
+      [`clash/${sid}/status`]:isOver?'gameOver':'roundResult',
+    })
+  }
 
   // Синхронізація екрану
   useEffect(()=>{
     if (!session||!role) return
-    const status=session.status
     const mk=role==='host'?'p1':'p2'
+    const status=session.status
 
     if (status==='waiting'&&role==='host'&&session.p2?.joined) {
       update(ref(db,`clash/${sessionId}`),{status:'draft'})
     }
     if (status==='draft'&&screen==='waiting') {
-      const pool=(session[mk]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean)
-      setDraftPool(pool)
+      setDraftPool((session[mk]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean))
       setDraftRound(session[mk]?.draftRound||0)
       setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean))
       setScreen('draft')
@@ -563,21 +554,14 @@ function MultiGame({lang,onBack}) {
     const code=generateCode()
     const shuffled=shuffle(FULL_DECK)
     const ids=shuffled.map(c=>c.id)
-
-    // Драфт пули: кожен гравець отримує по 5 пулів × 5 карт = 25 карт
-    // p1 бере з позицій 0,10,20,30,40
-    // p2 бере з позицій 5,15,25,35,45
-    // Загалом потрібно мінімум 50 карт, у нас 60 — добре
     await set(ref(db,`clash/${code}`),{
-      status:'waiting',
-      deck:ids,
-      roundNum:0,roundLog:[],lastCards:null,
+      status:'waiting', deck:ids,
+      roundNum:0, roundLog:[], lastCards:null,
       p1:{joined:true,hp:MAX_HP,hand:[],draftPool:ids.slice(0,5),draftRound:0,wins:0,ready:false,draftDone:false,selectedCard:null},
       p2:{joined:false,hp:MAX_HP,hand:[],draftPool:ids.slice(5,10),draftRound:0,wins:0,ready:false,draftDone:false,selectedCard:null},
     })
     roleRef.current='host'
     sessionIdRef.current=code
-    lastProcessedRoundRef.current=-1
     setRole('host')
     setSessionId(code)
     setScreen('waiting')
@@ -593,7 +577,6 @@ function MultiGame({lang,onBack}) {
     await update(ref(db,`clash/${code}/p2`),{joined:true,hp:MAX_HP,hand:[],wins:0,ready:false,draftDone:false,selectedCard:null})
     roleRef.current='guest'
     sessionIdRef.current=code
-    lastProcessedRoundRef.current=-1
     setRole('guest')
     setSessionId(code)
     setScreen('waiting')
@@ -608,13 +591,11 @@ function MultiGame({lang,onBack}) {
     const newDraftRound=(myData.draftRound||0)+1
     const isDone=newDraftRound>=5
 
-    // Кожен гравець має свою незалежну послідовність пулів у колоді
-    // p1: раунди 0-4 беруть з позицій 0,10,20,30,40
-    // p2: раунди 0-4 беруть з позицій 5,15,25,35,45
-    const deck=data.deck // масив id
+    // p1: пули на позиціях 0,10,20,30,40
+    // p2: пули на позиціях 5,15,25,35,45
+    const deck=data.deck
     const baseOffset=role==='host'?0:5
-    const nextDraftRound=newDraftRound // 1,2,3,4
-    const nextPoolStart=baseOffset+nextDraftRound*10
+    const nextPoolStart=baseOffset+newDraftRound*10
 
     let updates={
       [`clash/${sessionId}/${mk}/hand`]:currentHand,
@@ -629,16 +610,12 @@ function MultiGame({lang,onBack}) {
     setPlayerHand(currentHand.map(id=>getCardById(id)).filter(Boolean))
     setDraftRound(newDraftRound)
 
-    // Перевіряємо чи обидва закінчили драфт
     const otherKey=role==='host'?'p2':'p1'
     if (isDone&&data[otherKey]?.draftDone) {
       await update(ref(db,`clash/${sessionId}`),{status:'battle'})
     }
-
-    // Оновлюємо локальний пул
     if (!isDone&&nextPoolStart+5<=deck.length) {
-      const newPool=deck.slice(nextPoolStart,nextPoolStart+5).map(id=>getCardById(id)).filter(Boolean)
-      setDraftPool(newPool)
+      setDraftPool(deck.slice(nextPoolStart,nextPoolStart+5).map(id=>getCardById(id)).filter(Boolean))
     }
   }
 
@@ -662,12 +639,8 @@ function MultiGame({lang,onBack}) {
   const oppReady=session?.[ok]?.ready??false
   const totalRounds=session?.roundNum??0
   const oppHandCount=(session?.[ok]?.hand||[]).length
-  const myHandCards=playerHand.length>0
-    ?playerHand
-    :(session?.[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean)
-  const myDraftPool=draftPool.length>0
-    ?draftPool
-    :(session?.[mk]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean)
+  const myHandCards=playerHand.length>0?playerHand:(session?.[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean)
+  const myDraftPool=draftPool.length>0?draftPool:(session?.[mk]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean)
   const lastCards=session?.lastCards
   const myLastCard=lastCards?getCardById(lastCards[mk]):null
   const oppLastCard=lastCards?getCardById(lastCards[ok]):null
