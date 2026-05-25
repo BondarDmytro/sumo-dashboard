@@ -60,7 +60,7 @@ function GamesMenu({ onClose, onOpenQuiz, lang }) {
     {
       id: 'snap',
       emoji: '🃏',
-      title: lang === 'en' ? 'Rikishi Snap' : 'П\'яничка',
+      title: lang === 'en' ? 'Rikishi Snap' : 'Юшо',
       desc: lang === 'en' ? 'Card battle · Yokozuna loses to the weakest' : 'Карткова битва · Йокодзуна програє найслабшому',
       ready: false,
     },
