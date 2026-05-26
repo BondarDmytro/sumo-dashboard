@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
-import { trackGameLaunch } from '../lib/gameAnalytics'
-// при старті:
-trackGameLaunch('sumoQuiz')
+
 
 const QUESTIONS = [
   // ЛЕГКІ (0-29)
@@ -135,6 +133,7 @@ export default function SumoQuiz({ onClose }) {
   const q = questions[current]
   const opts = q.options[lang] || q.options['ua']
   const totalCorrect = answers.filter(Boolean).length
+  useEffect(() => { trackGameLaunch('sumoQuiz') }, [])
 
   function handleSelect(idx) {
     if (selected !== null) return
@@ -153,6 +152,7 @@ export default function SumoQuiz({ onClose }) {
   }
 
   function restart() {
+    trackGameLaunch('sumoQuiz')
     setCurrent(0)
     setSelected(null)
     setAnswers([])

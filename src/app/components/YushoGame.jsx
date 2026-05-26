@@ -1,7 +1,7 @@
 'use client'
 
 import { trackGameLaunch } from '../lib/gameAnalytics'
-trackGameLaunch('yushoGame')
+
 import { useState, useEffect } from 'react'
 
 
@@ -216,6 +216,7 @@ export default function YushoGame({ onClose, lang = 'uk' }) {
   }
 
   function startGame() {
+    trackGameLaunch('yushoGame')
     const deck = shuffle(buildDeck())
     setPlayerDeck(deck.slice(0, 26))
     setCpuDeck(deck.slice(26))
