@@ -365,6 +365,8 @@ function GameCard({card,selected,onClick,disabled,small,showBack,lang='uk',isNew
   )
   const isRikishi=card.type==='rikishi'
   const color=card.color||(isRikishi?'var(--mid)':'#888')
+  // Маєґашіра має color:'var(--mid)' — для hover беремо фіксований колір
+  const hoverColor=color==='var(--mid)'?'#888':color
   const lbl=getLabel(card,lang)
   const canHover=!disabled&&!selected
   return(
@@ -374,14 +376,14 @@ function GameCard({card,selected,onClick,disabled,small,showBack,lang='uk',isNew
       onMouseLeave={()=>setHovered(false)}
       style={{
         width:small?64:90,height:small?90:126,borderRadius:8,
-        border:`2px solid ${selected?'#b8860b':hovered?color+'cc':color}`,
-        background:selected?'rgba(184,134,11,0.15)':hovered&&!disabled?'rgba(255,255,255,0.05)':'var(--card)',
+        border:`2px solid ${selected?'#b8860b':hovered?hoverColor:color}`,
+        background:selected?'rgba(184,134,11,0.15)':hovered&&!disabled?'rgba(128,128,128,0.08)':'var(--card)',
         cursor:disabled?'default':'pointer',
         display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',
         padding:small?'4px 3px':'7px 5px',
-        boxShadow:selected?'0 0 16px rgba(184,134,11,0.6)':hovered&&!disabled?`0 4px 16px rgba(0,0,0,0.3), 0 0 8px ${color}44`:'none',
+        boxShadow:selected?'0 0 16px rgba(184,134,11,0.6)':hovered&&!disabled?`0 4px 12px rgba(0,0,0,0.15), 0 0 6px ${hoverColor}55`:'none',
         transition:'all 0.15s',opacity:disabled?0.6:1,
-        transform:selected?'translateY(-10px) scale(1.04)':hovered&&!disabled?'translateY(-6px) scale(1.02)':'none',
+        transform:selected?'translateY(-4px) scale(1.03)':hovered&&!disabled?'translateY(-3px) scale(1.01)':'none',
         flexShrink:0,
         animation:isNew?'cardFlip 0.35s ease both':undefined,
       }}>
@@ -602,7 +604,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         <>
           <div style={{marginBottom:'0.75rem'}}>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-            <div style={{display:'flex',gap:6,flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,justifyContent:'center'}}>
+            <div style={{display:'flex',gap:6,flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:8,justifyContent:'center'}}>
               {deduped(myHand).map((c,i)=>(
                 <div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
                   {c.type==='swap'&&!myReady?(
