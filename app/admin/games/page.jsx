@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { db } from '../../lib/firebase'
+import { db } from '../../../lib/firebase'
 import { ref, onValue, off } from 'firebase/database'
 
 const GAMES = [
