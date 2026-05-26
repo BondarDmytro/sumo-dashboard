@@ -521,17 +521,8 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
     <div style={{animation:doShake&&step>=2?'shake 0.4s ease':undefined}}>
       {/* Дохьо арена */}
       <div style={{position:'relative',borderRadius:8,overflow:'hidden',marginBottom:'1.25rem'}}>
-        <svg viewBox="0 0 340 170" style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} xmlns="http://www.w3.org/2000/svg">
-          <rect width="340" height="170" fill="#2a1a0e"/>
-          <ellipse cx="170" cy="85" rx="155" ry="78" fill="#6b3d1a"/>
-          <ellipse cx="170" cy="85" rx="138" ry="68" fill="#8B5230"/>
-          <ellipse cx="170" cy="85" rx="130" ry="62" fill="#9e6035"/>
-          <ellipse cx="170" cy="85" rx="128" ry="60" fill="none" stroke="#5a2e0e" strokeWidth="5"/>
-          <ellipse cx="170" cy="85" rx="125" ry="57" fill="none" stroke="#c8874a" strokeWidth="1" opacity="0.4"/>
-          <line x1="155" y1="82" x2="185" y2="82" stroke="#5a2e0e" strokeWidth="3" strokeLinecap="round"/>
-          <line x1="155" y1="88" x2="185" y2="88" stroke="#5a2e0e" strokeWidth="3" strokeLinecap="round"/>
-          <ellipse cx="170" cy="85" rx="130" ry="62" fill="none" stroke="rgba(255,200,100,0.06)" strokeWidth="1"/>
-        </svg>
+        <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-dohyo.png)',backgroundSize:'cover',backgroundPosition:'center top'}}/>
+        <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)'}}/>
         <div style={{position:'relative',zIndex:1,display:'flex',justifyContent:'space-around',alignItems:'center',gap:16,padding:'1.2rem 0.5rem',opacity:step>=1?1:0,transition:'opacity 0.3s'}}>
           <div style={{textAlign:'center',position:'relative'}}>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'rgba(255,220,150,0.9)',marginBottom:8,textShadow:'0 1px 4px rgba(0,0,0,0.8)'}}>{myLabel}</div>
@@ -1221,21 +1212,25 @@ export default function SumoClash({onClose,lang='uk'}){
             </div>
           </div>
           {mode==='menu'&&(
-            <div style={{flex:1,padding:'2rem',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1.25rem',animation:'slideIn 0.3s ease'}}>
-              <div style={{fontSize:'2.8rem',animation:'pop 0.4s ease'}}>⚔️</div>
-              <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:'#b8860b'}}>{t('Сумо Клеш','Sumo Clash')}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',textAlign:'center',lineHeight:1.7,marginBottom:'0.5rem'}}>{t('15 раундів · Ояката · Рікіші · Броня · Удари · Хенка','15 rounds · Oyakata · Rikishi · Armor · Strikes · Henka')}</div>
-              <button onClick={()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'linear-gradient(135deg,#1a4a7a,#6b3fa0)',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                ⚔️ {t('Кампанія','Campaign')}
-              </button>
-              <button onClick={()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                🤖 {t('Проти CPU','vs CPU')}
-              </button>
-              <button onClick={()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                🌐 {t('Мультиплеєр','Multiplayer')}
-              </button>
-            </div>
-          )}
+  <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1.25rem',animation:'slideIn 0.3s ease',position:'relative',overflow:'hidden'}}>
+    <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.png)',backgroundSize:'cover',backgroundPosition:'center'}}/>
+    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.58)'}}/>
+    <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'1.25rem',width:'100%',padding:'2rem'}}>
+      <div style={{fontSize:'2.8rem',animation:'pop 0.4s ease'}}>⚔️</div>
+      <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:'#f0c060',textShadow:'0 2px 12px rgba(0,0,0,0.8)'}}>{t('Сумо Клеш','Sumo Clash')}</div>
+      <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'rgba(255,255,255,0.75)',textAlign:'center',lineHeight:1.7,marginBottom:'0.5rem',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{t('15 раундів · Ояката · Рікіші · Броня · Удари · Хенка','15 rounds · Oyakata · Rikishi · Armor · Strikes · Henka')}</div>
+      <button onClick={()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'linear-gradient(135deg,rgba(26,74,122,0.9),rgba(107,63,160,0.9))',color:'#fff',border:'1px solid rgba(255,255,255,0.2)',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,backdropFilter:'blur(4px)'}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+        ⚔️ {t('Кампанія','Campaign')}
+      </button>
+      <button onClick={()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'rgba(184,134,11,0.9)',color:'#fff',border:'1px solid rgba(255,255,255,0.2)',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,backdropFilter:'blur(4px)'}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+        🤖 {t('Проти CPU','vs CPU')}
+      </button>
+      <button onClick={()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}} style={{width:'100%',maxWidth:320,padding:'0.9rem',background:'rgba(30,30,30,0.85)',color:'#fff',border:'1px solid rgba(255,255,255,0.2)',borderRadius:4,fontFamily:'monospace',fontSize:'0.88rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,backdropFilter:'blur(4px)'}} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+        🌐 {t('Мультиплеєр','Multiplayer')}
+      </button>
+    </div>
+  </div>
+)}
           {mode==='cpu'&&<CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>}
           {mode==='campaign'&&<SumoClashCampaign onBack={()=>setMode('menu')} lang={lang} GameBattle={(props)=><CampaignBattleWrapper {...props} sfx={sfx}/>}/>}
           {mode==='multi'&&<MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>}
