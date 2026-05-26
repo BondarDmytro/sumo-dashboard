@@ -1,4 +1,4 @@
-import { db } from '../lib/firebase'
+import { db } from './firebase'
 import { ref, get, set, update, increment } from 'firebase/database'
 
 function getSessionKey(game) {
