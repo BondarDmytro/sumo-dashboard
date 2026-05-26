@@ -104,6 +104,59 @@ export const translations = {
       expected: 'upcoming',
       today: 'Today',
     }
+  },
+  ja: {
+    nav: {
+      tournament: '場所',
+      rikishi: '力士',
+      ranks: '番付予想',
+      archive: 'アーカイブ',
+      sumo: '相撲について',
+    },
+    header: {
+      subtitle: '大相撲本場所 · 東京 · 2026年',
+      title: '優勝予想',
+      titleSub: '幕内',
+      dayOf: '／15日',
+      daysLeft: '日残り',
+      contenders: '優勝候補',
+    },
+    table: {
+      title: '幕内力士 全員成績表',
+      day: '日目',
+      rikishi: '力士',
+      rank: '番付',
+      record: '成績',
+      matches: '取組',
+      status: '状態',
+      chance: '優勝確率',
+      leader: 'トップ',
+      eliminated: '脱落',
+    },
+    status: {
+      leaders: 'トップ',
+      chasers: '追う力士',
+      daysLeft: '残り日数',
+      toFinal: '千秋楽まで',
+      kyujo: '休場',
+      absent: '不在',
+      contenders: '優勝候補',
+      chanceAbove: '確率 > 0%',
+      record: '成績',
+    },
+    sections: {
+      tournament: '場所の状況',
+      chart: '優勝確率グラフ',
+      chartSub: '日ごとの優勝確率の推移',
+      h2h: '直接対決 — 今場所（上位候補）',
+      eliminated: '優勝争い脱落',
+      kyujo: '休場力士',
+    },
+    misc: {
+      loading: '読み込み中...',
+      expected: '予定',
+      today: '今日',
+    }
   }
 }
 

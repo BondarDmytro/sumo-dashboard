@@ -150,16 +150,20 @@ export default function NavBar() {
   const [quizOpen, setQuizOpen] = useState(false)
   const [yushoOpen, setYushoOpen] = useState(false)
   const [clashOpen, setClashOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
   const { lang, setLanguage, t } = useLang()
 
   useEffect(() => {
-    setMounted(true)
-    const saved = localStorage.getItem('theme')
-    if (saved === 'dark') {
-      setDark(true)
-      document.documentElement.setAttribute('data-theme', 'dark')
-    }
-  }, [])
+  setMounted(true)
+  const saved = localStorage.getItem('theme')
+  if (saved === 'dark') {
+    setDark(true)
+    document.documentElement.setAttribute('data-theme', 'dark')
+  }
+  const handler = () => setLangMenuOpen(false)
+  document.addEventListener('click', handler)
+  return () => document.removeEventListener('click', handler)
+}, [])
 
   const toggle = () => {
     const next = !dark
@@ -264,9 +268,39 @@ export default function NavBar() {
 
               <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)' }} />
 
-              <IconBtn onClick={() => setLanguage(lang === 'uk' ? 'en' : 'uk')} title={lang === 'uk' ? 'Switch to English' : 'Перейти на українську'} color="#f5f0e8">
-                <span style={{ fontSize: '0.85rem' }}>{lang === 'uk' ? '🇬🇧' : '🇺🇦'}</span>
-              </IconBtn>
+              <div style={{position:'relative'}}>
+                <IconBtn onClick={()=>setLangMenuOpen(v=>!v)} title="Language" color="#f5f0e8">
+                  <span style={{fontSize:'0.85rem'}}>
+                    {lang==='uk'?'🇺🇦':lang==='en'?'🇬🇧':'🇯🇵'}
+                  </span>
+                </IconBtn>
+                {langMenuOpen&&(
+                  <div onClick={e=>e.stopPropagation()} style={{
+                    position:'absolute',top:'100%',right:0,marginTop:4,
+                    background:'var(--card)',border:'1px solid var(--border)',
+                    borderRadius:4,overflow:'hidden',zIndex:100,
+                    boxShadow:'0 4px 12px rgba(0,0,0,0.3)',minWidth:140,
+                  }}>
+                    {[
+                      {code:'uk',flag:'🇺🇦',label:'Українська'},
+                      {code:'en',flag:'🇬🇧',label:'English'},
+                      {code:'ja',flag:'🇯🇵',label:'日本語'},
+                    ].map(l=>(
+                      <div key={l.code} onClick={()=>{setLanguage(l.code);setLangMenuOpen(false)}} style={{
+                        display:'flex',alignItems:'center',gap:8,
+                        padding:'8px 12px',cursor:'pointer',
+                        background:lang===l.code?'rgba(184,134,11,0.15)':'transparent',
+                        borderLeft:`2px solid ${lang===l.code?'#b8860b':'transparent'}`,
+                        fontFamily:'monospace',fontSize:'0.75rem',color:'var(--ink)',
+                      }}>
+                        <span style={{fontSize:'1rem'}}>{l.flag}</span>
+                        {l.label}
+                        {lang===l.code&&<span style={{marginLeft:'auto',color:'#b8860b'}}>✓</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
