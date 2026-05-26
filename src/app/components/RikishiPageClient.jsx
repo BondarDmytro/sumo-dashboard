@@ -234,8 +234,8 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
                 <span style={{
                   width:9,height:9,borderRadius:'50%',flexShrink:0,
-                  background: isWin ? 'var(--ink)' : isAbsent ? '#aaa' : 'transparent',
-                  border: isLoss ? '1.5px solid var(--ink)' : isAbsent ? '1.5px solid #aaa' : isEmpty ? '1px dashed var(--light)' : 'none',
+                  background: isWin ? '#f5f0e8' : isLoss ? '#1a1a1a' : isAbsent ? '#aaa' : 'transparent',
+border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : isAbsent ? '1.5px solid #aaa' : isEmpty ? '1px dashed var(--light)' : 'none',
                   opacity: isFusen ? 0.5 : 1,
                 }} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
@@ -274,7 +274,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
             <div style={{background:'var(--bg2)',border:'1px solid rgba(184,134,11,0.4)',padding:'0.4rem 0.6rem',borderRadius:2}}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
-                <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'var(--ink)'}} />
+                <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'#f5f0e8', border:'1.5px solid var(--ink)'}} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
                   {lang === 'en' ? 'Day' : 'День'} 16
                 </span>

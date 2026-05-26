@@ -161,3 +161,8 @@ export const translations = {
 }
 
 export const defaultLang = 'uk'
+export function t3(lang, uk, en, ja) {
+  if (lang === 'en') return en
+  if (lang === 'ja') return ja
+  return uk
+}

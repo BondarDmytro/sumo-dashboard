@@ -160,10 +160,14 @@ export default function NavBar() {
     setDark(true)
     document.documentElement.setAttribute('data-theme', 'dark')
   }
+}, [])
+
+useEffect(() => {
+  if (!langMenuOpen) return
   const handler = () => setLangMenuOpen(false)
   document.addEventListener('click', handler)
   return () => document.removeEventListener('click', handler)
-}, [])
+}, [langMenuOpen])
 
   const toggle = () => {
     const next = !dark
@@ -269,18 +273,18 @@ export default function NavBar() {
               <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)' }} />
 
               <div style={{position:'relative'}}>
-                <IconBtn onClick={()=>setLangMenuOpen(v=>!v)} title="Language" color="#f5f0e8">
-                  <span style={{fontSize:'0.85rem'}}>
-                    {lang==='uk'?'🇺🇦':lang==='en'?'🇬🇧':'🇯🇵'}
-                  </span>
-                </IconBtn>
-                {langMenuOpen&&(
-                  <div onClick={e=>e.stopPropagation()} style={{
-                    position:'absolute',top:'100%',right:0,marginTop:4,
-                    background:'var(--card)',border:'1px solid var(--border)',
-                    borderRadius:4,overflow:'hidden',zIndex:100,
-                    boxShadow:'0 4px 12px rgba(0,0,0,0.3)',minWidth:140,
-                  }}>
+  <IconBtn onClick={(e)=>{e.stopPropagation();setLangMenuOpen(v=>!v)}} title="Language" color="#f5f0e8">
+    <span style={{fontSize:'0.85rem'}}>
+      {lang==='uk'?'🇺🇦':lang==='en'?'🇬🇧':'🇯🇵'}
+    </span>
+  </IconBtn>
+  {langMenuOpen&&(
+    <div onClick={e=>e.stopPropagation()} style={{
+      position:'fixed',top:48,right:12,
+      background:'var(--card)',border:'1px solid var(--border)',
+      borderRadius:4,overflow:'hidden',zIndex:200,
+      boxShadow:'0 4px 12px rgba(0,0,0,0.3)',minWidth:140,
+    }}>
                     {[
                       {code:'uk',flag:'🇺🇦',label:'Українська'},
                       {code:'en',flag:'🇬🇧',label:'English'},

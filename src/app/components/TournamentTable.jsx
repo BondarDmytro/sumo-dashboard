@@ -7,12 +7,18 @@ const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
-function TodayCell({ record, currentDay, t }) {
+function t3(lang, uk, en, ja) {
+  if (lang === 'en') return en
+  if (lang === 'ja') return ja
+  return uk
+}
+
+function TodayCell({ record, currentDay, t, lang }) {
   const todayMatch = record.find(m => m.day === currentDay)
   const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
   const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
   if (!todayMatch || !todayMatch.result) {
-    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>{t?.misc?.expected || 'очікується'}</span>
+    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>{t3(lang,'очікується','upcoming','予定')}</span>
   }
   if (todayWin) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
@@ -65,14 +71,23 @@ function MatchDots({ record, currentDay }) {
 export default function TournamentTable({ contenders, currentDay }) {
   const { t, lang } = useLang()
 
-  const headers = lang === 'en'
-    ? [`Day ${currentDay}`, '#', 'Rikishi', 'Rank', 'Record', 'Matches', 'Status', 'Yusho chance', 'Δ']
-    : [`День ${currentDay}`, '#', 'Рікіші', 'Ранг', 'Рекорд', 'Матчі', 'Статус', 'Шанс на юшо', 'Δ']
+  const dayLabel = t3(lang, `День ${currentDay}`, `Day ${currentDay}`, `${currentDay}日目`)
+  const headers = [
+    dayLabel,
+    '#',
+    t3(lang, 'Рікіші', 'Rikishi', '力士'),
+    t3(lang, 'Ранг', 'Rank', '番付'),
+    t3(lang, 'Рекорд', 'Record', '成績'),
+    t3(lang, 'Матчі', 'Matches', '取組'),
+    t3(lang, 'Статус', 'Status', '状態'),
+    t3(lang, 'Шанс на юшо', 'Yusho chance', '優勝確率'),
+    'Δ',
+  ]
 
   return (
     <>
       <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-        {lang === 'en' ? 'Standings — all Makuuchi rikishi' : 'Турнірна таблиця — всі рікіші макуучі'}
+        {t3(lang, 'Турнірна таблиця — всі рікіші макуучі', 'Standings — all Makuuchi rikishi', '幕内力士 全員成績表')}
       </div>
       <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
@@ -90,14 +105,14 @@ export default function TournamentTable({ contenders, currentDay }) {
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
               const barColor = i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
               const statusLabel = r.status === 'lead'
-                ? (lang === 'en' ? 'leader' : 'лідер')
+                ? t3(lang, 'лідер', 'leader', 'トップ')
                 : r.status === 'chase'
                 ? '-1'
                 : `${r.wins}–${r.losses}`
               return (
                 <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
-                    <TodayCell record={r.record} currentDay={currentDay} t={t} />
+                    <TodayCell record={r.record} currentDay={currentDay} t={t} lang={lang}/>
                   </td>
                   <td style={{padding:'0.85rem 0.75rem'}}>
                     <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
