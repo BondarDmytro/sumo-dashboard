@@ -967,10 +967,10 @@ function MultiGame({lang,onBack,sfx}){
       [`clash/${sid}/status`]:isOver?'gameOver':'roundResult',[`clash/${sid}/processing`]:false,
     })
     // Системні повідомлення в чат — лог раунду
-    const p1Card=data.p1.selectedCard==='SKIP'?null:getCardById(data.p1.selectedCard)
-    const p2Card=data.p2.selectedCard==='SKIP'?null:getCardById(data.p2.selectedCard)
-    const p1Name=data.p1.selectedCard==='SKIP'?'⏩ Пропуск':(p1Card?.rankShort||p1Card?.label||'?')
-    const p2Name=data.p2.selectedCard==='SKIP'?'⏩ Пропуск':(p2Card?.rankShort||p2Card?.label||'?')
+    const sys1Card=data.p1.selectedCard==='SKIP'?null:getCardById(data.p1.selectedCard)
+    const sys2Card=data.p2.selectedCard==='SKIP'?null:getCardById(data.p2.selectedCard)
+    const p1Name=data.p1.selectedCard==='SKIP'?'⏩ Пропуск':(sys1Card?.rankShort||sys1Card?.label||'?')
+    const p2Name=data.p2.selectedCard==='SKIP'?'⏩ Пропуск':(sys2Card?.rankShort||sys2Card?.label||'?')
     const sysTs=Date.now()
     const sysMsg=`⚔️ Раунд ${newRound}: Ояката 1 → ${p1Name} | Ояката 2 → ${p2Name}`
     const winMsg=roundWinner==='p'?'✅ Раунд: Ояката 1':roundWinner==='o'?'✅ Раунд: Ояката 2':'🤝 Нічия'
