@@ -592,10 +592,10 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
               {deduped(myHand).map((c,i)=>(
                 <div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative'}}>
                   {c.type==='swap'&&!myReady?(
-                    <><GameCard card={c} selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/>
+                    <><GameCard card={c} small selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/>
                     <div style={{position:'absolute',bottom:-16,left:'50%',transform:'translateX(-50%)',fontFamily:'monospace',fontSize:'0.42rem',color:'#27ae60',whiteSpace:'nowrap'}}>{t('активувати','tap')}</div></>
                   ):(
-                    <GameCard card={c} selected={playerSelected?.id===c.id} onClick={()=>{if(!myReady&&c.type!=='swap'){if(sfx)sfx('click');onSelect(c)}}} disabled={myReady||c.type==='swap'||mySkipped} lang={lang}/>
+                    <GameCard card={c} small selected={playerSelected?.id===c.id} onClick={()=>{if(!myReady&&c.type!=='swap'){if(sfx)sfx('click');onSelect(c)}}} disabled={myReady||c.type==='swap'||mySkipped} lang={lang}/>
                   )}
                 </div>
               ))}
