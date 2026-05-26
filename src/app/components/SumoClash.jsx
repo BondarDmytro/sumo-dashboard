@@ -588,7 +588,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         <>
           <div style={{marginBottom:'0.75rem'}}>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <div style={{display:'flex',gap:6,flexWrap:'nowrap',overflowX:'auto',paddingBottom:4}}>
               {deduped(myHand).map((c,i)=>(
                 <div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative'}}>
                   {c.type==='swap'&&!myReady?(
@@ -601,15 +601,17 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
               ))}
             </div>
           </div>
-          <div style={{marginBottom:'0.75rem',marginTop:'0.5rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.08em'}}>{oppLabel} ({oppHand})</div>
-            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{Array.from({length:Math.min(oppHand,8)}).map((_,i)=><div key={i} style={{animation:`slideIn 0.2s ease ${i*0.04}s both`}}><GameCard card={FULL_DECK[0]} showBack small/></div>)}</div>
-          </div>
+          <div style={{marginBottom:'0.75rem',marginTop:'0.5rem',display:'flex',alignItems:'center',gap:8}}>
+  <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
+  <div style={{fontFamily:'monospace',fontSize:'0.72rem',fontWeight:700,color:'var(--ink)',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'2px 10px'}}>🂠 {oppHand}</div>
+</div>
           {oppReady&&!myReady&&<div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'#1a6b5c',marginBottom:'0.75rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
           {myReady&&<div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',marginBottom:'0.75rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-          <button onClick={()=>{if(sfx)sfx('click');onSubmit()}} disabled={(!playerSelected&&!mySkipped)||myReady} style={{width:'100%',padding:'0.8rem',background:((!playerSelected&&!mySkipped)||myReady)?'var(--bg2)':'#b8860b',color:((!playerSelected&&!mySkipped)||myReady)?'var(--mid)':'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:((!playerSelected&&!mySkipped)||myReady)?'default':'pointer',fontWeight:700}}>
-            {myReady?t('Підтверджено ✓','Confirmed ✓'):mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):!playerSelected?t('Оберіть карту','Select a card'):t('⚔ Підтвердити','⚔ Confirm')}
-          </button>
+          <div style={{position:'sticky',bottom:0,background:'var(--card)',paddingTop:8,marginTop:4}}>
+  <button onClick={()=>{if(sfx)sfx('click');onSubmit()}} disabled={(!playerSelected&&!mySkipped)||myReady} style={{width:'100%',padding:'0.8rem',background:((!playerSelected&&!mySkipped)||myReady)?'var(--bg2)':'#b8860b',color:((!playerSelected&&!mySkipped)||myReady)?'var(--mid)':'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:((!playerSelected&&!mySkipped)||myReady)?'default':'pointer',fontWeight:700}}>
+    {myReady?t('Підтверджено ✓','Confirmed ✓'):mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):!playerSelected?t('Оберіть карту','Select a card'):t('⚔ Підтвердити','⚔ Confirm')}
+  </button>
+</div>
         </>
       )}
     </div>
