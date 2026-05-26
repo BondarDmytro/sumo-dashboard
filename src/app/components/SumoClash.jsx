@@ -900,6 +900,9 @@ function MultiGame({lang,onBack,sfx}){
   const [myFlash,setMyFlash]=useState(null)
   const [oppFlash,setOppFlash]=useState(null)
   const [showRoundBanner,setShowRoundBanner]=useState(false)
+  const [chatMsg,setChatMsg]=useState('')
+  const [chatMessages,setChatMessages]=useState([])
+  const chatEndRef=useRef(null)
   const roleRef=useRef(null);const sessionIdRef=useRef('');const processingRef=useRef(false)
 
   useEffect(()=>{
@@ -908,6 +911,7 @@ function MultiGame({lang,onBack,sfx}){
     const unsub=onValue(dbRef,snap=>{
       const data=snap.val();if(!data)return
       setSession(data)
+      setChatMessages(data.chat?Object.values(data.chat).sort((a,b)=>a.ts-b.ts).slice(-20):[])
       if(roleRef.current==='host'&&!processingRef.current&&!data.processing&&data.status==='battle'&&data.p1?.ready===true&&data.p2?.ready===true&&data.p1?.selectedCard&&data.p2?.selectedCard){
         processingRef.current=true
         doResolveRound(data,sessionIdRef.current).then(()=>processingRef.current=false).catch(()=>processingRef.current=false)
@@ -1023,6 +1027,15 @@ function MultiGame({lang,onBack,sfx}){
     await update(ref(db,`clash/${sessionId}/${mk}`),{selectedCard:mySkip?'SKIP':(playerSelected?.id||'SKIP'),ready:true})
   }
 
+  async function sendChat(){
+    if(!chatMsg.trim()||!sessionId)return
+    const msgId=Date.now()
+    await update(ref(db),{[`clash/${sessionId}/chat/${msgId}`]:{text:chatMsg.trim(),role,ts:msgId}})
+    setChatMsg('')
+  }
+
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:'smooth'})},[chatMessages])
+
   const mk=role==='host'?'p1':'p2';const ok=role==='host'?'p2':'p1'
   const myHp=session?.[mk]?.hp??MAX_HP;const oppHp=session?.[ok]?.hp??MAX_HP
   const myArmor=session?.[mk]?.armor??0;const oppArmor=session?.[ok]?.armor??0
@@ -1076,6 +1089,27 @@ function MultiGame({lang,onBack,sfx}){
         </div>
       )}
       {(screen==='battle'||screen==='roundResult')&&<BattleLayout myHp={myHp} oppHp={oppHp} myArmor={myArmor} oppArmor={oppArmor} myWins={myWins} oppWins={oppWins} roundNum={totalRounds+1} myLabel={myLabel} oppLabel={oppLabel} myHand={myHandCards} oppHand={oppHandCount} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={myReady} oppReady={oppReady} onSubmit={submitCard} roundLog={session?.roundLog||[]} phase={screen} onNext={async()=>{if(role==='host')await update(ref(db,`clash/${sessionId}`),{status:'battle',battleTrigger:(session?.battleTrigger||0)+1})}} myCard={myLastCard} oppCard={oppLastCard} drawPile={deckForSwap} onSwapDone={handleSwapDone} mySkipped={mySkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner}/>}
+      {(screen==='battle'||screen==='roundResult')&&(
+        <div style={{marginTop:'1rem',border:'1px solid var(--border)',borderRadius:4,overflow:'hidden'}}>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',padding:'6px 10px',borderBottom:'1px solid var(--border)',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+            💬 {t('Чат','Chat')}
+          </div>
+          <div style={{height:90,overflowY:'auto',padding:'6px 10px',display:'flex',flexDirection:'column',gap:4}}>
+            {chatMessages.length===0&&<div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'center',marginTop:16}}>{t('Напишіть суперника...','Say something...')}</div>}
+            {chatMessages.map(m=>(
+              <div key={m.ts} style={{display:'flex',gap:6,alignItems:'flex-start'}}>
+                <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:m.role===role?'#1a6b5c':'#c0392b',flexShrink:0,marginTop:1}}>{m.role===role?t('Ви','You'):t('Суп.','Opp.')}</span>
+                <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--ink)',wordBreak:'break-word'}}>{m.text}</span>
+              </div>
+            ))}
+            <div ref={chatEndRef}/>
+          </div>
+          <div style={{display:'flex',borderTop:'1px solid var(--border)'}}>
+            <input value={chatMsg} onChange={e=>setChatMsg(e.target.value.slice(0,80))} onKeyDown={e=>e.key==='Enter'&&sendChat()} placeholder={t('Повідомлення...','Message...')} style={{flex:1,padding:'6px 10px',background:'var(--bg2)',border:'none',color:'var(--ink)',fontFamily:'monospace',fontSize:'0.68rem',outline:'none'}}/>
+            <button onClick={sendChat} style={{padding:'6px 12px',background:'#b8860b',color:'#fff',border:'none',fontFamily:'monospace',fontSize:'0.65rem',cursor:'pointer',fontWeight:700}}>→</button>
+          </div>
+        </div>
+      )}
       {screen==='gameOver'&&<GameOverScreen myHp={myHp} oppHp={oppHp} myArmor={myArmor} oppArmor={oppArmor} myWins={myWins} oppWins={oppWins} myLabel={myLabel} oppLabel={oppLabel} onBack={onBack} lang={lang} sfx={sfx}/>}
     </div>
   )
