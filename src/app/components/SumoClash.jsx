@@ -1518,8 +1518,16 @@ export default function SumoClash({onClose,lang='uk'}){
           {/* Header */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <span style={{fontSize:'1.1rem'}}>⚔️</span>
-              <span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 3px rgba(0,0,0,0.9)'}}>DOHYO LEGENDS</span>
+              <img
+                src="/images/dohyo-legends-logo.png"
+                alt="DOHYO LEGENDS"
+                style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}}
+                onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}
+              />
+              <span style={{display:'none',alignItems:'center',gap:6}}>
+                <span style={{fontSize:'1.1rem'}}>⚔️</span>
+                <span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 3px rgba(0,0,0,0.9)'}}>DOHYO LEGENDS</span>
+              </span>
               {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
             <div style={{display:'flex',alignItems:'center',gap:5}}>
