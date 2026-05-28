@@ -86,10 +86,30 @@ function getCardWeight(card) {
   return 10
 }
 
-// Зважений shuffle — картки з більшою вагою частіше опиняються вгорі
+// Зважений вибір N карт — картки з більшою вагою частіше потрапляють у вибірку,
+// але порядок всередині вибірки — рандомний
+function weightedSample(arr, n) {
+  if(arr.length <= n) return shuffle([...arr])
+  const result = []
+  const pool = [...arr]
+  for(let i = 0; i < n && pool.length > 0; i++) {
+    const totalWeight = pool.reduce((s, c) => s + getCardWeight(c), 0)
+    let r = Math.random() * totalWeight
+    let idx = 0
+    for(let j = 0; j < pool.length; j++) {
+      r -= getCardWeight(pool[j])
+      if(r <= 0) { idx = j; break }
+    }
+    result.push(pool[idx])
+    pool.splice(idx, 1)
+  }
+  return result
+}
+
+// Зважений shuffle всього масиву (для drawPile)
 function weightedShuffle(arr) {
   return arr
-    .map(card => ({ card, sort: Math.random() * getCardWeight(card) }))
+    .map(card => ({ card, sort: Math.random() ** (1 / getCardWeight(card)) }))
     .sort((a, b) => b.sort - a.sort)
     .map(x => x.card)
 }
@@ -317,8 +337,8 @@ function HPBar({hp,armor=0,flash=null}){
     <div style={{animation:flashAnim}}>
       <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,gap:8}}>
         <div style={{display:'flex',alignItems:'center',gap:6}}>
-          <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)',fontWeight:600}}>HP</span>
-          <span style={{fontFamily:'var(--jp)',fontSize:'1.15rem',fontWeight:800,color,animation:isLow?'lowHpPulse 1s ease infinite':undefined}}>{hp}<span style={{fontSize:'0.7rem',opacity:0.6}}>/{MAX_HP}</span></span>
+          <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.5)',fontWeight:600}}>HP</span>
+          <span style={{fontFamily:'var(--jp)',fontSize:'1.15rem',fontWeight:800,color,animation:isLow?'lowHpPulse 1s ease infinite':undefined}}>{hp}<span style={{fontSize:'0.7rem',opacity:0.5}}>/{MAX_HP}</span></span>
         </div>
         {armor>0&&<div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(31,97,141,0.15)',border:'1px solid rgba(31,97,141,0.4)',borderRadius:3,padding:'2px 8px',animation:'glowPulse 2s ease infinite'}}>
           <span style={{fontSize:'0.8rem'}}>🛡</span>
@@ -641,20 +661,20 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
 
     {/* Рахунок */}
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',color:'var(--mid)'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'var(--ink)'}}>{myWins}–{oppWins}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',color:'rgba(255,255,255,0.6)'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'#f0c060'}}>{myWins}–{oppWins}</div>
     </div>
 
-    {mySkipped&&<div style={{background:'rgba(127,140,141,0.15)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.5rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#7f8c8d',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
+    {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.5rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
 
-    {/* HP панелі — більші, завжди видно */}
+    {/* HP панелі — темні */}
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'0.6rem'}}>
-      <div style={{background:'var(--bg2)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(26,107,92,0.35)'}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#1a6b5c',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{myLabel}</div>
+      <div style={{background:'rgba(0,0,0,0.65)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(26,107,92,0.5)'}}>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#2ecc71',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{myLabel}</div>
         <HPBar hp={myHp} armor={myArmor} flash={myFlash}/>
       </div>
-      <div style={{background:'var(--bg2)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(192,57,43,0.35)'}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#c0392b',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{oppLabel}</div>
+      <div style={{background:'rgba(0,0,0,0.65)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(192,57,43,0.5)'}}>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#e74c3c',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{oppLabel}</div>
         <HPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
       </div>
     </div>
@@ -684,25 +704,27 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
     ):(
       <>
         <div style={{marginBottom:'0.5rem'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-          <div style={{display:'flex',gap:'clamp(3px,1vw,8px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:6,justifyContent:'center',scrollbarWidth:'none'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.5)',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
+          {/* Карти руки — на 50% більші ніж small */}
+          <div style={{display:'flex',gap:'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:6,justifyContent:'center',scrollbarWidth:'none'}}>
             {deduped(myHand).map((c,i)=>(<div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
               {c.type==='swap'&&!myReady?(
-                <><GameCard card={c} small selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/><div style={{position:'absolute',bottom:-14,left:'50%',transform:'translateX(-50%)',fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#27ae60',whiteSpace:'nowrap'}}>{t('активувати','tap')}</div></>
+                <><GameCard card={c} selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/><div style={{position:'absolute',bottom:-14,left:'50%',transform:'translateX(-50%)',fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#27ae60',whiteSpace:'nowrap'}}>{t('активувати','tap')}</div></>
               ):(
-                <GameCard card={c} small selected={playerSelected?.id===c.id} onClick={()=>{if(!myReady&&c.type!=='swap'){if(sfx)sfx('click');onSelect(c)}}} disabled={myReady||c.type==='swap'||mySkipped} lang={lang}/>
+                <GameCard card={c} selected={playerSelected?.id===c.id} onClick={()=>{if(!myReady&&c.type!=='swap'){if(sfx)sfx('click');onSelect(c)}}} disabled={myReady||c.type==='swap'||mySkipped} lang={lang}/>
               )}
             </div>))}
           </div>
         </div>
         <div style={{marginBottom:'0.5rem',display:'flex',alignItems:'center',gap:8}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:700,color:'var(--ink)',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'2px 10px'}}>🂠 {oppHand}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.5)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:700,color:'rgba(255,255,255,0.8)',background:'rgba(0,0,0,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:4,padding:'2px 10px'}}>🂠 {oppHand}</div>
         </div>
-        {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#1a6b5c',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
-        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        <div style={{position:'sticky',bottom:0,background:'var(--card)',paddingTop:6,marginTop:2}}>
-          <button onClick={()=>{if(sfx)sfx('click');onSubmit()}} disabled={(!playerSelected&&!mySkipped)||myReady} style={{width:'100%',padding:'0.75rem',background:((!playerSelected&&!mySkipped)||myReady)?'var(--bg2)':'#b8860b',color:((!playerSelected&&!mySkipped)||myReady)?'var(--mid)':'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:((!playerSelected&&!mySkipped)||myReady)?'default':'pointer',fontWeight:700}}>
+        {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#2ecc71',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
+        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.4)',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
+        {/* Кнопка — без sticky white bg, просто внизу */}
+        <div style={{paddingTop:8,marginTop:4}}>
+          <button onClick={()=>{if(sfx)sfx('click');onSubmit()}} disabled={(!playerSelected&&!mySkipped)||myReady} style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,padding:'0.8rem 1rem',background:((!playerSelected&&!mySkipped)||myReady)?'rgba(255,255,255,0.08)':'#b8860b',color:((!playerSelected&&!mySkipped)||myReady)?'rgba(255,255,255,0.3)':'#fff',border:((!playerSelected&&!mySkipped)||myReady)?'1px solid rgba(255,255,255,0.12)':'none',borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:((!playerSelected&&!mySkipped)||myReady)?'default':'pointer',fontWeight:700,boxShadow:((!playerSelected&&!mySkipped)||myReady)?'none':'0 4px 20px rgba(184,134,11,0.5)'}}>
             {myReady?t('Підтверджено ✓','Confirmed ✓'):mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):!playerSelected?t('Оберіть карту','Select a card'):t('⚔ Підтвердити','⚔ Confirm')}
           </button>
         </div>
@@ -719,24 +741,44 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
   const isKyujo=(oppHp<=0&&myHp>0)||(myHp<=0&&oppHp>0)
   useEffect(()=>{if(sfx)sfx(playerWon?'win':'lose')},[])
   let title,subtitle
-  if(isKyujo&&playerWon){title=t('Кюджо суперника!','Opponent Kyujo!');subtitle=t('Ви змусили суперника визнати кюджо','You forced your opponent to withdraw — Kyujo!')}
-  else if(isKyujo&&!playerWon){title=t('Кюджо!','Kyujo!');subtitle=t('Ви повертаєтесь до стайні','You withdraw to your stable to recover.')}
+  if(isKyujo&&playerWon){title=t('Кюджо суперника!','Opponent Kyujo!');subtitle=t('Ви змусили суперника визнати кюджо','You forced your opponent to withdraw!')}
+  else if(isKyujo&&!playerWon){title=t('Кюджо!','Kyujo!');subtitle=t('Ви повертаєтесь до стайні','You withdraw to your stable.')}
   else if(playerWon){title=t('Юшо!','Yusho!');subtitle=t('Ви перемогли!','You win!')}
   else{title=t('Маке-коші','Make-koshi');subtitle=t('Суперник переміг.','Opponent wins.')}
-  return(<div style={{textAlign:'center',animation:'slideIn 0.3s ease'}}>
-    <div style={{fontSize:'3.5rem',marginBottom:'0.5rem',animation:'pop 0.5s ease'}}>{isKyujo&&playerWon?'🏆':isKyujo&&!playerWon?'🏥':playerWon?'🏆':'💪'}</div>
-    <div style={{fontFamily:'var(--jp)',fontSize:'1.4rem',fontWeight:800,color:playerWon?'#b8860b':'#c0392b',marginBottom:'0.5rem'}}>{title}</div>
-    <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)',marginBottom:'1rem',lineHeight:1.5,padding:'0 1rem'}}>{subtitle}</div>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'1rem 0'}}>
-      <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(26,107,92,0.3)'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#1a6b5c',marginBottom:4}}>{myLabel}</div><HPBar hp={myHp} armor={myArmor}/></div>
-      <div style={{background:'var(--bg2)',padding:'0.75rem',borderRadius:4,border:'1px solid rgba(192,57,43,0.3)'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#c0392b',marginBottom:4}}>{oppLabel}</div><HPBar hp={oppHp} armor={oppArmor}/></div>
+  const winColor=playerWon?'#f0c060':'#e74c3c'
+  return(
+    <div style={{textAlign:'center',animation:'slideIn 0.3s ease',padding:'1rem 0'}}>
+      <div style={{fontSize:'4rem',marginBottom:'0.75rem',animation:'pop 0.5s ease'}}>{isKyujo&&playerWon?'🏆':isKyujo&&!playerWon?'🏥':playerWon?'🏆':'💪'}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:winColor,marginBottom:'0.4rem',textShadow:`0 0 20px ${winColor}88`}}>{title}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'rgba(255,255,255,0.55)',marginBottom:'1.5rem',lineHeight:1.5}}>{subtitle}</div>
+
+      {/* HP панелі — темні */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'0 0 1rem 0'}}>
+        <div style={{background:'rgba(0,0,0,0.6)',padding:'0.75rem',borderRadius:6,border:'1px solid rgba(46,204,113,0.3)'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#2ecc71',marginBottom:6,fontWeight:700}}>{myLabel}</div>
+          <HPBar hp={myHp} armor={myArmor}/>
+        </div>
+        <div style={{background:'rgba(0,0,0,0.6)',padding:'0.75rem',borderRadius:6,border:'1px solid rgba(231,76,60,0.3)'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#e74c3c',marginBottom:6,fontWeight:700}}>{oppLabel}</div>
+          <HPBar hp={oppHp} armor={oppArmor}/>
+        </div>
+      </div>
+
+      {/* Рахунок */}
+      <div style={{background:'rgba(0,0,0,0.5)',padding:'0.875rem 1rem',borderRadius:6,marginBottom:'1.5rem',border:`1px solid ${isKachiKoshi?'rgba(240,192,96,0.3)':'rgba(231,76,60,0.3)'}`}}>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'rgba(255,255,255,0.45)',marginBottom:6}}>{t('Раунди','Rounds')}: {myWins}W – {oppWins}L – {ties}D</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:900,color:isKachiKoshi?'#f0c060':'#e74c3c',textShadow:`0 0 16px ${isKachiKoshi?'#f0c060':'#e74c3c'}66`}}>
+          {isKachiKoshi?'勝ち越し Kachi-koshi':'負け越し Make-koshi'}
+        </div>
+      </div>
+
+      <button onClick={onBack} style={{background:'rgba(184,134,11,0.15)',color:'#f0c060',border:'1px solid rgba(184,134,11,0.5)',borderRadius:6,padding:'0.8rem 3rem',fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.12em',cursor:'pointer',fontWeight:700,boxShadow:'0 4px 16px rgba(184,134,11,0.2)',transition:'all 0.15s'}}
+        onMouseEnter={e=>{e.currentTarget.style.background='rgba(184,134,11,0.3)'}}
+        onMouseLeave={e=>{e.currentTarget.style.background='rgba(184,134,11,0.15)'}}>
+        {t('В меню','Menu')}
+      </button>
     </div>
-    <div style={{background:'var(--bg2)',padding:'1rem',borderRadius:4,marginBottom:'1.25rem'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'var(--mid)',marginBottom:6}}>{t('Раунди','Rounds')}: {myWins}W – {oppWins}L – {ties}D</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:800,color:isKachiKoshi?'#1a6b5c':'#c0392b'}}>{isKachiKoshi?'勝ち越し Kachi-koshi':'負け越し Make-koshi'}</div>
-    </div>
-    <button onClick={onBack} style={{background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,padding:'0.8rem 2.5rem',fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700}}>{t('В меню','Menu')}</button>
-  </div>)
+  )
 }
 
 // ── CPU гра — СПІЛЬНА КОЛОДА ─────────────────────────────────
@@ -771,13 +813,12 @@ function CpuGame({lang,onBack,sfx}){
   const [playedCards,setPlayedCards]=useState([])
 
   useEffect(()=>{
-    // СПІЛЬНА КОЛОДА: CPU бере перші 5 рандомно, гравець драфтить зважено
     const shared=shuffle(FULL_DECK)
     const cpuCards=shared.slice(0,5)
     setCpuHand(cpuCards)
-    const remaining=weightedShuffle(shared.slice(5))
+    const remaining=shared.slice(5)
     setDrawPile(remaining)
-    setDraftPool(remaining.slice(0,DRAFT_POOL_SIZE))
+    setDraftPool(weightedSample(remaining, DRAFT_POOL_SIZE))
   },[])
 
   function pickDraft(card){
@@ -787,13 +828,14 @@ function CpuGame({lang,onBack,sfx}){
     const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
     if(draftRound<DRAFT_ROUNDS-1){
       // Новий пул — зважено перемішуємо решту колоди
-      const nextPool=weightedShuffle(newDraw).slice(0,DRAFT_POOL_SIZE)
+      const nextPool=weightedSample(newDraw, DRAFT_POOL_SIZE)
       setPlayerHand(newHand);setDrawPile(newDraw)
       setDraftPool(nextPool);setDraftRound(r=>r+1)
     }else{
       setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')
     }
   }
+  function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
 
   function fight(){
     const pCard=playerSkip?null:playerSelected
@@ -820,8 +862,8 @@ function CpuGame({lang,onBack,sfx}){
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
     // Добір: гравець бере зважено, CPU — рандомно
     if(newDraw.length>0){
-      const wDraw=weightedShuffle(newDraw)
-      newPH=[...newPH,wDraw[0]];newDraw=newDraw.filter(c=>c.id!==wDraw[0].id)
+      const drawn=weightedSample(newDraw,1)
+      newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)
     }
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
@@ -838,8 +880,8 @@ function CpuGame({lang,onBack,sfx}){
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
-    <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:0}}>‹ {t('Назад','Back')}</button>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
+    <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:'4px 10px',borderRadius:4}}>‹ {t('Назад','Back')}</button>
     <CardGuide lang={lang}/>
     {phase==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
@@ -885,12 +927,11 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   const [envelopesEarned,setEnvelopesEarned]=useState(0)
 
   useEffect(()=>{
-    // СПІЛЬНА КОЛОДА для кампанії: CPU рандомно, гравець зважено
     const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(() => true)))
     const cpuCards=shared.slice(0,5)
     setCpuHand(cpuCards)
-    const remaining=weightedShuffle(FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id)))
-    setDrawPile(remaining);setDraftPool(remaining.slice(0,DRAFT_POOL_SIZE))
+    const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id))
+    setDrawPile(remaining);setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE))
   },[])
 
   function applyBoostToCard(card){if(!boostedCard||boostedCard.cardId!==card.id)return card;return{...card,atk:card.atk+(boostedCard.atk||0),def:card.def+(boostedCard.def||0)}}
@@ -898,10 +939,9 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
     if(sfx)sfx('click')
     const boosted=applyBoostToCard(card)
     const newHand=[...playerHand,boosted]
-    // Викидаємо ВЕСЬ поточний пул
     const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
     if(draftRound<DRAFT_ROUNDS-1){
-      const nextPool=weightedShuffle(newDraw).slice(0,DRAFT_POOL_SIZE)
+      const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE)
       setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
     }else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
   }
@@ -931,11 +971,15 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
+    // Гравець добирає зважено
     if(newDraw.length>0){
-      const wDraw=weightedShuffle(newDraw)
-      newPH=[...newPH,wDraw[0]];newDraw=newDraw.filter(c=>c.id!==wDraw[0].id)
+      const drawn=weightedSample(newDraw,1)
+      newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)
     }
-    if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
+    // CPU добирає тільки карти свого рівня (cpuDeckFilter)
+    const cpuFilter=level.cpuDeckFilter||(()=>true)
+    const cpuDraw=newDraw.filter(cpuFilter)
+    if(cpuDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,cpuDraw.length));newCH=[...newCH,cpuDraw[idx]];newDraw=newDraw.filter(c=>c.id!==cpuDraw[idx].id)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
     if(finalPHp<=0){onLose();return}
     if(newOHp<=0){onWin(finalPHp,MAX_HP,envelopesEarned);return}
@@ -950,9 +994,9 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
-    <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:0}}>‹ {t('Назад','Back')}</button>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
+    <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:'4px 10px',borderRadius:4}}>‹ {t('Назад','Back')}</button>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)'}}>{level.emoji} {t('Рівень','Level')} {level.id} — {levelName}</div>
       {level.isBoss&&<div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',background:'#c0392b',color:'#fff',padding:'1px 8px',borderRadius:2}}>БОС</div>}
     </div>
@@ -1023,8 +1067,9 @@ function MultiGame({lang,onBack,sfx}){
     const allUsed=new Set([...p1H,...p2H,...usedIds])
     const draw=(data.deck||[]).filter(id=>!allUsed.has(id))
     let fp1=[...p1H],fp2=[...p2H]
-    if(draw.length>0){fp1=[...fp1,draw[0]]}
-    if(draw.length>1){fp2=[...fp2,draw[1]]}
+    // Зважений добір для обох гравців з решти колоди
+    const drawCards=draw.map(id=>getCardById(id)).filter(Boolean)
+    if(drawCards.length>0){const d1=weightedSample(drawCards,1);fp1=[...fp1,d1[0].id];const rem=drawCards.filter(c=>c.id!==d1[0].id);if(rem.length>0){const d2=weightedSample(rem,1);fp2=[...fp2,d2[0].id]}}
     const kyujo=newPHp<=0||newOHp<=0
     const isOver=newRound>=MAX_ROUNDS||fp1.length===0||fp2.length===0||kyujo
     await update(ref(db),{
@@ -1075,18 +1120,21 @@ function MultiGame({lang,onBack,sfx}){
   },[session?.status,session?.roundNum,session?.p2?.joined,session?.battleTrigger])
 
   async function createSession(){
-    // СПІЛЬНА КОЛОДА: одна перемішана колода для обох
-    const shared=shuffle(FULL_DECK);const ids=shared.map(c=>c.id)
-    // p1 і p2 беруть по 5 з початку (перші 5 — p1, наступні 5 — p2, решта — draw pile)
-    const p1Pool=ids.slice(0,DRAFT_POOL_SIZE)
-    const p2Pool=ids.slice(DRAFT_POOL_SIZE,DRAFT_POOL_SIZE*2)
-    await set(ref(db,`clash/${generateCode()}`),null) // dummy
+    // Зважено перемішуємо колоду — рідкісні карти рідше потрапляють на початок
+    const shared=weightedShuffle(FULL_DECK);const ids=shared.map(c=>c.id)
+    // Початкові пули — зважений вибір для обох гравців
+    const p1PoolCards=weightedSample(shared,DRAFT_POOL_SIZE)
+    const remaining1=shared.filter(c=>!p1PoolCards.find(x=>x.id===c.id))
+    const p2PoolCards=weightedSample(remaining1,DRAFT_POOL_SIZE)
+    const p1Pool=p1PoolCards.map(c=>c.id)
+    const p2Pool=p2PoolCards.map(c=>c.id)
+    await set(ref(db,`clash/${generateCode()}`),null)
     const code=generateCode()
     await set(ref(db,`clash/${code}`),{status:'waiting',deck:ids,roundNum:0,roundLog:[],lastCards:null,processing:false,
       p1:{joined:true,hp:MAX_HP,armor:0,hand:[],draftPool:p1Pool,draftRound:0,wins:0,ready:false,draftDone:false,selectedCard:null,skipNext:false},
       p2:{joined:false,hp:MAX_HP,armor:0,hand:[],draftPool:p2Pool,draftRound:0,wins:0,ready:false,draftDone:false,selectedCard:null,skipNext:false},
     })
-    setLocalDrawPile(shared.slice(DRAFT_POOL_SIZE*2))
+    setLocalDrawPile(shared.filter(c=>!p1Pool.includes(c.id)&&!p2Pool.includes(c.id)))
     roleRef.current='host';sessionIdRef.current=code;setRole('host');setSessionId(code);setScreen('waiting')
   }
 
@@ -1104,19 +1152,21 @@ function MultiGame({lang,onBack,sfx}){
     if(sfx)sfx('click')
     const snap=await get(ref(db,`clash/${sessionId}`));const data=snap.val()
     const mk=role==='host'?'p1':'p2';const myData=data[mk]
-    const currentHand=[...new Set([...(myData.hand||[]),card.id])];const newDraftRound=(myData.draftRound||0)+1;const isDone=newDraftRound>=DRAFT_ROUNDS
-    const deck=data.deck
-    // СПІЛЬНА КОЛОДА: наступний пул береться зі спільної колоди, обходячи вже взяті картки
-    const takenIds=new Set([...(data.p1?.hand||[]),...(data.p2?.hand||[]),card.id])
-    const available=deck.filter(id=>!takenIds.has(id))
-    const nextPool=available.slice(0,DRAFT_POOL_SIZE)
+    const currentHand=[...new Set([...(myData.hand||[]),card.id])]
+    const newDraftRound=(myData.draftRound||0)+1;const isDone=newDraftRound>=DRAFT_ROUNDS
+    // Викидаємо ВЕСЬ поточний пул, наступний — зважений вибір
+    const currentPool=myData.draftPool||[]
+    const takenIds=new Set([...(data.p1?.hand||[]),...(data.p2?.hand||[]),...currentPool])
+    const available=data.deck.filter(id=>!takenIds.has(id)).map(id=>getCardById(id)).filter(Boolean)
+    const nextPoolCards=weightedSample(available,DRAFT_POOL_SIZE)
+    const nextPool=nextPoolCards.map(c=>c.id)
     let updates={[`clash/${sessionId}/${mk}/hand`]:currentHand,[`clash/${sessionId}/${mk}/draftRound`]:newDraftRound,[`clash/${sessionId}/${mk}/draftDone`]:isDone}
     if(!isDone)updates[`clash/${sessionId}/${mk}/draftPool`]=nextPool
     await update(ref(db),updates)
     setPlayerHand(currentHand.map(id=>getCardById(id)).filter(Boolean));setDraftRound(newDraftRound)
     const otherKey=role==='host'?'p2':'p1'
     if(isDone&&data[otherKey]?.draftDone)await update(ref(db,`clash/${sessionId}`),{status:'battle'})
-    if(!isDone)setDraftPool(nextPool.map(id=>getCardById(id)).filter(Boolean))
+    if(!isDone)setDraftPool(nextPoolCards)
   }
 
   async function handleSwapDone(newCard){
@@ -1165,7 +1215,7 @@ function MultiGame({lang,onBack,sfx}){
   const myHpDelta=myHp-prevHp.my;const oppHpDelta=oppHp-prevHp.opp
   const myArmorDelta=myArmor-prevArmor.my;const oppArmorDelta=oppArmor-prevArmor.opp
 
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
     <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:0}}>‹ {t('Назад','Back')}</button>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
     {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease'}}>
@@ -1303,6 +1353,22 @@ export default function SumoClash({onClose,lang='uk'}){
   const [musicTheme,setMusicTheme]=useState('dohyo')
   const [confirmExit,setConfirmExit]=useState(false)
   const [showReview,setShowReview]=useState(false)
+  const [gameTheme,setGameTheme]=useState('dark') // 'dark' | 'light'
+
+  // CSS змінні для теми гри — перекривають глобальні
+  const DARK_VARS = {
+    '--card':'#1a1814','--bg':'#13110e','--bg2':'rgba(255,255,255,0.06)',
+    '--ink':'rgba(255,255,255,0.9)','--mid':'rgba(255,255,255,0.45)',
+    '--light':'rgba(255,255,255,0.25)','--border':'rgba(255,255,255,0.1)',
+    '--jp':"'Noto Serif JP', serif",
+  }
+  const LIGHT_VARS = {
+    '--card':'#f5f0e8','--bg':'#ede8de','--bg2':'rgba(0,0,0,0.06)',
+    '--ink':'rgba(30,20,5,0.9)','--mid':'rgba(30,20,5,0.45)',
+    '--light':'rgba(30,20,5,0.25)','--border':'rgba(30,20,5,0.12)',
+    '--jp':"'Noto Serif JP', serif",
+  }
+  const themeVars = gameTheme==='dark' ? DARK_VARS : LIGHT_VARS
 
   async function submitReview(stars,comment){
     try{
@@ -1349,7 +1415,7 @@ export default function SumoClash({onClose,lang='uk'}){
 
       {confirmExit&&(
         <div onClick={e=>e.stopPropagation()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:3000,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.2s ease'}}>
+          <div style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.2s ease'}}>
             <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:700,color:'var(--ink)',marginBottom:'0.5rem'}}>{t('Вийти з гри?','Exit game?')}</div>
             <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'var(--mid)',marginBottom:'1.25rem'}}>{t('Прогрес поточної гри буде втрачено','Current game progress will be lost')}</div>
             <div style={{display:'flex',gap:10}}>
@@ -1360,7 +1426,7 @@ export default function SumoClash({onClose,lang='uk'}){
         </div>
       )}
       <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
-        <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:1100,width:'100%',maxHeight:'96vh',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+        <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:1100,width:'100%',maxHeight:'96vh',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
           {/* Header */}
           <div style={{borderBottom:'1px solid var(--border)',padding:'0.8rem 1.25rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
@@ -1369,8 +1435,14 @@ export default function SumoClash({onClose,lang='uk'}){
               <span style={{fontFamily:'var(--jp)',fontSize:'0.8rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mid)'}}>{t('Сумо Клеш','Sumo Clash')}</span>
               {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--light)'}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
-            <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
               <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
+              {/* Перемикач теми — тільки в грі */}
+              <button
+                onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')}
+                title={gameTheme==='dark'?t('Світла тема','Light theme'):t('Темна тема','Dark theme')}
+                style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.65rem',transition:'all 0.15s'}}
+              >{gameTheme==='dark'?'☀️':'🌙'}</button>
               <button onClick={()=>setShowReview(true)} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.6rem'}} title={t('Оцінити гру','Rate game')}>🏅</button>
               <button onClick={()=>setConfirmExit(true)} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1}}>✕</button>
             </div>
@@ -1412,19 +1484,19 @@ export default function SumoClash({onClose,lang='uk'}){
           {/* Modes */}
           {mode==='cpu'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.18,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
               <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
             </div>
           )}
           {mode==='campaign'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.3,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
               <SumoClashCampaign onBack={()=>setMode('menu')} lang={lang} GameBattle={(props)=><CampaignBattleWrapper {...props} sfx={sfx}/>}/>
             </div>
           )}
           {mode==='multi'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.3,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
               <MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
             </div>
           )}
