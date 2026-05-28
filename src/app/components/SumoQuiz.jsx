@@ -1,5 +1,5 @@
 'use client'
-import { trackGameLaunch } from './gameAnalytics'
+import { trackGameLaunch } from '../lib/gameAnalytics'
 
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
