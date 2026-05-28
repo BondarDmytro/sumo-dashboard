@@ -135,6 +135,11 @@ function getCardDesc(card, lang) {
   return fn ? fn(card) : ''
 }
 
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]};return a}
+function generateCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function getCardById(id){return FULL_DECK.find(c=>c.id===id)}
+function getLabel(card,lang){return lang==='en'?(card.labelEn||card.label||card.id):(card.label||card.id)}
+
 // Картки без власного скіну — використовують скін іншої картки того ж типу
 const CARD_SKIN_ALIAS = {
   'H2': 'H1', 'H3': 'H1',       // вода переможця — той самий скін
@@ -143,9 +148,6 @@ const CARD_SKIN_ALIAS = {
   'Sw2': 'Sw1', 'Sw3': 'Sw1', 'Sw4': 'Sw1', // заміна — один скін
 }
 function getCardSkinId(id) { return CARD_SKIN_ALIAS[id] || id }
-function generateCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
-function getCardById(id){return FULL_DECK.find(c=>c.id===id)}
-function getLabel(card,lang){return lang==='en'?(card.labelEn||card.label||card.id):(card.label||card.id)}
 
 function cpuChooseCard(hand,oppSkipped){
   if(oppSkipped){const safe=hand.filter(c=>['heal','armor','swap'].includes(c.type));if(safe.length>0)return safe[0]}
