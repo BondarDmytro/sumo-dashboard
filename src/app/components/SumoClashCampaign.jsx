@@ -64,17 +64,16 @@ const SHOP_ITEMS = [
 const ENVELOPE_REWARDS = [50,75,100,125,150]
 
 const RIKISHI_SAMPLE = [
-  { id:'Y1', rank:'Yokozuna', rankShort:'Y1e', atk:10, def:7, color:'#b8860b' },
-  { id:'Y2', rank:'Yokozuna', rankShort:'Y1w', atk:9,  def:8, color:'#b8860b' },
-  { id:'O1', rank:'Ozeki',    rankShort:'O1e', atk:8,  def:6, color:'#1a6b5c' },
-  { id:'O2', rank:'Ozeki',    rankShort:'O1w', atk:7,  def:7, color:'#1a6b5c' },
-  { id:'S1', rank:'Sekiwake', rankShort:'S1e', atk:7,  def:5, color:'#1a4a7a' },
-  { id:'S2', rank:'Sekiwake', rankShort:'S1w', atk:6,  def:6, color:'#1a4a7a' },
-  { id:'K1', rank:'Komusubi', rankShort:'K1e', atk:6,  def:4, color:'#6b3fa0' },
-  { id:'K2', rank:'Komusubi', rankShort:'K1w', atk:5,  def:5, color:'#6b3fa0' },
+  { id:'Y1e', rank:'Yokozuna', rankShort:'Y1e', atk:10, def:7, color:'#b8860b' },
+  { id:'Y1w', rank:'Yokozuna', rankShort:'Y1w', atk:9,  def:8, color:'#b8860b' },
+  { id:'O1e', rank:'Ozeki',    rankShort:'O1e', atk:8,  def:6, color:'#8b1a1a' },
+  { id:'O1w', rank:'Ozeki',    rankShort:'O1w', atk:7,  def:7, color:'#8b1a1a' },
+  { id:'S1e', rank:'Sekiwake', rankShort:'S1e', atk:7,  def:5, color:'#1a4a7a' },
+  { id:'S1w', rank:'Sekiwake', rankShort:'S1w', atk:6,  def:6, color:'#1a4a7a' },
+  { id:'K1e', rank:'Komusubi', rankShort:'K1e', atk:6,  def:4, color:'#1f7a3a' },
+  { id:'K1w', rank:'Komusubi', rankShort:'K1w', atk:5,  def:5, color:'#1f7a3a' },
 ]
 
-// ── Firebase Auth ────────────────────────────────────────────
 let _authPromise = null
 function getAnonymousUid() {
   if (!_authPromise) {
@@ -108,22 +107,22 @@ function calcStars(hp, maxHp) {
   return p > 0.66 ? 3 : p > 0.33 ? 2 : 1
 }
 
-// ── Анімації ────────────────────────────────────────────────
 const CAMP_ANIM = `
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap');
+:root { --jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif; }
 @keyframes campSlideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes campPop{0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
-@keyframes bossEntrance{0%{opacity:0;transform:scale(2) rotate(-10deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.3)}100%{transform:scale(1);opacity:1}}
 @keyframes envelopePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes cardHover{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 `
 
-// ── UI компоненти ────────────────────────────────────────────
 function YokoinDisplay({ amount }) {
   return (
     <div style={{display:'flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.15)',border:'1px solid rgba(184,134,11,0.4)',borderRadius:4,padding:'4px 10px'}}>
       <span style={{fontSize:'0.9rem'}}>🪙</span>
-      <span style={{fontFamily:'Georgia,serif',fontSize:'0.9rem',fontWeight:800,color:'#b8860b'}}>{amount}</span>
-      <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'#b8860b'}}>¥</span>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'#b8860b'}}>{amount}</span>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'#b8860b'}}>¥</span>
     </div>
   )
 }
@@ -132,63 +131,155 @@ function StarsDisplay({ stars, animate }) {
   return (
     <div style={{display:'flex',gap:4}}>
       {[1,2,3].map(i => (
-        <span key={i} style={{fontSize:'1.2rem',filter:i<=stars?'none':'grayscale(1) opacity(0.3)',animation:animate&&i<=stars?`starPop 0.4s ease ${i*0.15}s both`:undefined}}>⭐</span>
+        <span key={i} style={{fontSize:'1.1rem',filter:i<=stars?'none':'grayscale(1) opacity(0.3)',animation:animate&&i<=stars?`starPop 0.4s ease ${i*0.15}s both`:undefined}}>⭐</span>
       ))}
     </div>
   )
 }
 
-// ── Карта кампанії ───────────────────────────────────────────
-function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, lang }) {
+// ── Горизонтальні картки рівнів ──────────────────────────────
+function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onReset, lang }) {
   const t = (uk,en) => lang==='en'?en:uk
+  const frameColors = { 1:'#6f6f6f', 2:'#1f7a3a', 3:'#1a4a7a', 4:'#8b1a1a', 5:'#b8860b' }
+  const [confirmReset, setConfirmReset] = useState(false)
+  const hasProgress = Object.keys(progress?.levels||{}).length > 0
+
   return (
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem'}}>
-      <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
-        ‹ {t('Назад','Back')}
-      </button>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+        <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:'5px 12px',borderRadius:4,fontWeight:600}}>
+          ‹ {t('Назад','Back')}
+        </button>
+        {hasProgress&&(
+          <button onClick={()=>setConfirmReset(true)} style={{background:'rgba(192,57,43,0.12)',border:'1px solid rgba(192,57,43,0.5)',color:'#c0392b',borderRadius:4,padding:'5px 12px',fontFamily:'var(--jp)',fontSize:'0.62rem',cursor:'pointer',fontWeight:600,transition:'all 0.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.background='rgba(192,57,43,0.25)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='rgba(192,57,43,0.12)'}}>
+            ↺ {t('Почати з початку','Reset')}
+          </button>
+        )}
+      </div>
+
+      {/* Confirm reset modal */}
+      {confirmReset&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>
+          <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:8,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'campPop 0.2s ease'}}>
+            <div style={{fontSize:'2rem',marginBottom:'0.5rem'}}>⚠️</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,color:'var(--ink)',marginBottom:'0.5rem'}}>{t('Скинути прогрес?','Reset progress?')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)',lineHeight:1.6,marginBottom:'1.25rem'}}>
+              {t('Весь прогрес кампанії та Йокоіни будуть видалені. Цю дію не можна скасувати.','All campaign progress and Yokoin will be deleted. This cannot be undone.')}
+            </div>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>setConfirmReset(false)} style={{flex:1,padding:'0.7rem',background:'var(--bg2)',color:'var(--ink)',border:'1px solid var(--border)',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700}}>
+                {t('Продовжити','Continue')}
+              </button>
+              <button onClick={()=>{setConfirmReset(false);onReset()}} style={{flex:1,padding:'0.7rem',background:'#c0392b',color:'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700}}>
+                {t('Почати з початку','Start over')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
         <div>
-          <div style={{fontFamily:'Georgia,serif',fontSize:'1.2rem',fontWeight:800,color:'#b8860b'}}>⚔️ {t('Кампанія','Campaign')}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{t('Дорога до дохьо','Road to the Dohyo')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1.2rem',fontWeight:800,color:'#b8860b'}}>⚔️ {t('Кампанія','Campaign')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{t('Дорога до дохьо','Road to the Dohyo')}</div>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <YokoinDisplay amount={yokoin}/>
-          <button onClick={onOpenShop} style={{background:'#b8860b',border:'none',color:'#fff',borderRadius:4,padding:'6px 14px',fontFamily:'monospace',fontSize:'0.72rem',cursor:'pointer',fontWeight:700}}>
+          <button onClick={onOpenShop} style={{background:'#b8860b',border:'none',color:'#fff',borderRadius:4,padding:'6px 14px',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',fontWeight:700}}>
             🏪 {t('Магазин','Shop')}
           </button>
         </div>
       </div>
-      <div style={{display:'flex',flexDirection:'column',gap:10}}>
-        {CAMPAIGN_LEVELS.map(level => {
+
+      {/* Горизонтальний ряд карток */}
+      <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',padding:'0.5rem 0'}}>
+        {CAMPAIGN_LEVELS.map((level,idx) => {
           const lp = progress?.levels?.[level.id] || {}
           const isUnlocked = level.id===1 || progress?.levels?.[level.id-1]?.completed
           const isCompleted = lp.completed
           const stars = lp.stars || 0
+          const frameColor = frameColors[level.id] || '#6f6f6f'
+
           return (
-            <div key={level.id} onClick={isUnlocked?()=>onSelectLevel(level):undefined} style={{
-              background:'var(--card)',border:`1px solid ${isCompleted?'rgba(184,134,11,0.4)':isUnlocked?'var(--border)':'transparent'}`,
-              borderLeft:`4px solid ${isCompleted?'#b8860b':isUnlocked?'var(--border)':'#444'}`,
-              borderRadius:4,padding:'1rem',cursor:isUnlocked?'pointer':'default',opacity:isUnlocked?1:0.4,
-              animation:'campSlideIn 0.3s ease',transition:'all 0.15s',
-            }}
-              onMouseEnter={e=>isUnlocked&&(e.currentTarget.style.background='var(--bg2)')}
-              onMouseLeave={e=>isUnlocked&&(e.currentTarget.style.background='var(--card)')}
+            <div
+              key={level.id}
+              onClick={isUnlocked ? ()=>onSelectLevel(level) : undefined}
+              style={{
+                width:180,
+                flexShrink:0,
+                cursor:isUnlocked?'pointer':'default',
+                opacity:isUnlocked?1:0.4,
+                animation:`campSlideIn 0.3s ease ${idx*0.08}s both`,
+                transition:'transform 0.18s, box-shadow 0.18s',
+              }}
+              onMouseEnter={e=>{if(isUnlocked){e.currentTarget.style.transform='translateY(-8px)';e.currentTarget.style.filter=`drop-shadow(0 12px 20px ${frameColor}88)`}}}
+              onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.filter='none'}}
             >
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
-                <div style={{display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{fontSize:'2rem'}}>{level.emoji}</div>
-                  <div>
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
-                      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',letterSpacing:'0.1em'}}>{t('Рівень','Level')} {level.id}</span>
-                      {level.isBoss&&<span style={{fontFamily:'monospace',fontSize:'0.52rem',background:'#c0392b',color:'#fff',padding:'1px 6px',borderRadius:2}}>БОС</span>}
-                    </div>
-                    <div style={{fontWeight:700,fontSize:'0.95rem',color:'var(--ink)'}}>{lang==='en'?level.nameEn:level.name}</div>
-                    <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:2}}>{lang==='en'?level.descEn:level.desc}</div>
+              <div style={{
+                borderRadius:12,
+                overflow:'hidden',
+                border:`3px solid ${isCompleted?'#f0c060':isUnlocked?frameColor:'#333'}`,
+                boxShadow:isCompleted
+                  ?`0 0 24px rgba(240,192,96,0.5), 0 4px 16px rgba(0,0,0,0.5)`
+                  :`0 4px 12px rgba(0,0,0,0.4)`,
+                background:'#0d0d0d',
+              }}>
+
+                {/* Зображення */}
+                <div style={{height:230,position:'relative',overflow:'hidden'}}>
+                  <img
+                    src={`/images/level-${level.id}.png`}
+                    alt={level.name}
+                    style={{width:'100%',height:'100%',objectFit:'cover',display:'block',position:'absolute',inset:0}}
+                    onError={e=>{e.currentTarget.style.display='none'}}
+                  />
+                  {/* Fallback */}
+                  <div style={{width:'100%',height:'100%',background:`linear-gradient(160deg,${frameColor}44 0%,#111 100%)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <span style={{fontSize:'4rem'}}>{level.emoji}</span>
                   </div>
+
+                  {/* Замок */}
+                  {!isUnlocked&&(
+                    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:3}}>
+                      <span style={{fontSize:'2.5rem'}}>🔒</span>
+                    </div>
+                  )}
+
+                  {/* Зірки — по центру зображення */}
+                  {isCompleted&&(
+                    <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
+                      <div style={{background:'rgba(0,0,0,0.55)',borderRadius:20,padding:'6px 12px',backdropFilter:'blur(4px)',border:'1px solid rgba(240,192,96,0.3)'}}>
+                        <StarsDisplay stars={stars}/>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Кнопка "Грати" по центру для доступних непройдених */}
+                  {isUnlocked&&!isCompleted&&(
+                    <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}>
+                      <div style={{background:`${frameColor}cc`,borderRadius:20,padding:'6px 16px',border:`1px solid ${frameColor}`,backdropFilter:'blur(4px)'}}>
+                        <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:'#fff'}}>▶ {t('Грати','Play')}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0}}>
-                  {isCompleted?<StarsDisplay stars={stars}/>:isUnlocked?<span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b'}}>▶ {t('Грати','Play')}</span>:<span style={{fontSize:'1.1rem'}}>🔒</span>}
-                  <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>🪙 {level.reward}¥ + ⭐{level.starReward}¥</div>
+
+                {/* Нижня панель — тільки нагорода */}
+                <div style={{
+                  background:level.isBoss
+                    ?'linear-gradient(135deg,#2a0505,#130000)'
+                    :`linear-gradient(135deg,${frameColor}18,#0d0d0d)`,
+                  padding:'8px 10px',
+                  borderTop:`1px solid ${frameColor}33`,
+                  display:'flex',
+                  justifyContent:'center',
+                  alignItems:'center',
+                }}>
+                  <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,210,80,0.8)',letterSpacing:'0.02em'}}>
+                    🪙{level.reward}¥ + ⭐{level.starReward}¥
+                  </div>
                 </div>
               </div>
             </div>
@@ -218,13 +309,13 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
 
   if (selectingItem) return (
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem',animation:'campSlideIn 0.25s ease'}}>
-      <button onClick={()=>setSelectingItem(null)} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
+      <button onClick={()=>setSelectingItem(null)} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
         ‹ {t('Назад','Back')}
       </button>
-      <div style={{fontFamily:'monospace',fontSize:'0.85rem',fontWeight:700,marginBottom:'0.5rem'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:700,marginBottom:'0.5rem'}}>
         {selectingItem.emoji} {t('Оберіть карту для бусту','Select card to boost')}
       </div>
-      <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'1.25rem'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'1.25rem'}}>
         {lang==='en'?selectingItem.descEn:selectingItem.desc}
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:6}}>
@@ -238,10 +329,10 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
             }}>
               <div style={{width:8,height:8,borderRadius:'50%',background:card.color,flexShrink:0}}/>
               <div style={{flex:1}}>
-                <span style={{fontFamily:'monospace',fontSize:'0.75rem',fontWeight:700,color:card.color}}>{card.rankShort}</span>
-                <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:8}}>{card.rank}</span>
+                <span style={{fontFamily:'var(--jp)',fontSize:'0.75rem',fontWeight:700,color:card.color}}>{card.rankShort}</span>
+                <span style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'var(--mid)',marginLeft:8}}>{card.rank}</span>
               </div>
-              <div style={{display:'flex',gap:12,fontFamily:'monospace',fontSize:'0.72rem'}}>
+              <div style={{display:'flex',gap:12,fontFamily:'var(--jp)',fontSize:'0.72rem'}}>
                 <span style={{color:'#e74c3c'}}>⚔ {card.atk}{boost?.atk?<span style={{color:'#b8860b'}}>+{boost.atk}</span>:null}</span>
                 <span style={{color:'#3498db'}}>🛡 {card.def}{boost?.def?<span style={{color:'#b8860b'}}>+{boost.def}</span>:null}</span>
               </div>
@@ -255,34 +346,31 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
 
   return (
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem',animation:'campSlideIn 0.25s ease'}}>
-      <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
+      <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'1rem',padding:0}}>
         ‹ {t('Назад','Back')}
       </button>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
-        <div style={{fontFamily:'Georgia,serif',fontSize:'1.1rem',fontWeight:800,color:'#b8860b'}}>🏪 {t('Магазин','Shop')}</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,color:'#b8860b'}}>🏪 {t('Магазин','Shop')}</div>
         <YokoinDisplay amount={yokoin}/>
       </div>
-      {msg&&<div style={{background:`${msg.color}22`,border:`1px solid ${msg.color}`,borderRadius:4,padding:'0.5rem 1rem',marginBottom:'1rem',fontFamily:'monospace',fontSize:'0.72rem',color:msg.color,textAlign:'center',animation:'campPop 0.3s ease'}}>{msg.text}</div>}
-
-      <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{t('Постійні бусти','Permanent boosts')}</div>
+      {msg&&<div style={{background:`${msg.color}22`,border:`1px solid ${msg.color}`,borderRadius:4,padding:'0.5rem 1rem',marginBottom:'1rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:msg.color,textAlign:'center',animation:'campPop 0.3s ease'}}>{msg.text}</div>}
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{t('Постійні бусти','Permanent boosts')}</div>
       <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:'1.5rem'}}>
         {SHOP_ITEMS.filter(i=>i.type==='permanent').map(item=>(
           <ShopItem key={item.id} item={item} yokoin={yokoin} onBuy={()=>handleBuy(item)} lang={lang}/>
         ))}
       </div>
-
-      <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{t('Тимчасові бусти (на 1 бій)','Temporary boosts (1 fight)')}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:'0.75rem'}}>{t('Тимчасові бусти (на 1 бій)','Temporary boosts (1 fight)')}</div>
       <div style={{display:'flex',flexDirection:'column',gap:8}}>
         {SHOP_ITEMS.filter(i=>i.type==='temp').map(item=>(
           <ShopItem key={item.id} item={item} yokoin={yokoin} onBuy={()=>handleBuy(item)} lang={lang} owned={tempBoosts?.[item.id]||0}/>
         ))}
       </div>
-
       {boostedCards?.length>0&&(
         <div style={{marginTop:'1.5rem',background:'rgba(184,134,11,0.1)',border:'1px solid rgba(184,134,11,0.3)',borderRadius:4,padding:'0.75rem 1rem'}}>
-          <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'#b8860b',textTransform:'uppercase',marginBottom:6}}>{t('Активні бусти','Active boosts')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#b8860b',textTransform:'uppercase',marginBottom:6}}>{t('Активні бусти','Active boosts')}</div>
           {boostedCards.map(b=>(
-            <div key={b.cardId} style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--ink)',marginBottom:2}}>
+            <div key={b.cardId} style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--ink)',marginBottom:2}}>
               {b.cardId} — {b.atk?`+${b.atk} ATK`:''} {b.def?`+${b.def} DEF`:''}
             </div>
           ))}
@@ -300,68 +388,56 @@ function ShopItem({ item, yokoin, onBuy, lang, owned }) {
       <span style={{fontSize:'1.3rem',flexShrink:0}}>{item.emoji}</span>
       <div style={{flex:1}}>
         <div style={{fontWeight:700,fontSize:'0.82rem',marginBottom:2}}>{lang==='en'?item.labelEn:item.label}</div>
-        <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{lang==='en'?item.descEn:item.desc}</div>
-        {owned>0&&<div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'#1a6b5c',marginTop:2}}>✓ {t('Є:','Owned:')} {owned}</div>}
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'var(--mid)'}}>{lang==='en'?item.descEn:item.desc}</div>
+        {owned>0&&<div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'#1a6b5c',marginTop:2}}>✓ {t('Є:','Owned:')} {owned}</div>}
       </div>
-      <button onClick={onBuy} disabled={!can} style={{background:can?'#b8860b':'var(--bg2)',color:can?'#fff':'var(--mid)',border:`1px solid ${can?'#b8860b':'var(--border)'}`,borderRadius:4,padding:'5px 12px',fontFamily:'monospace',fontSize:'0.68rem',cursor:can?'pointer':'default',fontWeight:700,flexShrink:0,whiteSpace:'nowrap'}}>
+      <button onClick={onBuy} disabled={!can} style={{background:can?'#b8860b':'var(--bg2)',color:can?'#fff':'var(--mid)',border:`1px solid ${can?'#b8860b':'var(--border)'}`,borderRadius:4,padding:'5px 12px',fontFamily:'var(--jp)',fontSize:'0.68rem',cursor:can?'pointer':'default',fontWeight:700,flexShrink:0,whiteSpace:'nowrap'}}>
         🪙 {item.price}¥
       </button>
     </div>
   )
 }
 
-// ── Результат бою ────────────────────────────────────────────
 function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue, onRetry, lang }) {
   const t = (uk,en) => lang==='en'?en:uk
   const [step, setStep] = useState(0)
   const [openedEnvelope, setOpenedEnvelope] = useState(null)
-
   useEffect(()=>{
     const t1=setTimeout(()=>setStep(1),200)
     const t2=setTimeout(()=>setStep(2),700)
     const t3=setTimeout(()=>setStep(3),1200)
     return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3)}
   },[])
-
   return (
     <div style={{flex:1,overflowY:'auto',padding:'1.5rem',textAlign:'center',animation:'campSlideIn 0.3s ease'}}>
-      <div style={{fontSize:'3rem',animation:'campPop 0.5s ease',marginBottom:'0.5rem'}}>
-        {won?(level.isBoss?'🏆':'✅'):'😤'}
-      </div>
-      <div style={{fontFamily:'Georgia,serif',fontSize:'1.4rem',fontWeight:800,color:won?'#b8860b':'#c0392b',marginBottom:'0.5rem'}}>
+      <div style={{fontSize:'3rem',animation:'campPop 0.5s ease',marginBottom:'0.5rem'}}>{won?(level.isBoss?'🏆':'✅'):'😤'}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.4rem',fontWeight:800,color:won?'#b8860b':'#c0392b',marginBottom:'0.5rem'}}>
         {won?t('Перемога!','Victory!'):t('Поразка','Defeat')}
       </div>
-      {won&&(
-        <>
-          <div style={{opacity:step>=1?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
-            <StarsDisplay stars={stars} animate={step>=1}/>
-          </div>
-          <div style={{opacity:step>=2?1:0,transform:step>=2?'none':'translateY(10px)',transition:'all 0.4s',background:'rgba(184,134,11,0.1)',border:'1px solid rgba(184,134,11,0.3)',borderRadius:4,padding:'1rem',marginBottom:'1rem'}}>
-            <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>{t('Нагорода','Reward')}</div>
-            <div style={{fontFamily:'Georgia,serif',fontSize:'1.6rem',fontWeight:800,color:'#b8860b'}}>+{yokoinEarned} 🪙</div>
-          </div>
-          {envelopes>0&&(
-            <div style={{opacity:step>=3?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
-                📨 {t('Конверти від рекламодавців','Sponsor envelopes')}: {envelopes}
+      {won&&(<>
+        <div style={{opacity:step>=1?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}><StarsDisplay stars={stars} animate={step>=1}/></div>
+        <div style={{opacity:step>=2?1:0,transform:step>=2?'none':'translateY(10px)',transition:'all 0.4s',background:'rgba(184,134,11,0.1)',border:'1px solid rgba(184,134,11,0.3)',borderRadius:4,padding:'1rem',marginBottom:'1rem'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>{t('Нагорода','Reward')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:800,color:'#b8860b'}}>+{yokoinEarned} 🪙</div>
+        </div>
+        {envelopes>0&&(
+          <div style={{opacity:step>=3?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>📨 {t('Конверти','Envelopes')}: {envelopes}</div>
+            {!openedEnvelope?(
+              <button onClick={()=>setOpenedEnvelope(ENVELOPE_REWARDS[Math.floor(Math.random()*ENVELOPE_REWARDS.length)])} style={{background:'#1a4a7a',color:'#fff',border:'none',borderRadius:4,padding:'8px 20px',fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700,animation:'envelopePulse 1s ease infinite'}}>
+                📨 {t('Відкрити','Open')}
+              </button>
+            ):(
+              <div style={{background:'rgba(26,74,122,0.2)',border:'1px solid #1a4a7a',borderRadius:4,padding:'0.75rem',animation:'campPop 0.4s ease'}}>
+                <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:800,color:'#1a6b5c'}}>+{openedEnvelope} 🪙</div>
               </div>
-              {!openedEnvelope?(
-                <button onClick={()=>setOpenedEnvelope(ENVELOPE_REWARDS[Math.floor(Math.random()*ENVELOPE_REWARDS.length)])} style={{background:'#1a4a7a',color:'#fff',border:'none',borderRadius:4,padding:'8px 20px',fontFamily:'monospace',fontSize:'0.75rem',cursor:'pointer',fontWeight:700,animation:'envelopePulse 1s ease infinite'}}>
-                  📨 {t('Відкрити конверт','Open envelope')}
-                </button>
-              ):(
-                <div style={{background:'rgba(26,74,122,0.2)',border:'1px solid #1a4a7a',borderRadius:4,padding:'0.75rem',animation:'campPop 0.4s ease'}}>
-                  <div style={{fontFamily:'Georgia,serif',fontSize:'1.3rem',fontWeight:800,color:'#1a6b5c'}}>+{openedEnvelope} 🪙</div>
-                  <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{t('від рекламодавця','from sponsor')}</div>
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </div>
+        )}
+      </>)}
       <div style={{display:'flex',gap:10,marginTop:'1.5rem'}}>
-        {!won&&<button onClick={onRetry} style={{flex:1,padding:'0.8rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>🔄 {t('Знову','Retry')}</button>}
-        <button onClick={()=>onContinue(openedEnvelope||0)} style={{flex:1,padding:'0.8rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'monospace',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>
+        {!won&&<button onClick={onRetry} style={{flex:1,padding:'0.8rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>🔄 {t('Знову','Retry')}</button>}
+        <button onClick={()=>onContinue(openedEnvelope||0)} style={{flex:1,padding:'0.8rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>
           {won?t('Далі ›','Continue ›'):t('В меню','Menu')}
         </button>
       </div>
@@ -369,14 +445,13 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
   )
 }
 
-// ── Головний компонент кампанії ──────────────────────────────
 export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
   const t = (uk,en) => lang==='en'?en:uk
   const [screen, setScreen] = useState('map')
   const [uid, setUid] = useState(null)
   const [yokoin, setYokoin] = useState(0)
   const [progress, setProgress] = useState({levels:{}})
-  const [boostedCards, setBoostedCards] = useState([]) // масив {cardId, atk, def}
+  const [boostedCards, setBoostedCards] = useState([])
   const [tempBoosts, setTempBoosts] = useState({})
   const [selectedLevel, setSelectedLevel] = useState(null)
   const [battleResult, setBattleResult] = useState(null)
@@ -390,7 +465,6 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
         if (data) {
           setYokoin(data.yokoin||0)
           setProgress(data.progress||{levels:{}})
-          // підтримка старого формату (один об'єкт) і нового (масив)
           if (data.boostedCards) setBoostedCards(Array.isArray(data.boostedCards)?data.boostedCards:[data.boostedCards])
           else if (data.boostedCard) setBoostedCards([data.boostedCard])
           setTempBoosts(data.tempBoosts||{})
@@ -405,21 +479,14 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
     const newYokoin = yokoin - item.price
     setYokoin(newYokoin)
     let updates = {yokoin: newYokoin}
-
     if (item.type==='permanent' && selectedCard) {
       const existing = boostedCards.find(b=>b.cardId===selectedCard.id) || {cardId:selectedCard.id,atk:0,def:0}
-      const boost = {
-        ...existing,
-        atk: item.id==='atk_boost' ? (existing.atk||0)+1 : (existing.atk||0),
-        def: item.id==='def_boost' ? (existing.def||0)+1 : (existing.def||0),
-      }
+      const boost = {...existing, atk:item.id==='atk_boost'?(existing.atk||0)+1:(existing.atk||0), def:item.id==='def_boost'?(existing.def||0)+1:(existing.def||0)}
       const newBoosts = [...boostedCards.filter(b=>b.cardId!==selectedCard.id), boost]
-      setBoostedCards(newBoosts)
-      updates.boostedCards = newBoosts
+      setBoostedCards(newBoosts); updates.boostedCards = newBoosts
     } else if (item.type==='temp') {
-      const newBoosts = {...tempBoosts, [item.id]:(tempBoosts[item.id]||0)+1}
-      setTempBoosts(newBoosts)
-      updates.tempBoosts = newBoosts
+      const newBoosts = {...tempBoosts,[item.id]:(tempBoosts[item.id]||0)+1}
+      setTempBoosts(newBoosts); updates.tempBoosts = newBoosts
     }
     if (uid) await saveUserData(uid, updates)
   }
@@ -427,23 +494,17 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
   async function handleBattleWin(playerHp, playerMaxHp, envelopesEarned) {
     const stars = calcStars(playerHp, playerMaxHp)
     const yokoinEarned = selectedLevel.reward + stars * selectedLevel.starReward
-    const newProgress = {
-      ...progress,
-      levels: {
-        ...progress.levels,
-        [selectedLevel.id]: {completed:true, stars:Math.max(stars, progress.levels?.[selectedLevel.id]?.stars||0)}
-      }
-    }
+    const newProgress = {...progress,levels:{...progress.levels,[selectedLevel.id]:{completed:true,stars:Math.max(stars,progress.levels?.[selectedLevel.id]?.stars||0)}}}
     setProgress(newProgress)
     const newYokoin = yokoin + yokoinEarned
     setYokoin(newYokoin)
-    setBattleResult({won:true, stars, yokoinEarned, envelopes:envelopesEarned})
+    setBattleResult({won:true,stars,yokoinEarned,envelopes:envelopesEarned})
     setScreen('result')
-    if (uid) await saveUserData(uid, {yokoin:newYokoin, progress:newProgress})
+    if (uid) await saveUserData(uid, {yokoin:newYokoin,progress:newProgress})
   }
 
   async function handleBattleLose() {
-    setBattleResult({won:false, stars:0, yokoinEarned:0, envelopes:0})
+    setBattleResult({won:false,stars:0,yokoinEarned:0,envelopes:0})
     setScreen('result')
   }
 
@@ -453,22 +514,29 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
       setYokoin(newYokoin)
       if (uid) await saveUserData(uid, {yokoin:newYokoin})
     }
-    // Скидаємо тимчасові бусти
     setTempBoosts({})
     if (uid) await saveUserData(uid, {tempBoosts:{}})
     setScreen('map')
   }
 
+  async function handleReset() {
+    setYokoin(0)
+    setProgress({levels:{}})
+    setBoostedCards([])
+    setTempBoosts({})
+    if (uid) await saveUserData(uid, {yokoin:0, progress:{levels:{}}, boostedCards:[], tempBoosts:{}})
+  }
+
   if (loading) return (
     <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>⏳ {t('Завантаження...','Loading...')}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'var(--mid)'}}>⏳ {t('Завантаження...','Loading...')}</div>
     </div>
   )
 
   return (
     <>
       <style>{CAMP_ANIM}</style>
-      {screen==='map'&&<CampaignMap progress={progress} yokoin={yokoin} onSelectLevel={l=>{setSelectedLevel(l);setScreen('battle')}} onOpenShop={()=>setScreen('shop')} onBack={onBack} lang={lang}/>}
+      {screen==='map'&&<CampaignMap progress={progress} yokoin={yokoin} onSelectLevel={l=>{setSelectedLevel(l);setScreen('battle')}} onOpenShop={()=>setScreen('shop')} onBack={onBack} onReset={handleReset} lang={lang}/>}
       {screen==='shop'&&<Shop yokoin={yokoin} boostedCards={boostedCards} tempBoosts={tempBoosts} onBuy={handleBuy} onBack={()=>setScreen('map')} lang={lang}/>}
       {screen==='battle'&&selectedLevel&&<GameBattle level={selectedLevel} boostedCards={boostedCards} tempBoosts={tempBoosts} onWin={handleBattleWin} onLose={handleBattleLose} onBack={()=>setScreen('map')} lang={lang}/>}
       {screen==='result'&&battleResult&&<CampaignResult won={battleResult.won} stars={battleResult.stars} yokoinEarned={battleResult.yokoinEarned} envelopes={battleResult.envelopes} level={selectedLevel} onContinue={handleResultContinue} onRetry={()=>setScreen('battle')} lang={lang}/>}
