@@ -783,16 +783,17 @@ function CpuGame({lang,onBack,sfx}){
   function pickDraft(card){
     if(sfx)sfx('click')
     const newHand=[...playerHand,card]
-    // Прибираємо всі картки поточного пулу з drawPile
+    // Викидаємо ВЕСЬ поточний пул (не тільки вибрану карту)
     const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
     if(draftRound<DRAFT_ROUNDS-1){
+      // Новий пул — зважено перемішуємо решту колоди
+      const nextPool=weightedShuffle(newDraw).slice(0,DRAFT_POOL_SIZE)
       setPlayerHand(newHand);setDrawPile(newDraw)
-      setDraftPool(newDraw.slice(0,DRAFT_POOL_SIZE));setDraftRound(r=>r+1)
+      setDraftPool(nextPool);setDraftRound(r=>r+1)
     }else{
       setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')
     }
   }
-  function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
 
   function fight(){
     const pCard=playerSkip?null:playerSelected
@@ -817,8 +818,11 @@ function CpuGame({lang,onBack,sfx}){
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    // Добір: гравець і CPU беруть по картці зі спільного draw pile
-    if(newDraw.length>0){newPH=[...newPH,newDraw[0]];newDraw=newDraw.slice(1)}
+    // Добір: гравець бере зважено, CPU — рандомно
+    if(newDraw.length>0){
+      const wDraw=weightedShuffle(newDraw)
+      newPH=[...newPH,wDraw[0]];newDraw=newDraw.filter(c=>c.id!==wDraw[0].id)
+    }
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
     if(newPHp<=0||newOHp<=0){setPhase('gameOver');return}
@@ -894,9 +898,12 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
     if(sfx)sfx('click')
     const boosted=applyBoostToCard(card)
     const newHand=[...playerHand,boosted]
+    // Викидаємо ВЕСЬ поточний пул
     const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
-    if(draftRound<DRAFT_ROUNDS-1){setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(newDraw.slice(0,DRAFT_POOL_SIZE));setDraftRound(r=>r+1)}
-    else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
+    if(draftRound<DRAFT_ROUNDS-1){
+      const nextPool=weightedShuffle(newDraw).slice(0,DRAFT_POOL_SIZE)
+      setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
+    }else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
   }
   function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
   function checkEnvelope(pCard,cCard,roundWinner){if(roundWinner==='p'&&pCard&&cCard&&SANYAKU.includes(pCard.rank)&&SANYAKU.includes(cCard.rank)){setEnvelopesEarned(e=>e+1)}}
@@ -924,7 +931,10 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    if(newDraw.length>0){newPH=[...newPH,newDraw[0]];newDraw=newDraw.slice(1)}
+    if(newDraw.length>0){
+      const wDraw=weightedShuffle(newDraw)
+      newPH=[...newPH,wDraw[0]];newDraw=newDraw.filter(c=>c.id!==wDraw[0].id)
+    }
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
     if(finalPHp<=0){onLose();return}
