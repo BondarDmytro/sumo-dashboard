@@ -67,7 +67,7 @@ function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
     {
       id: 'clash',
       emoji: '⚔️',
-      title: lang === 'en' ? 'Sumo Clash' : 'Сумо Клеш',
+      title: lang === 'en' ? 'Sumo Clash' : 'Dohyo Legends',
       desc: lang === 'en' ? 'Strategic card game · Draft · ATK vs DEF · HP battle' : 'Стратегічна карткова гра · Драфт · ATK vs DEF · Битва HP',
       ready: true,
     },
