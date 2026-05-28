@@ -502,18 +502,82 @@ function CardBook({lang,onClose}){
   )
 }
 
+// ── AAA UI константи ─────────────────────────────────────────
+// Тверді кнопки що завжди видимі незалежно від теми/фону
+const BTN = {
+  // Золота кнопка — активна/включена
+  gold: {
+    background:'linear-gradient(180deg,#d4a520 0%,#8b6010 100%)',
+    border:'1px solid #f0c060',
+    color:'#fff8e0',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,80,0.4)',
+    fontWeight:700,
+    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+  },
+  // Темна кнопка — неактивна/вимкнена
+  dark: {
+    background:'linear-gradient(180deg,#2a2520 0%,#1a1510 100%)',
+    border:'1px solid #4a3e30',
+    color:'#a09070',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
+    fontWeight:600,
+    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+  },
+  // Червона кнопка — небезпека/вийти
+  red: {
+    background:'linear-gradient(180deg,#8b1a1a 0%,#5a0e0e 100%)',
+    border:'1px solid #c0392b',
+    color:'#ffe0e0',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,100,100,0.3)',
+    fontWeight:700,
+    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+  },
+}
+const BTN_BASE = {
+  borderRadius:5,
+  cursor:'pointer',
+  fontFamily:'var(--jp)',
+  fontSize:'0.7rem',
+  padding:'5px 12px',
+  letterSpacing:'0.05em',
+  transition:'filter 0.1s, transform 0.1s',
+  whiteSpace:'nowrap',
+  display:'inline-flex',
+  alignItems:'center',
+  gap:5,
+}
+
+function GameBtn({variant='dark', children, onClick, title, style={}, disabled=false}){
+  const [pressed,setPressed]=useState(false)
+  const v = BTN[variant]||BTN.dark
+  return(
+    <button
+      onClick={disabled?undefined:onClick}
+      title={title}
+      onMouseDown={()=>setPressed(true)}
+      onMouseUp={()=>setPressed(false)}
+      onMouseLeave={()=>setPressed(false)}
+      style={{...BTN_BASE,...v,...style,
+        filter: pressed?'brightness(0.8)':disabled?'brightness(0.5)':'brightness(1)',
+        transform: pressed?'translateY(1px)':'translateY(0)',
+        cursor: disabled?'default':'pointer',
+      }}
+    >{children}</button>
+  )
+}
+
 function AudioControls({sfxOn,musicOn,currentTheme,onToggleSfx,onToggleMusic,onThemeChange,lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [showThemes,setShowThemes]=useState(false)
-  return(<div style={{position:'relative',display:'flex',gap:6,alignItems:'center'}}>
-    <button onClick={onToggleSfx} style={{background:sfxOn?'rgba(184,134,11,0.2)':'var(--bg2)',border:`1px solid ${sfxOn?'#b8860b':'var(--border)'}`,color:sfxOn?'#b8860b':'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.6rem'}}>{sfxOn?'🔊':'🔇'} {t('Звук','SFX')}</button>
-    <button onClick={()=>{onToggleMusic();setShowThemes(false)}} style={{background:musicOn?'rgba(184,134,11,0.2)':'var(--bg2)',border:`1px solid ${musicOn?'#b8860b':'var(--border)'}`,color:musicOn?'#b8860b':'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.6rem'}}>🎵 {t('Музика','Music')}</button>
-    <button onClick={()=>setShowThemes(v=>!v)} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.6rem'}}>🎼</button>
-    {showThemes&&(<div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:'100%',right:0,marginTop:4,background:'var(--card)',border:'1px solid var(--border)',borderRadius:4,padding:'0.5rem',zIndex:10,minWidth:160,boxShadow:'0 4px 12px rgba(0,0,0,0.3)'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.1em'}}>{t('Тема','Theme')}</div>
-      {MUSIC_THEMES.map(th=>(<div key={th.id} onClick={()=>{onThemeChange(th.id);setShowThemes(false)}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'4px 6px',borderRadius:3,cursor:'pointer',marginBottom:2,background:currentTheme===th.id?'rgba(184,134,11,0.2)':'transparent',border:`1px solid ${currentTheme===th.id?'#b8860b':'transparent'}`}}>
-        <div><div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:700,color:currentTheme===th.id?'#b8860b':'var(--ink)'}}>{lang==='en'?th.label.en:th.label.uk}</div><div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'var(--mid)'}}>{lang==='en'?th.desc.en:th.desc.uk}</div></div>
-        {currentTheme===th.id&&<span style={{color:'#b8860b'}}>✓</span>}
+  return(<div style={{position:'relative',display:'flex',gap:5,alignItems:'center'}}>
+    <GameBtn variant={sfxOn?'gold':'dark'} onClick={onToggleSfx}>{sfxOn?'🔊':'🔇'} {t('Звук','SFX')}</GameBtn>
+    <GameBtn variant={musicOn?'gold':'dark'} onClick={()=>{onToggleMusic();setShowThemes(false)}}>🎵 {t('Музика','Music')}</GameBtn>
+    <GameBtn variant='dark' onClick={()=>setShowThemes(v=>!v)}>🎼</GameBtn>
+    {showThemes&&(<div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:'calc(100% + 6px)',right:0,background:'linear-gradient(180deg,#2a2420 0%,#1a1510 100%)',border:'1px solid #4a3e30',borderRadius:6,padding:'0.6rem',zIndex:100,minWidth:170,boxShadow:'0 8px 24px rgba(0,0,0,0.8)'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'#a09070',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.12em'}}>{t('Тема','Theme')}</div>
+      {MUSIC_THEMES.map(th=>(<div key={th.id} onClick={()=>{onThemeChange(th.id);setShowThemes(false)}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'5px 8px',borderRadius:4,cursor:'pointer',marginBottom:2,background:currentTheme===th.id?'rgba(184,134,11,0.25)':'transparent',border:`1px solid ${currentTheme===th.id?'#b8860b':'transparent'}`}}>
+        <div><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:700,color:currentTheme===th.id?'#f0c060':'#d0c0a0'}}>{lang==='en'?th.label.en:th.label.uk}</div><div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'#7a6a50'}}>{lang==='en'?th.desc.en:th.desc.uk}</div></div>
+        {currentTheme===th.id&&<span style={{color:'#f0c060',fontSize:'0.8rem'}}>✓</span>}
       </div>))}
     </div>)}
   </div>)
@@ -523,11 +587,13 @@ function CardGuide({lang}){
   const [open,setOpen]=useState(false)
   const t=(uk,en)=>lang==='en'?en:uk
   return(<div style={{marginBottom:'0.75rem'}}>
-    <button onClick={()=>setOpen(o=>!o)} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.62rem',padding:'4px 10px',borderRadius:4,cursor:'pointer'}}>{open?'▲':'▼'} {t('Типи карт','Card types')}</button>
-    {open&&(<div style={{marginTop:6,background:'var(--bg2)',borderRadius:4,padding:'0.75rem',display:'flex',flexDirection:'column',gap:6,animation:'slideIn 0.2s ease'}}>
+    <GameBtn variant='dark' onClick={()=>setOpen(o=>!o)} style={{fontSize:'0.65rem'}}>
+      {open?'▲':'▼'} {t('Типи карт','Card types')}
+    </GameBtn>
+    {open&&(<div style={{marginTop:6,background:'linear-gradient(180deg,#2a2420 0%,#1c1812 100%)',border:'1px solid #3a3020',borderRadius:6,padding:'0.75rem',display:'flex',flexDirection:'column',gap:6,animation:'slideIn 0.2s ease',boxShadow:'0 4px 16px rgba(0,0,0,0.7)'}}>
       {CARD_TYPES_INFO.map(ct=>(<div key={ct.type} style={{display:'flex',gap:10,alignItems:'flex-start'}}>
         <span style={{fontSize:'1rem',flexShrink:0,width:22}}>{ct.emoji}</span>
-        <div><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:700,color:'var(--ink)',marginBottom:1}}>{lang==='en'?ct.label.en:ct.label.uk}</div><div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'var(--mid)',lineHeight:1.4}}>{lang==='en'?ct.desc.en:ct.desc.uk}</div></div>
+        <div><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:700,color:'#e0d0a0',marginBottom:1}}>{lang==='en'?ct.label.en:ct.label.uk}</div><div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'#8a7a60',lineHeight:1.4}}>{lang==='en'?ct.desc.en:ct.desc.uk}</div></div>
       </div>))}
     </div>)}
   </div>)
@@ -704,7 +770,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
     ):(
       <>
         <div style={{marginBottom:'0.5rem'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.5)',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
           {/* Карти руки — на 50% більші ніж small */}
           <div style={{display:'flex',gap:'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:6,justifyContent:'center',scrollbarWidth:'none'}}>
             {deduped(myHand).map((c,i)=>(<div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
@@ -717,16 +783,22 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
           </div>
         </div>
         <div style={{marginBottom:'0.5rem',display:'flex',alignItems:'center',gap:8}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.5)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:700,color:'rgba(255,255,255,0.8)',background:'rgba(0,0,0,0.5)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:4,padding:'2px 10px'}}>🂠 {oppHand}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:700,color:'#e0d0a0',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid #4a3e28',borderRadius:4,padding:'2px 10px',boxShadow:'0 1px 4px rgba(0,0,0,0.6)'}}>🂠 {oppHand}</div>
         </div>
         {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#2ecc71',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
-        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.4)',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        {/* Кнопка — без sticky white bg, просто внизу */}
+        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
+        {/* Кнопка підтвердити — AAA стиль */}
         <div style={{paddingTop:8,marginTop:4}}>
-          <button onClick={()=>{if(sfx)sfx('click');onSubmit()}} disabled={(!playerSelected&&!mySkipped)||myReady} style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,padding:'0.8rem 1rem',background:((!playerSelected&&!mySkipped)||myReady)?'rgba(255,255,255,0.08)':'#b8860b',color:((!playerSelected&&!mySkipped)||myReady)?'rgba(255,255,255,0.3)':'#fff',border:((!playerSelected&&!mySkipped)||myReady)?'1px solid rgba(255,255,255,0.12)':'none',borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.1em',cursor:((!playerSelected&&!mySkipped)||myReady)?'default':'pointer',fontWeight:700,boxShadow:((!playerSelected&&!mySkipped)||myReady)?'none':'0 4px 20px rgba(184,134,11,0.5)'}}>
-            {myReady?t('Підтверджено ✓','Confirmed ✓'):mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):!playerSelected?t('Оберіть карту','Select a card'):t('⚔ Підтвердити','⚔ Confirm')}
-          </button>
+          {((!playerSelected&&!mySkipped)||myReady) ? (
+            <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em'}}>
+              {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
+            </GameBtn>
+          ) : (
+            <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
+              {mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):t('⚔ Підтвердити','⚔ Confirm')}
+            </GameBtn>
+          )}
         </div>
       </>
     )}
@@ -880,8 +952,8 @@ function CpuGame({lang,onBack,sfx}){
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
-    <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:'4px 10px',borderRadius:4}}>‹ {t('Назад','Back')}</button>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+    <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
     {phase==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
@@ -994,8 +1066,8 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
-    <button onClick={onBack} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:'4px 10px',borderRadius:4}}>‹ {t('Назад','Back')}</button>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+    <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)'}}>{level.emoji} {t('Рівень','Level')} {level.id} — {levelName}</div>
       {level.isBoss&&<div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',background:'#c0392b',color:'#fff',padding:'1px 8px',borderRadius:2}}>БОС</div>}
@@ -1215,24 +1287,39 @@ function MultiGame({lang,onBack,sfx}){
   const myHpDelta=myHp-prevHp.my;const oppHpDelta=oppHp-prevHp.opp
   const myArmorDelta=myArmor-prevArmor.my;const oppArmorDelta=oppArmor-prevArmor.opp
 
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'rgba(20,18,16,0.75)'}}>
-    <button onClick={onBack} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',marginBottom:'0.75rem',padding:0}}>‹ {t('Назад','Back')}</button>
+  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+    <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
-    {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease'}}>
-      <div style={{fontSize:'2rem',marginBottom:'0.75rem'}}>🌐</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,marginBottom:'1.5rem'}}>{t('Мультиплеєр','Multiplayer')}</div>
-      <button onClick={createSession} style={{width:'100%',padding:'0.8rem',background:'#b8860b',color:'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.8rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,marginBottom:'1rem'}}>{t('Створити гру (Ояката 1)','Create game (Oyakata 1)')}</button>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)',marginBottom:'0.75rem'}}>{t('або','or')}</div>
-      <div style={{display:'flex',gap:8,marginBottom:'0.5rem'}}>
-        <input value={inputCode} onChange={e=>setInputCode(e.target.value.toUpperCase())} placeholder={t('Код сесії...','Session code...')} maxLength={6} style={{flex:1,padding:'0.65rem 0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.9rem',borderRadius:4,outline:'none',letterSpacing:'0.2em',textTransform:'uppercase'}}/>
-        <button onClick={joinSession} style={{padding:'0.65rem 1.25rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>{t('Ояката 2','Oyakata 2')}</button>
+    {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease',padding:'2rem 1rem'}}>
+      <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🌐</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'1.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 4px rgba(0,0,0,0.9)'}}>{t('Мультиплеєр','Multiplayer')}</div>
+      <GameBtn variant='gold' onClick={createSession} style={{width:'100%',maxWidth:480,justifyContent:'center',padding:'0.9rem',fontSize:'0.9rem',letterSpacing:'0.1em',marginBottom:'1rem',boxShadow:'0 4px 20px rgba(184,134,11,0.5)'}}>
+        {t('Створити гру (Ояката 1)','Create game (Oyakata 1)')}
+      </GameBtn>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.75rem'}}>{t('або','or')}</div>
+      <div style={{display:'flex',gap:8,marginBottom:'0.5rem',maxWidth:480,margin:'0 auto 0.5rem'}}>
+        <input
+          value={inputCode}
+          onChange={e=>setInputCode(e.target.value.toUpperCase())}
+          placeholder={t('КОД СЕСІЇ...','SESSION CODE...')}
+          maxLength={6}
+          style={{flex:1,padding:'0.75rem 1rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'2px solid #4a3e28',color:'#f0c060',fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,borderRadius:5,outline:'none',letterSpacing:'0.3em',textTransform:'uppercase',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)'}}
+        />
+        <GameBtn variant='dark' onClick={joinSession} style={{padding:'0.75rem 1.25rem',fontSize:'0.85rem',fontWeight:700}}>
+          {t('Ояката 2','Oyakata 2')}
+        </GameBtn>
       </div>
-      {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#c0392b',marginTop:4}}>{error}</div>}
+      {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#e74c3c',marginTop:8,textShadow:'0 1px 2px rgba(0,0,0,0.8)'}}>{error}</div>}
     </div>)}
-    {screen==='waiting'&&(<div style={{textAlign:'center',paddingTop:'2rem',animation:'slideIn 0.25s ease'}}>
-      <div style={{fontSize:'2rem',marginBottom:'1rem',animation:'pulse 1.5s ease infinite'}}>⏳</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.8rem',color:'var(--mid)',marginBottom:'0.5rem'}}>{role==='host'?t('Ояката 1 чекає...','Oyakata 1 waiting...'):t('Ояката 2 підключається...','Oyakata 2 connecting...')}</div>
-      {role==='host'&&<div style={{background:'var(--bg2)',padding:'1.5rem',borderRadius:4,display:'inline-block',animation:'pop 0.4s ease',marginTop:'1rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)',marginBottom:8}}>{t('Код для Ояката 2','Code for Oyakata 2')}</div><div style={{fontFamily:'var(--jp)',fontSize:'2.8rem',fontWeight:800,color:'#b8860b',letterSpacing:'0.35em'}}>{sessionId}</div></div>}
+    {screen==='waiting'&&(<div style={{textAlign:'center',paddingTop:'3rem',animation:'slideIn 0.25s ease'}}>
+      <div style={{fontSize:'3rem',marginBottom:'1rem',animation:'pulse 1.5s ease infinite'}}>⏳</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:900,color:'#f0c060',marginBottom:'0.5rem',textShadow:'0 0 16px rgba(240,192,96,0.6), 0 2px 6px rgba(0,0,0,0.9)',letterSpacing:'0.05em'}}>
+        {role==='host'?t('Ояката 1 чекає...','Oyakata 1 waiting...'):t('Ояката 2 підключається...','Oyakata 2 connecting...')}
+      </div>
+      {role==='host'&&<div style={{background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid #4a3e28',borderRadius:8,padding:'1.5rem 2.5rem',display:'inline-block',animation:'pop 0.4s ease',marginTop:'1rem',boxShadow:'0 8px 32px rgba(0,0,0,0.8)'}}>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#8a7a60',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.12em'}}>{t('Код для Ояката 2','Code for Oyakata 2')}</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'3rem',fontWeight:900,color:'#f0c060',letterSpacing:'0.4em',textShadow:'0 0 20px rgba(240,192,96,0.5), 0 2px 6px rgba(0,0,0,0.9)'}}>{sessionId}</div>
+      </div>}
     </div>)}
     {screen==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
@@ -1414,13 +1501,13 @@ export default function SumoClash({onClose,lang='uk'}){
       {showReview&&<ReviewModal onClose={()=>{setShowReview(false);onClose()}} onSubmit={submitReview} lang={lang}/>}
 
       {confirmExit&&(
-        <div onClick={e=>e.stopPropagation()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:3000,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.2s ease'}}>
-            <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:700,color:'var(--ink)',marginBottom:'0.5rem'}}>{t('Вийти з гри?','Exit game?')}</div>
-            <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'var(--mid)',marginBottom:'1.25rem'}}>{t('Прогрес поточної гри буде втрачено','Current game progress will be lost')}</div>
+        <div onClick={e=>e.stopPropagation()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:3000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{...themeVars,background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',border:'1px solid #4a3e28',borderRadius:8,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.2s ease',boxShadow:'0 16px 48px rgba(0,0,0,0.9)'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:700,color:'#f0c060',marginBottom:'0.5rem',textShadow:'0 0 10px rgba(240,192,96,0.4)'}}>{t('Вийти з гри?','Exit game?')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#8a7a60',marginBottom:'1.25rem'}}>{t('Прогрес поточної гри буде втрачено','Current game progress will be lost')}</div>
             <div style={{display:'flex',gap:10}}>
-              <button onClick={()=>setConfirmExit(false)} style={{flex:1,padding:'0.7rem',background:'var(--bg2)',color:'var(--ink)',border:'1px solid var(--border)',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>{t('Залишитись','Stay')}</button>
-              <button onClick={handleClose} style={{flex:1,padding:'0.7rem',background:'#c0392b',color:'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.78rem',cursor:'pointer',fontWeight:700}}>{t('Вийти','Exit')}</button>
+              <GameBtn variant='dark' onClick={()=>setConfirmExit(false)} style={{flex:1,justifyContent:'center',padding:'0.7rem'}}>{t('Залишитись','Stay')}</GameBtn>
+              <GameBtn variant='red' onClick={handleClose} style={{flex:1,justifyContent:'center',padding:'0.7rem'}}>{t('Вийти','Exit')}</GameBtn>
             </div>
           </div>
         </div>
@@ -1429,22 +1516,17 @@ export default function SumoClash({onClose,lang='uk'}){
         <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:1100,width:'100%',maxHeight:'96vh',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
           {/* Header */}
-          <div style={{borderBottom:'1px solid var(--border)',padding:'0.8rem 1.25rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-            <div style={{display:'flex',alignItems:'center',gap:8}}>
-              <span>⚔️</span>
-              <span style={{fontFamily:'var(--jp)',fontSize:'0.8rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--mid)'}}>{t('Сумо Клеш','Sumo Clash')}</span>
-              {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--light)'}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
+          <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <span style={{fontSize:'1.1rem'}}>⚔️</span>
+              <span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 3px rgba(0,0,0,0.9)'}}>DOHYO LEGENDS</span>
+              {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
-            <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <div style={{display:'flex',alignItems:'center',gap:5}}>
               <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
-              {/* Перемикач теми — тільки в грі */}
-              <button
-                onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')}
-                title={gameTheme==='dark'?t('Світла тема','Light theme'):t('Темна тема','Dark theme')}
-                style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.65rem',transition:'all 0.15s'}}
-              >{gameTheme==='dark'?'☀️':'🌙'}</button>
-              <button onClick={()=>setShowReview(true)} style={{background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:4,padding:'3px 8px',cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.6rem'}} title={t('Оцінити гру','Rate game')}>🏅</button>
-              <button onClick={()=>setConfirmExit(true)} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1}}>✕</button>
+              <GameBtn variant='dark' onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')} title={gameTheme==='dark'?t('Світла тема','Light theme'):t('Темна тема','Dark theme')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>{gameTheme==='dark'?'☀️':'🌙'}</GameBtn>
+              <GameBtn variant='dark' onClick={()=>setShowReview(true)} title={t('Оцінити гру','Rate game')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>🏅</GameBtn>
+              <GameBtn variant='red' onClick={()=>setConfirmExit(true)} style={{fontSize:'1rem',padding:'5px 10px',fontWeight:900}}>✕</GameBtn>
             </div>
           </div>
 
@@ -1452,11 +1534,24 @@ export default function SumoClash({onClose,lang='uk'}){
           {mode==='menu'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',minHeight:400}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.png)',backgroundSize:'cover',backgroundPosition:'center'}}/>
-              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.52)'}}/>
+              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
               <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
-                <div style={{fontSize:'2.6rem',animation:'pop 0.4s ease'}}>⚔️</div>
-                <div style={{fontFamily:'var(--jp)',fontSize:'1.7rem',fontWeight:900,color:'#f0c060',textShadow:'0 2px 12px rgba(0,0,0,0.9)',letterSpacing:'0.05em'}}>{t('Сумо Клеш','Sumo Clash')}</div>
-                <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'rgba(255,255,255,0.75)',textAlign:'center',lineHeight:1.8,marginBottom:'0.25rem',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{t('15 раундів · Ояката · Рікіші · Броня · Удари · Хенка','15 rounds · Oyakata · Rikishi · Armor · Strikes · Henka')}</div>
+                <img
+                  src="/images/dohyo-legends-logo.png"
+                  alt="DOHYO LEGENDS"
+                  style={{
+                    maxWidth:580,
+                    width:'88%',
+                    height:'auto',
+                    animation:'pop 0.5s ease',
+                    filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',
+                    marginBottom:'0.25rem',
+                  }}
+                  onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}
+                />
+                <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7), 0 2px 8px rgba(0,0,0,0.9)',letterSpacing:'0.2em',textTransform:'uppercase'}}>
+                  DOHYO LEGENDS
+                </div>
 
                 {[
                   {img:'btn-campaign.png', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
@@ -1484,19 +1579,22 @@ export default function SumoClash({onClose,lang='uk'}){
           {/* Modes */}
           {mode==='cpu'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
             </div>
           )}
           {mode==='campaign'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <SumoClashCampaign onBack={()=>setMode('menu')} lang={lang} GameBattle={(props)=><CampaignBattleWrapper {...props} sfx={sfx}/>}/>
             </div>
           )}
           {mode==='multi'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.8,pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
             </div>
           )}
