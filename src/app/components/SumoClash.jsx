@@ -3,6 +3,7 @@ import { trackGameLaunch, trackClashMode } from '../lib/gameAnalytics'
 import { useState, useEffect, useRef } from 'react'
 import { db } from '../lib/firebase'
 import { ref, set, get, onValue, update, off } from 'firebase/database'
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth'
 import SumoClashCampaign from './SumoClashCampaign'
 
 const MAX_HP = 40
@@ -64,30 +65,46 @@ const SALT_CARDS  = [{ id:'Sa1', type:'salt',  label:'Сіль в обличчя
 const HENKA_CARDS = [{ id:'He1', type:'henka', label:'Хенка',          labelEn:'Henka',      effect:'🌀 Ухилення', color:'#8e44ad', emoji:'🌀' }]
 const FULL_DECK = [...RIKISHI_CARDS,...MAEGASHIRA,...HEAL_CARDS,...ARMOR_CARDS,...STRIKE_CARDS,...SWAP_CARDS,...SALT_CARDS,...HENKA_CARDS]
 
-// ── Ваги для випадіння карт ──────────────────────────────────
-// Чим більша вага — тим частіше випадає. Рідкісні карти мають меншу вагу.
+// ── Система відкриття карток ──────────────────────────────────
+// Карта вважається "відкритою" щойно гравець її зіграв.
+// Зберігається в Firebase: campaignUsers/{uid}/discoveredCards (масив id)
+let _sumoClashAuthPromise = null
+function getSumoClashUid() {
+  if (!_sumoClashAuthPromise) {
+    _sumoClashAuthPromise = new Promise(resolve => {
+      const auth = getAuth()
+      onAuthStateChanged(auth, async user => {
+        if (user) resolve(user.uid)
+        else {
+          try { const c = await signInAnonymously(auth); resolve(c.user.uid) }
+          catch { resolve(null) }
+        }
+      })
+    })
+  }
+  return _sumoClashAuthPromise
+}
+
 function getCardWeight(card) {
   if (card.type === 'rikishi') {
     switch(card.rank) {
-      case 'Yokozuna':   return 1   // дуже рідко
+      case 'Yokozuna':   return 1
       case 'Ozeki':      return 3
       case 'Sekiwake':   return 6
       case 'Komusubi':   return 10
-      case 'Maegashira': return 20  // часто
+      case 'Maegashira': return 20
       default:           return 10
     }
   }
-  if (card.type === 'heal')  return card.heal >= 10 ? 5 : 12
-  if (card.type === 'armor') return card.armor >= 10 ? 5 : 12
+  if (card.type === 'heal')   return card.heal >= 10 ? 5 : 12
+  if (card.type === 'armor')  return card.armor >= 10 ? 5 : 12
   if (card.type === 'strike') return card.damage >= 10 ? 6 : 12
-  if (card.type === 'swap')  return 10
-  if (card.type === 'salt')  return 7
-  if (card.type === 'henka') return 5
+  if (card.type === 'swap')   return 10
+  if (card.type === 'salt')   return 7
+  if (card.type === 'henka')  return 5
   return 10
 }
 
-// Зважений вибір N карт — картки з більшою вагою частіше потрапляють у вибірку,
-// але порядок всередині вибірки — рандомний
 function weightedSample(arr, n) {
   if(arr.length <= n) return shuffle([...arr])
   const result = []
@@ -106,7 +123,6 @@ function weightedSample(arr, n) {
   return result
 }
 
-// Зважений shuffle всього масиву (для drawPile)
 function weightedShuffle(arr) {
   return arr
     .map(card => ({ card, sort: Math.random() ** (1 / getCardWeight(card)) }))
@@ -114,88 +130,69 @@ function weightedShuffle(arr) {
     .map(x => x.card)
 }
 
-// ── Описи карт для CardBook ──────────────────────────────────
 const CARD_LORE = {
-  // Yokozuna
   Y1e: 'Вершина сумо. Він не бореться — він судить. Кожен вихід на дохьо — як сонячне затемнення: рідкісний, величний і незворотній.',
   Y1w: 'Захід породжує своїх богів. Цей рікіші досяг йокодзуна через терпіння, а не силу. Його тіло — храм, його воля — закон.',
-  // Ozeki
   O1e: 'Майстер рівноваги. Атака і захист для нього — одне. Говорять, він ніколи не робив зайвого кроку.',
   O1w: 'Залізна воля заходу. Він програвав двічі — і обидва рази навмисно, щоб вивчити суперника зсередини.',
-  O2e: 'Народився в маленькому селі, де не було дохьо. Перший круг намалював паличкою на землі. Тепер його поважають у всій країні.',
-  O2w: 'Швидкий як думка, важкий як каміння. Його тачіай розбиває противників ще до того, як вони встигають зрозуміти, що сталось.',
-  // Sekiwake
-  S1e: 'Він прийшов із гір, де вітер навчив його читати рух тіла. Каже, що кожен суперник — це нова буря.',
-  S1w: 'Три роки поспіль виходив до фіналу. Три роки поспіль програвав в останньому бою. Четвертого року — не програв.',
-  S2e: 'Його ліва рука — для захисту. Права — для перемоги. Між ними — мовчання, в якому народжується техніка.',
+  O2e: 'Народився в маленькому селі, де не було дохьо. Перший круг намалював паличкою на землі.',
+  O2w: 'Швидкий як думка, важкий як каміння. Його тачіай розбиває противників до того, як вони встигають зрозуміти.',
+  S1e: 'Він прийшов із гір, де вітер навчив його читати рух тіла. Кожен суперник — це нова буря.',
+  S1w: 'Три роки поспіль виходив до фіналу. Три роки поспіль програвав. Четвертого року — не програв.',
+  S2e: 'Його ліва рука — для захисту. Права — для перемоги. Між ними — мовчання.',
   S2w: 'Молодий, але вже мудрий. Вчиться у поразок більше, ніж більшість — у перемог.',
   S3e: 'Говорить мало, рухається тихо. Але коли він входить на дохьо — зал завмирає.',
   S3w: 'Його батько був рікіші. Дід — теж. Він продовжує лінію, але за власними правилами.',
-  // Komusubi
   K1e: 'Піднявся з маєгашіри за один басьо. Критики казали — щастя. Він повторив наступного місяця.',
   K1w: 'Бореться з усмішкою. Кажуть, це нерви. Насправді — це спокій людини, яка вже прийняла результат.',
   K2e: 'Технічний геній. Знає сотні прийомів, але використовує лише три. Решта — щоб суперник думав.',
   K2w: 'Невисокий на зріст. Це його перевага: центр ваги нижче, а удар — несподіваніший.',
   K3e: 'Мовчазний боєць. Ніколи не дає інтерв\'ю. Його суmo говорить за нього.',
-  K3w: 'Прийшов пізно — почав у 22 роки. Надолужує кожен день. Конкурент зі сходу вчиться у нього наполегливості.',
-  K4e: 'Любить довгі бої. Чекає, коли суперник зробить помилку. Іноді чекає довше, ніж глядачі витримують.',
+  K3w: 'Прийшов пізно — почав у 22 роки. Надолужує кожен день.',
+  K4e: 'Любить довгі бої. Чекає, коли суперник зробить помилку.',
   K4w: 'Кажуть, він медитує перед кожним виходом. Дохьо для нього — не арена, а вівтар.',
-  // Heal
-  H1: 'Вода після бою — священна. Переможець п\'є першим. Вона несе силу перемоги і змиває втому поразки.',
-  H2: 'Вода переможця передається з рук тренера. Жест довіри, який коштує дорожче будь-якої нагороди.',
-  H3: 'Після кожного раунду — ковток. Після кожного ковтка — новий початок. Тіло забуває біль швидше, ніж розум.',
-  H6: 'Сіль очищує дохьо від злих духів. Але ця — особлива. Зібрана біля храму, вона відновлює не тільки тіло.',
-  // Armor
-  Ar1: 'Стійка — це не поза. Це стан духу. Коли ноги вкоренились у землі, жодна сила не зрушить тебе з місця.',
-  Ar2: 'Майстер навчив його одному: перш ніж атакувати — стань непорушним. Атака без основи — це падіння.',
-  Ar3: 'Маваші — не просто пояс. Це зброя, щит і честь одночасно. Той, хто тримає його — тримає всього бійця.',
-  Ar4: 'Якість маваші визначає якість рікіші. Цей зшитий вручну, просочений волею майстра-кравця, який сам колись боровся.',
-  // Strike
-  St1: 'Тачіай — зіткнення на старті. Одна секунда вирішує все. Хто б\'є першим і точніше — той і задає тон бою.',
-  St2: 'Техніка тачіаю передається від майстра до учня. Але справжній удар народжується тільки в момент — не в тренуванні.',
-  St3: 'Харіте — відкритою долонею по щоці. Не жорстокість — мистецтво. Один рух ламає концентрацію суперника назавжди.',
-  St4: 'Кажуть, цей прийом заборонений у деяких школах. Занадто ефективний. Занадто болючий. Занадто чесний.',
-  // Swap
-  Sw1: 'Стратегія — це мистецтво вибору. Іноді сильніша карта — та, якої ще немає в руці.',
-  Sw2: 'Ояката змінює план у розпал бою. Це не слабкість — це мудрість людини, яка бачить більше.',
-  Sw3: 'Між раундами — тиша. У ній народжуються рішення, які змінюють хід всього поєдинку.',
-  Sw4: 'Нова карта — новий шанс. Стара школа каже: тримай що маєш. Нова відповідає: бери краще.',
-  // Salt
-  Sa1: 'Сіль в обличчя — давній трюк. Не боляче. Але секунда сліпоти коштує раунду, а іноді — всього бою.',
-  // Henka
-  He1: 'Хенка — ухилення вбік у момент тачіаю. Суперечливий прийом. Одні кажуть — ганьба. Інші — геній. Всі кажуть — ефективно.',
+  H1: 'Вода після бою — священна. Переможець п\'є першим.',
+  H2: 'Вода переможця передається з рук тренера. Жест довіри.',
+  H3: 'Після кожного раунду — ковток. Після кожного ковтка — новий початок.',
+  H6: 'Сіль очищує дохьо від злих духів. Але ця — особлива.',
+  Ar1: 'Стійка — це не поза. Це стан духу.',
+  Ar2: 'Майстер навчив його одному: перш ніж атакувати — стань непорушним.',
+  Ar3: 'Маваші — не просто пояс. Це зброя, щит і честь одночасно.',
+  Ar4: 'Якість маваші визначає якість рікіші.',
+  St1: 'Тачіай — зіткнення на старті. Одна секунда вирішує все.',
+  St2: 'Техніка тачіаю передається від майстра до учня.',
+  St3: 'Харіте — відкритою долонею по щоці. Один рух ламає концентрацію.',
+  St4: 'Кажуть, цей прийом заборонений у деяких школах. Занадто ефективний.',
+  Sw1: 'Стратегія — це мистецтво вибору.',
+  Sw2: 'Ояката змінює план у розпал бою. Це мудрість.',
+  Sw3: 'Між раундами — тиша. У ній народжуються рішення.',
+  Sw4: 'Нова карта — новий шанс.',
+  Sa1: 'Сіль в обличчя — давній трюк. Секунда сліпоти коштує раунду.',
+  He1: 'Хенка — ухилення вбік у момент тачіаю. Одні кажуть — ганьба. Інші — геній.',
 }
 
-function getCardLore(card, lang) {
-  return CARD_LORE[card.id] || null
-}
+function getCardLore(card) { return CARD_LORE[card.id] || null }
 
 const CARD_DESCRIPTIONS = {
   rikishi: (c) => `Рікіші ${c.rank}. Атакує суперника. Шкода = ATK − DEF суперника (мін 0). Б'є броню першою.`,
   heal:    (c) => `Відновлює ${c.heal} HP. Не діє на суперника.`,
-  armor:   (c) => `Додає ${c.armor} одиниць броні. Броня поглинає шкоду від рікіші. Зберігається між раундами.`,
+  armor:   (c) => `Додає ${c.armor} одиниць броні. Броня поглинає шкоду від рікіші.`,
   strike:  (c) => `Завдає ${c.damage} прямої шкоди. Ігнорує броню суперника!`,
   swap:    ()  => `Замінює одну карту з руки на нову з колоди.`,
   salt:    ()  => `Кидаєш сіль в обличчя — суперник пропускає наступний хід.`,
-  henka:   ()  => `Ухиляєшся від атаки суперника (рікіші або удар). Проти хілу і броні не діє.`,
+  henka:   ()  => `Ухиляєшся від атаки суперника (рікіші або удар).`,
 }
 
-function getCardDesc(card, lang) {
-  const fn = CARD_DESCRIPTIONS[card.type]
-  return fn ? fn(card) : ''
-}
+function getCardDesc(card) { const fn = CARD_DESCRIPTIONS[card.type]; return fn ? fn(card) : '' }
 
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]};return a}
 function generateCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
 function getCardById(id){return FULL_DECK.find(c=>c.id===id)}
 function getLabel(card,lang){return lang==='en'?(card.labelEn||card.label||card.id):(card.label||card.id)}
 
-// Картки без власного скіну — використовують скін іншої картки того ж типу
 const CARD_SKIN_ALIAS = {
-  'H2': 'H1', 'H3': 'H1',       // вода переможця — той самий скін
-  'Ar2': 'Ar1', 'Ar4': 'Ar3',   // броня — два варіанти
-  'St2': 'St1', 'St4': 'St3',   // удари — два варіанти
-  'Sw2': 'Sw1', 'Sw3': 'Sw1', 'Sw4': 'Sw1', // заміна — один скін
+  'H2':'H1','H3':'H1','Ar2':'Ar1','Ar4':'Ar3',
+  'St2':'St1','St4':'St3','Sw2':'Sw1','Sw3':'Sw1','Sw4':'Sw1',
 }
 function getCardSkinId(id) { return CARD_SKIN_ALIAS[id] || id }
 
@@ -286,7 +283,6 @@ const MUSIC_THEMES=[
 
 const ANIM_STYLES=`
 :root { --jp: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif; }
-
 @keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes clash{0%{transform:translateX(0)}30%{transform:translateX(14px)}60%{transform:translateX(-8px)}100%{transform:translateX(0)}}
 @keyframes clashR{0%{transform:translateX(0)}30%{transform:translateX(-14px)}60%{transform:translateX(8px)}100%{transform:translateX(0)}}
@@ -306,19 +302,19 @@ const ANIM_STYLES=`
 @keyframes hpFlash{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
 @keyframes bubbleRise{0%{transform:translateY(0) scale(1);opacity:0.7}100%{transform:translateY(-40px) scale(0.3);opacity:0}}
 @keyframes lowHpPulse{0%,100%{color:#c0392b}50%{color:#ff6b6b}}
+@keyframes lockPulse{0%,100%{opacity:0.85}50%{opacity:1}}
 `
 
 const CARD_TYPES_INFO=[
   {type:'rikishi',emoji:'⚔️',label:{uk:'Рікіші',en:'Rikishi'},desc:{uk:'Атакує. ATK − DEF = шкода. Б\'є броню першою.',en:'Attacks. ATK − DEF = damage. Hits armor first.'}},
   {type:'heal',emoji:'💧',label:{uk:'Хіл',en:'Heal'},desc:{uk:'Вода переможця +5 HP або Сіль Дохьо +10 HP.',en:"Victor's Water +5 HP or Dohyo Salt +10 HP."}},
-  {type:'armor',emoji:'🛡',label:{uk:'Броня',en:'Armor'},desc:{uk:'Бойова стійка +5 🛡 або Маваші +10 🛡. Зберігається між раундами.',en:'Battle Stance +5 🛡 or Mawashi +10 🛡. Persists between rounds.'}},
+  {type:'armor',emoji:'🛡',label:{uk:'Броня',en:'Armor'},desc:{uk:'Бойова стійка +5 🛡 або Маваші +10 🛡.',en:'Battle Stance +5 🛡 or Mawashi +10 🛡.'}},
   {type:'strike',emoji:'⚡',label:{uk:'Удар',en:'Strike'},desc:{uk:'Тачіай -5 HP або Харітете -10 HP. Ігнорує броню!',en:'Tachiai -5 HP or Harite -10 HP. Ignores armor!'}},
   {type:'swap',emoji:'🔄',label:{uk:'Заміна',en:'Swap'},desc:{uk:'Замінює карту з руки на нову з колоди.',en:'Swap a hand card for a new deck card.'}},
   {type:'salt',emoji:'🧂',label:{uk:'Сіль',en:'Salt'},desc:{uk:'Суперник пропускає наступний хід.',en:'Opponent skips next turn.'}},
   {type:'henka',emoji:'🌀',label:{uk:'Хенка',en:'Henka'},desc:{uk:'Уникаєте атаки суперника (рікіші або удар).',en:'Dodge opponent attack (rikishi or strike).'}},
 ]
 
-// ── Particles ────────────────────────────────────────────────
 function SaltParticles(){
   const particles=Array.from({length:16},(_,i)=>({id:i,tx:`${(Math.random()-0.5)*120}px`,ty:`${-30-Math.random()*60}px`,delay:`${Math.random()*0.3}s`,size:`${4+Math.random()*6}px`}))
   return(<div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden'}}>{particles.map(p=>(<div key={p.id} style={{position:'absolute',top:'50%',left:'50%',width:p.size,height:p.size,borderRadius:'50%',background:'rgba(255,255,255,0.9)','--tx':p.tx,'--ty':p.ty,animation:`saltParticle 0.8s ease-out ${p.delay} both`}}/>))}</div>)
@@ -340,7 +336,7 @@ function HPBar({hp,armor=0,flash=null}){
           <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.5)',fontWeight:600}}>HP</span>
           <span style={{fontFamily:'var(--jp)',fontSize:'1.15rem',fontWeight:800,color,animation:isLow?'lowHpPulse 1s ease infinite':undefined}}>{hp}<span style={{fontSize:'0.7rem',opacity:0.5}}>/{MAX_HP}</span></span>
         </div>
-        {armor>0&&<div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(31,97,141,0.15)',border:'1px solid rgba(31,97,141,0.4)',borderRadius:3,padding:'2px 8px',animation:'glowPulse 2s ease infinite'}}>
+        {armor>0&&<div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(31,97,141,0.15)',border:'1px solid rgba(31,97,141,0.4)',borderRadius:3,padding:'2px 8px'}}>
           <span style={{fontSize:'0.8rem'}}>🛡</span>
           <span style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'#1f618d'}}>{armor}</span>
         </div>}
@@ -352,7 +348,6 @@ function HPBar({hp,armor=0,flash=null}){
   )
 }
 
-// ── GameCard ─────────────────────────────────────────────────
 function GameCard({card,selected,onClick,disabled,small,showBack,lang='uk',isNew=false}){
   const [hovered,setHovered]=useState(false)
   if(!card)return null
@@ -369,14 +364,16 @@ function GameCard({card,selected,onClick,disabled,small,showBack,lang='uk',isNew
   )
 }
 
-// ── CardBook — перелік усіх карток ───────────────────────────
-function CardBook({lang,onClose}){
+// ── CardBook ──────────────────────────────────────────────────
+// discoveredCards — Set<string> карт які гравець вже зіграв
+// Нерозкриті карти показуються із замком і не відкриваються в модальному
+function CardBook({ lang, onClose, discoveredCards = new Set() }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const [filter,setFilter]=useState('all')
   const [selected,setSelected]=useState(null)
 
   const typeFilters=[
-    {key:'all',   label:t('Всі','All')},
+    {key:'all',    label:t('Всі','All')},
     {key:'rikishi',label:t('Рікіші','Rikishi')},
     {key:'heal',   label:t('Хіл','Heal')},
     {key:'armor',  label:t('Броня','Armor')},
@@ -395,14 +392,7 @@ function CardBook({lang,onClose}){
   ]
 
   const visibleCards = filter==='all' ? FULL_DECK : FULL_DECK.filter(c=>c.type===filter||c.rank===filter)
-
-  // Унікальні картки (прибираємо дублікати heal/armor/strike/swap)
-  const uniqueCards = visibleCards.filter((c,i,arr)=>arr.findIndex(x=>x.label===c.label&&x.type===c.type)===i||c.type==='rikishi')
-
-  function getTypeInfo(card){
-    const info=CARD_TYPES_INFO.find(t=>t.type===card.type)
-    return info||null
-  }
+  const uniqueCards  = visibleCards.filter((c,i,arr)=>arr.findIndex(x=>x.label===c.label&&x.type===c.type)===i||c.type==='rikishi')
 
   const rankOrder={Yokozuna:0,Ozeki:1,Sekiwake:2,Komusubi:3,Maegashira:4}
   const sorted=[...uniqueCards].sort((a,b)=>{
@@ -416,24 +406,24 @@ function CardBook({lang,onClose}){
     return 0
   })
 
-  useEffect(()=>{
-    Promise.all(FULL_DECK.map(card=>
-      fetch(`/cards/${card.id}_${lang}.png`,{method:'HEAD'})
-        .then(r=>({id:card.id,ok:r.ok}))
-        .catch(()=>({id:card.id,ok:false}))
-    )).then(results=>{
-      const found=results.filter(r=>r.ok).map(r=>r.id)
-      const missing=results.filter(r=>!r.ok).map(r=>r.id)
-      console.log(`%c✅ Скіни є (${found.length}):`, 'color:green;font-weight:bold', found.join(', '))
-      console.log(`%c❌ Скіни відсутні (${missing.length}):`, 'color:red;font-weight:bold', missing.join(', '))
-    })
-  },[lang])
+  const totalDiscovered = FULL_DECK.filter(c => discoveredCards.has(c.id)).length
 
   return(
     <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
+
       {/* Header */}
       <div style={{padding:'0.75rem 1.25rem',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'var(--ink)'}}>📖 {t('Колода карт','Card Book')} <span style={{color:'var(--mid)',fontWeight:400}}>({sorted.length})</span></div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'var(--ink)',display:'flex',alignItems:'center',gap:10}}>
+          📖 {t('Колода карт','Card Book')}
+          <span style={{color:'var(--mid)',fontWeight:400}}>({sorted.length})</span>
+          <span style={{
+            color:'#f0c060',fontWeight:700,fontSize:'0.65rem',
+            background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.3)',
+            borderRadius:4,padding:'1px 8px',
+          }}>
+            🔓 {totalDiscovered}/{FULL_DECK.length}
+          </span>
+        </div>
         <button onClick={onClose} style={{background:'transparent',border:'none',color:'var(--mid)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:0}}>✕ {t('Закрити','Close')}</button>
       </div>
 
@@ -453,18 +443,55 @@ function CardBook({lang,onClose}){
 
       {/* Card Grid */}
       <div style={{flex:1,overflowY:'auto',padding:'0.75rem',display:'flex',flexWrap:'wrap',gap:8,alignContent:'flex-start'}}>
-        {sorted.map(card=>(
-          <div key={card.id} onClick={()=>setSelected(card)} style={{cursor:'pointer',animation:'fadeIn 0.2s ease',borderRadius:10,transition:'all 0.15s'}}>
-            <GameCard card={card} lang={lang} small disabled/>
-          </div>
-        ))}
+        {sorted.map(card => {
+          const isLocked = !discoveredCards.has(card.id)
+          return (
+            <div
+              key={card.id}
+              onClick={() => !isLocked && setSelected(card)}
+              style={{
+                cursor: isLocked ? 'default' : 'pointer',
+                animation: 'fadeIn 0.2s ease',
+                borderRadius: 10,
+                position: 'relative',
+                transition: 'transform 0.15s',
+              }}
+              onMouseEnter={e => { if(!isLocked) e.currentTarget.style.transform='scale(1.04)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform='none' }}
+            >
+              <GameCard card={card} lang={lang} small disabled/>
+
+              {/* Замок для нерозкритих карт */}
+              {isLocked && (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'rgba(0,0,0,0.78)',
+                  borderRadius: 8,
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: 4,
+                  backdropFilter: 'blur(2px)',
+                  animation: 'lockPulse 3s ease infinite',
+                }}>
+                  <span style={{ fontSize: '1.3rem' }}>🔒</span>
+                  <span style={{
+                    fontFamily: 'var(--jp)', fontSize: '0.38rem',
+                    color: 'rgba(255,255,255,0.35)',
+                    textAlign: 'center', lineHeight: 1.4,
+                    whiteSpace: 'pre',
+                  }}>{t('Зіграй\nщоб відкрити', 'Play to\nunlock')}</span>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {/* Modal overlay */}
-      {selected&&(
+      {/* Modal overlay — тільки для розкритих карт */}
+      {selected && !discoveredCards.has(selected.id) && (() => { setSelected(null); return null })()}
+      {selected && discoveredCards.has(selected.id) && (
         <div onClick={()=>setSelected(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.75)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',animation:'fadeIn 0.15s ease'}}>
           <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:`2px solid ${selected.color||'#b8860b'}`,borderRadius:12,display:'flex',gap:0,overflow:'hidden',maxHeight:'90%',animation:'pop 0.2s ease',boxShadow:`0 0 40px ${selected.color||'#b8860b'}44`}}>
-            {/* Картинка — велика, БЕЗ overlay */}
             <div style={{width:420,flexShrink:0,background:'#111',minHeight:570}}>
               <img
                 src={`/cards/${getCardSkinId(selected.id)}_${lang}.png`}
@@ -473,8 +500,6 @@ function CardBook({lang,onClose}){
                 onError={e=>{e.currentTarget.style.display='none'}}
               />
             </div>
-
-            {/* Info панель */}
             <div style={{width:330,padding:'1.75rem',overflowY:'auto',display:'flex',flexDirection:'column',gap:'1rem'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                 <div>
@@ -483,15 +508,13 @@ function CardBook({lang,onClose}){
                 </div>
                 <button onClick={()=>setSelected(null)} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.2rem',cursor:'pointer',lineHeight:1,padding:0}}>✕</button>
               </div>
-
-              {/* Лор */}
-              {getCardLore(selected,lang)?(
+              {getCardLore(selected)?(
                 <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',color:'var(--ink)',lineHeight:1.9,fontStyle:'italic',padding:'1rem 1.1rem',background:'var(--bg2)',borderRadius:8,borderLeft:`3px solid ${selected.color||'#b8860b'}`,flex:1}}>
-                  "{getCardLore(selected,lang)}"
+                  "{getCardLore(selected)}"
                 </div>
               ):(
                 <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.8,padding:'1rem',background:'var(--bg2)',borderRadius:8,flex:1}}>
-                  {getCardDesc(selected,lang)}
+                  {getCardDesc(selected)}
                 </div>
               )}
             </div>
@@ -502,67 +525,41 @@ function CardBook({lang,onClose}){
   )
 }
 
-// ── AAA UI константи ─────────────────────────────────────────
-// Тверді кнопки що завжди видимі незалежно від теми/фону
 const BTN = {
-  // Золота кнопка — активна/включена
   gold: {
     background:'linear-gradient(180deg,#d4a520 0%,#8b6010 100%)',
-    border:'1px solid #f0c060',
-    color:'#fff8e0',
+    border:'1px solid #f0c060',color:'#fff8e0',
     boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,80,0.4)',
-    fontWeight:700,
-    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+    fontWeight:700,textShadow:'0 1px 2px rgba(0,0,0,0.8)',
   },
-  // Темна кнопка — неактивна/вимкнена
   dark: {
     background:'linear-gradient(180deg,#2a2520 0%,#1a1510 100%)',
-    border:'1px solid #4a3e30',
-    color:'#a09070',
+    border:'1px solid #4a3e30',color:'#a09070',
     boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
-    fontWeight:600,
-    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+    fontWeight:600,textShadow:'0 1px 2px rgba(0,0,0,0.8)',
   },
-  // Червона кнопка — небезпека/вийти
   red: {
     background:'linear-gradient(180deg,#8b1a1a 0%,#5a0e0e 100%)',
-    border:'1px solid #c0392b',
-    color:'#ffe0e0',
+    border:'1px solid #c0392b',color:'#ffe0e0',
     boxShadow:'0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,100,100,0.3)',
-    fontWeight:700,
-    textShadow:'0 1px 2px rgba(0,0,0,0.8)',
+    fontWeight:700,textShadow:'0 1px 2px rgba(0,0,0,0.8)',
   },
 }
 const BTN_BASE = {
-  borderRadius:5,
-  cursor:'pointer',
-  fontFamily:'var(--jp)',
-  fontSize:'0.7rem',
-  padding:'5px 12px',
-  letterSpacing:'0.05em',
-  transition:'filter 0.1s, transform 0.1s',
-  whiteSpace:'nowrap',
-  display:'inline-flex',
-  alignItems:'center',
-  gap:5,
+  borderRadius:5,cursor:'pointer',fontFamily:'var(--jp)',fontSize:'0.7rem',
+  padding:'5px 12px',letterSpacing:'0.05em',transition:'filter 0.1s, transform 0.1s',
+  whiteSpace:'nowrap',display:'inline-flex',alignItems:'center',gap:5,
 }
 
-function GameBtn({variant='dark', children, onClick, title, style={}, disabled=false}){
+function GameBtn({variant='dark',children,onClick,title,style={},disabled=false}){
   const [pressed,setPressed]=useState(false)
-  const v = BTN[variant]||BTN.dark
+  const v=BTN[variant]||BTN.dark
   return(
-    <button
-      onClick={disabled?undefined:onClick}
-      title={title}
-      onMouseDown={()=>setPressed(true)}
-      onMouseUp={()=>setPressed(false)}
-      onMouseLeave={()=>setPressed(false)}
-      style={{...BTN_BASE,...v,...style,
-        filter: pressed?'brightness(0.8)':disabled?'brightness(0.5)':'brightness(1)',
-        transform: pressed?'translateY(1px)':'translateY(0)',
-        cursor: disabled?'default':'pointer',
-      }}
-    >{children}</button>
+    <button onClick={disabled?undefined:onClick} title={title}
+      onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)} onMouseLeave={()=>setPressed(false)}
+      style={{...BTN_BASE,...v,...style,filter:pressed?'brightness(0.8)':disabled?'brightness(0.5)':'brightness(1)',transform:pressed?'translateY(1px)':'translateY(0)',cursor:disabled?'default':'pointer'}}>
+      {children}
+    </button>
   )
 }
 
@@ -611,16 +608,14 @@ function SwapScreen({hand,drawOptions,onSwap,lang}){
   </div>)
 }
 
-// ── HP бар над картками ──────────────────────────────────────
-function HPFlask({hp, armor=0, flash=null, label, color='#1a6b5c', align='left'}){
-  const pct = Math.max(0, Math.min(100, (hp/MAX_HP)*100))
-  const liquidColor = pct>60?'#1a9b6c':pct>30?'#c8a000':'#c0392b'
-  const glowColor   = pct>60?'#1a9b6c':pct>30?'#f0c060':'#e74c3c'
-  const isLow = pct<=30
-  const flashAnim = flash?'hpFlash 0.4s ease':undefined
+function HPFlask({hp,armor=0,flash=null,label,color='#1a6b5c',align='left'}){
+  const pct=Math.max(0,Math.min(100,(hp/MAX_HP)*100))
+  const liquidColor=pct>60?'#1a9b6c':pct>30?'#c8a000':'#c0392b'
+  const glowColor=pct>60?'#1a9b6c':pct>30?'#f0c060':'#e74c3c'
+  const isLow=pct<=30
+  const flashAnim=flash?'hpFlash 0.4s ease':undefined
   return(
     <div style={{display:'flex',flexDirection:'column',gap:4,animation:flashAnim,width:'100%'}}>
-      {/* Назва + HP */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,220,150,0.9)',textTransform:'uppercase',letterSpacing:'0.06em',textShadow:'0 1px 4px rgba(0,0,0,1)'}}>{label}</span>
         <div style={{display:'flex',alignItems:'center',gap:4}}>
@@ -628,12 +623,9 @@ function HPFlask({hp, armor=0, flash=null, label, color='#1a6b5c', align='left'}
           <span style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:900,color:glowColor,textShadow:`0 0 8px ${glowColor}`,animation:isLow?'lowHpPulse 1s ease infinite':undefined}}>{hp}<span style={{fontSize:'0.55rem',color:'rgba(255,255,255,0.4)'}}>/{MAX_HP}</span></span>
         </div>
       </div>
-      {/* Горизонтальна колба */}
       <div style={{position:'relative',height:14,borderRadius:7,background:'rgba(0,0,0,0.7)',border:'1px solid rgba(255,255,255,0.1)',overflow:'hidden',boxShadow:`0 0 8px ${glowColor}33`}}>
         <div style={{position:'absolute',inset:0,width:`${pct}%`,background:`linear-gradient(90deg,${liquidColor}aa,${liquidColor})`,borderRadius:7,transition:'width 0.6s cubic-bezier(.4,0,.2,1)',animation:isLow?'lowHpPulse 1s ease infinite':undefined}}/>
-        {/* Відблиск */}
         <div style={{position:'absolute',top:1,left:0,right:0,height:4,background:'linear-gradient(180deg,rgba(255,255,255,0.15),transparent)',borderRadius:7,pointerEvents:'none'}}/>
-        {/* Ризки */}
         {[25,50,75].map(m=><div key={m} style={{position:'absolute',top:0,bottom:0,left:`${m}%`,width:1,background:'rgba(255,255,255,0.06)'}}/>)}
       </div>
     </div>
@@ -659,13 +651,8 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
   const myFloatColor=myHpDelta>0?'#1a6b5c':myHpDelta<0?'#e74c3c':'#1f618d'
   const oppFloatColor=oppHpDelta>0?'#1a6b5c':oppHpDelta<0?'#e74c3c':'#1f618d'
   const doShake=myHpDelta<0||oppHpDelta<0
-
   return(<div style={{animation:doShake&&step>=2?'shake 0.4s ease':undefined}}>
-
-    {/* ── Арена: карти поруч з VS між ними ── */}
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:0,marginBottom:'0.75rem',opacity:step>=1?1:0,transition:'opacity 0.3s',position:'relative',minHeight:160}}>
-
-      {/* Ліво: карта + флоат */}
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,flexShrink:0}}>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,220,150,0.8)'}}>{myLabel}</div>
         <div style={{animation:step>=1?'clash 0.5s ease 0.2s both':'none',position:'relative'}}>
@@ -676,11 +663,7 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
           {showMyFloat&&myFloatVal&&<FloatingNumber value={myFloatVal} color={myFloatColor} onDone={()=>setShowMyFloat(false)}/>}
         </div>
       </div>
-
-      {/* VS по центру */}
       <div style={{fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 20px rgba(240,192,96,0.9), 0 2px 6px rgba(0,0,0,1)',letterSpacing:'0.1em',padding:'0 16px',animation:step>=1?'pop 0.4s ease 0.4s both':'none',flexShrink:0}}>VS</div>
-
-      {/* Право: карта + флоат */}
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,flexShrink:0}}>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,180,150,0.8)'}}>{oppLabel}</div>
         <div style={{animation:step>=1?'clashR 0.5s ease 0.2s both':'none',position:'relative'}}>
@@ -691,17 +674,10 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
           {showOppFloat&&oppFloatVal&&<FloatingNumber value={oppFloatVal} color={oppFloatColor} onDone={()=>setShowOppFloat(false)}/>}
         </div>
       </div>
-
     </div>
-
-    {/* Лог */}
     <div style={{background:'var(--bg2)',borderRadius:4,padding:'0.6rem 1rem',marginBottom:'0.75rem',opacity:step>=2?1:0,transform:step>=2?'none':'translateY(8px)',transition:'all 0.3s'}}>
-      {roundLog.length===0
-        ?<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)'}}>—</div>
-        :roundLog.map((l,i)=><div key={i} style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:l.color,lineHeight:1.7,animation:`fadeIn 0.3s ease ${0.08*i}s both`}}>{l.text}</div>)
-      }
+      {roundLog.length===0?<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'var(--mid)'}}>—</div>:roundLog.map((l,i)=><div key={i} style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:l.color,lineHeight:1.7,animation:`fadeIn 0.3s ease ${0.08*i}s both`}}>{l.text}</div>)}
     </div>
-
     <button onClick={onNext} style={{width:'100%',padding:'0.75rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.82rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,opacity:step>=3?1:0,transform:step>=3?'none':'translateY(8px)',transition:'all 0.3s'}}>
       {roundNum>=MAX_ROUNDS?t('Результат','Results'):t('Наступний раунд ›','Next round ›')}
     </button>
@@ -717,23 +693,15 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   function activateSwap(){if(sfx)sfx('swap');const pool=drawPile.filter(c=>!myHand.find(h=>h.id===c.id)).slice(0,DRAFT_POOL_SIZE);setSwapOptions(pool);setSwapping(true)}
   function doSwap(card){setSwapping(false);onSwapDone(card)}
   if(swapping)return <SwapScreen hand={myHand} drawOptions={swapOptions} onSwap={doSwap} lang={lang}/>
-
-  // Останні зіграні карти (до 3)
-  const myPlayed = playedCards.map(r=>r.my).filter(Boolean).slice(-3)
-  const oppPlayed = playedCards.map(r=>r.opp).filter(Boolean).slice(-3)
-
+  const myPlayed=playedCards.map(r=>r.my).filter(Boolean).slice(-3)
+  const oppPlayed=playedCards.map(r=>r.opp).filter(Boolean).slice(-3)
   return(<div style={{animation:'slideIn 0.25s ease'}}>
     {showRoundBanner&&<RoundBanner roundNum={roundNum} lang={lang}/>}
-
-    {/* Рахунок */}
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',color:'rgba(255,255,255,0.6)'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</div>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'#f0c060'}}>{myWins}–{oppWins}</div>
     </div>
-
     {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.5rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
-
-    {/* HP панелі — темні */}
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'0.6rem'}}>
       <div style={{background:'rgba(0,0,0,0.65)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(26,107,92,0.5)'}}>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#2ecc71',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{myLabel}</div>
@@ -744,34 +712,22 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         <HPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
       </div>
     </div>
-
-    {/* Зіграні карти */}
     {(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'0.6rem'}}>
         <div style={{display:'flex',gap:4,justifyContent:'flex-start',alignItems:'center'}}>
-          {myPlayed.map((c,i)=>(
-            <div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'left center'}}>
-              <GameCard card={c} small disabled lang={lang}/>
-            </div>
-          ))}
+          {myPlayed.map((c,i)=>(<div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'left center'}}><GameCard card={c} small disabled lang={lang}/></div>))}
         </div>
         <div style={{display:'flex',gap:4,justifyContent:'flex-end',alignItems:'center'}}>
-          {oppPlayed.map((c,i)=>(
-            <div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'right center'}}>
-              <GameCard card={c} small disabled lang={lang}/>
-            </div>
-          ))}
+          {oppPlayed.map((c,i)=>(<div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'right center'}}><GameCard card={c} small disabled lang={lang}/></div>))}
         </div>
       </div>
     )}
-
     {isRoundResult?(
       <RoundResult myCard={myCard} oppCard={oppCard} roundLog={roundLog} myLabel={myLabel} oppLabel={oppLabel} onNext={onNext} roundNum={roundNum} lang={lang} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myHp={myHp} oppHp={oppHp} myArmor={myArmor} oppArmor={oppArmor} myFlash={myFlash} oppFlash={oppFlash}/>
     ):(
       <>
         <div style={{marginBottom:'0.5rem'}}>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-          {/* Карти руки — на 50% більші ніж small */}
           <div style={{display:'flex',gap:'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:6,justifyContent:'center',scrollbarWidth:'none'}}>
             {deduped(myHand).map((c,i)=>(<div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
               {c.type==='swap'&&!myReady?(
@@ -788,13 +744,12 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         </div>
         {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#2ecc71',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
         {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        {/* Кнопка підтвердити — AAA стиль */}
         <div style={{paddingTop:8,marginTop:4}}>
-          {((!playerSelected&&!mySkipped)||myReady) ? (
+          {((!playerSelected&&!mySkipped)||myReady)?(
             <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em'}}>
               {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
             </GameBtn>
-          ) : (
+          ):(
             <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
               {mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):t('⚔ Підтвердити','⚔ Confirm')}
             </GameBtn>
@@ -823,8 +778,6 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
       <div style={{fontSize:'4rem',marginBottom:'0.75rem',animation:'pop 0.5s ease'}}>{isKyujo&&playerWon?'🏆':isKyujo&&!playerWon?'🏥':playerWon?'🏆':'💪'}</div>
       <div style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:winColor,marginBottom:'0.4rem',textShadow:`0 0 20px ${winColor}88`}}>{title}</div>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'rgba(255,255,255,0.55)',marginBottom:'1.5rem',lineHeight:1.5}}>{subtitle}</div>
-
-      {/* HP панелі — темні */}
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'0 0 1rem 0'}}>
         <div style={{background:'rgba(0,0,0,0.6)',padding:'0.75rem',borderRadius:6,border:'1px solid rgba(46,204,113,0.3)'}}>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#2ecc71',marginBottom:6,fontWeight:700}}>{myLabel}</div>
@@ -835,15 +788,12 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
           <HPBar hp={oppHp} armor={oppArmor}/>
         </div>
       </div>
-
-      {/* Рахунок */}
       <div style={{background:'rgba(0,0,0,0.5)',padding:'0.875rem 1rem',borderRadius:6,marginBottom:'1.5rem',border:`1px solid ${isKachiKoshi?'rgba(240,192,96,0.3)':'rgba(231,76,60,0.3)'}`}}>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'rgba(255,255,255,0.45)',marginBottom:6}}>{t('Раунди','Rounds')}: {myWins}W – {oppWins}L – {ties}D</div>
         <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:900,color:isKachiKoshi?'#f0c060':'#e74c3c',textShadow:`0 0 16px ${isKachiKoshi?'#f0c060':'#e74c3c'}66`}}>
           {isKachiKoshi?'勝ち越し Kachi-koshi':'負け越し Make-koshi'}
         </div>
       </div>
-
       <button onClick={onBack} style={{background:'rgba(184,134,11,0.15)',color:'#f0c060',border:'1px solid rgba(184,134,11,0.5)',borderRadius:6,padding:'0.8rem 3rem',fontFamily:'var(--jp)',fontSize:'0.85rem',letterSpacing:'0.12em',cursor:'pointer',fontWeight:700,boxShadow:'0 4px 16px rgba(184,134,11,0.2)',transition:'all 0.15s'}}
         onMouseEnter={e=>{e.currentTarget.style.background='rgba(184,134,11,0.3)'}}
         onMouseLeave={e=>{e.currentTarget.style.background='rgba(184,134,11,0.15)'}}>
@@ -853,8 +803,8 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
   )
 }
 
-// ── CPU гра — СПІЛЬНА КОЛОДА ─────────────────────────────────
-function CpuGame({lang,onBack,sfx}){
+// ── CpuGame ───────────────────────────────────────────────────
+function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const [phase,setPhase]=useState('draft')
   const [draftPool,setDraftPool]=useState([])
@@ -890,28 +840,27 @@ function CpuGame({lang,onBack,sfx}){
     setCpuHand(cpuCards)
     const remaining=shared.slice(5)
     setDrawPile(remaining)
-    setDraftPool(weightedSample(remaining, DRAFT_POOL_SIZE))
+    setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE))
   },[])
 
   function pickDraft(card){
     if(sfx)sfx('click')
     const newHand=[...playerHand,card]
-    // Викидаємо ВЕСЬ поточний пул (не тільки вибрану карту)
     const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
     if(draftRound<DRAFT_ROUNDS-1){
-      // Новий пул — зважено перемішуємо решту колоди
-      const nextPool=weightedSample(newDraw, DRAFT_POOL_SIZE)
-      setPlayerHand(newHand);setDrawPile(newDraw)
-      setDraftPool(nextPool);setDraftRound(r=>r+1)
-    }else{
-      setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')
-    }
+      const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE)
+      setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
+    }else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
   }
   function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
 
   function fight(){
     const pCard=playerSkip?null:playerSelected
     if(!playerSkip&&!playerSelected)return
+
+    // Записуємо відкриту карту
+    if(pCard) onCardPlayed?.(pCard.id)
+
     const cCard=cpuSkip?null:cpuChooseCard(cpuHand,playerSkip)
     const pDisplay=playerSkip?{type:'skip',label:'Пропуск',labelEn:'Skip',emoji:'⏩',color:'#95a5a6'}:playerSelected
     const cDisplay=cpuSkip?{type:'skip',label:'Пропуск',labelEn:'Skip',emoji:'⏩',color:'#95a5a6'}:cCard
@@ -919,24 +868,18 @@ function CpuGame({lang,onBack,sfx}){
     setPlayedCards(prev=>[...prev,{my:pDisplay,opp:cDisplay}])
     if(sfx){const card=pCard||cCard;if(card?.type==='rikishi')sfx('clash');else if(card?.type==='heal')sfx('heal');else if(card?.type==='armor')sfx('armor');else if(card?.type==='strike')sfx('strike');else if(card?.type==='salt')sfx('salt');else if(card?.type==='henka')sfx('henka')}
     const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip)
-    const pHpD=newPHp-playerHp;const oHpD=newOHp-cpuHp
-    const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
+    const pHpD=newPHp-playerHp;const oHpD=newOHp-cpuHp;const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
     setMyHpDelta(pHpD);setOppHpDelta(oHpD);setMyArmorDelta(pArD);setOppArmorDelta(oArD)
     setMyFlash(pHpD<0?'damage':pHpD>0?'heal':pArD>0?'armor':null)
     setOppFlash(oHpD<0?'damage':oHpD>0?'heal':oArD>0?'armor':null)
     setPlayerHp(newPHp);setCpuHp(newOHp);setPlayerArmor(newPArmor);setCpuArmor(newOArmor);setRoundLog(logs)
     setPlayerSkip(pNextSkip);setCpuSkip(oNextSkip)
     if(roundWinner==='p')setPlayerWins(w=>w+1);else if(roundWinner==='o')setCpuWins(w=>w+1)
-    // СПІЛЬНА КОЛОДА: використані картки видаляються, решта — спільний пул
     let usedIds=new Set([pCard?.id,cCard?.id].filter(Boolean))
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    // Добір: гравець бере зважено, CPU — рандомно
-    if(newDraw.length>0){
-      const drawn=weightedSample(newDraw,1)
-      newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)
-    }
+    if(newDraw.length>0){const drawn=weightedSample(newDraw,1);newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)}
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
     if(newPHp<=0||newOHp<=0){setPhase('gameOver');return}
@@ -966,8 +909,8 @@ function CpuGame({lang,onBack,sfx}){
   </div>)
 }
 
-// ── Кампанія ─────────────────────────────────────────────────
-function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack,lang,sfx}){
+// ── CampaignBattleWrapper ─────────────────────────────────────
+function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, onBack, lang, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const SANYAKU=['Yokozuna','Ozeki','Sekiwake','Komusubi']
   const [phase,setPhase]=useState('draft')
@@ -999,7 +942,7 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   const [envelopesEarned,setEnvelopesEarned]=useState(0)
 
   useEffect(()=>{
-    const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(() => true)))
+    const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)))
     const cpuCards=shared.slice(0,5)
     setCpuHand(cpuCards)
     const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id))
@@ -1023,6 +966,10 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   function fight(){
     const pCard=playerSkip?null:playerSelected
     if(!playerSkip&&!playerSelected)return
+
+    // Записуємо відкриту карту
+    if(pCard) onCardPlayed?.(pCard.id)
+
     const pCardFinal=pCard&&tempBoosts?.battle_spirit>0?{...pCard,atk:(pCard.atk||0)+2}:pCard
     const cCard=cpuSkip?null:cpuChooseCard(cpuHand,playerSkip)
     const pDisplay=playerSkip?{type:'skip',label:'Пропуск',labelEn:'Skip',emoji:'⏩',color:'#95a5a6'}:playerSelected
@@ -1043,12 +990,7 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    // Гравець добирає зважено
-    if(newDraw.length>0){
-      const drawn=weightedSample(newDraw,1)
-      newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)
-    }
-    // CPU добирає тільки карти свого рівня (cpuDeckFilter)
+    if(newDraw.length>0){const drawn=weightedSample(newDraw,1);newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)}
     const cpuFilter=level.cpuDeckFilter||(()=>true)
     const cpuDraw=newDraw.filter(cpuFilter)
     if(cpuDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,cpuDraw.length));newCH=[...newCH,cpuDraw[idx]];newDraw=newDraw.filter(c=>c.id!==cpuDraw[idx].id)}
@@ -1083,8 +1025,8 @@ function CampaignBattleWrapper({level,boostedCard,tempBoosts,onWin,onLose,onBack
   </div>)
 }
 
-// ── Мультиплеєр — СПІЛЬНА КОЛОДА ────────────────────────────
-function MultiGame({lang,onBack,sfx}){
+// ── MultiGame ─────────────────────────────────────────────────
+function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const [screen,setScreen]=useState('lobby')
   const [role,setRole]=useState(null)
@@ -1131,15 +1073,12 @@ function MultiGame({lang,onBack,sfx}){
     const p2Card=p2Skip?null:getCardById(data.p2.selectedCard)
     const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip}=resolveRound(p1Card,p2Card,data.p1.hp,data.p2.hp,data.p1.armor||0,data.p2.armor||0,p1Skip,p2Skip)
     const newRound=(data.roundNum||0)+1
-    // СПІЛЬНА КОЛОДА: видаляємо використані картки з deck
     const usedIds=new Set([data.p1.selectedCard,data.p2.selectedCard].filter(Boolean))
     const p1H=(data.p1.hand||[]).filter(id=>id!==data.p1.selectedCard)
     const p2H=(data.p2.hand||[]).filter(id=>id!==data.p2.selectedCard)
-    // draw pile = спільна колода мінус руки мінус використані
     const allUsed=new Set([...p1H,...p2H,...usedIds])
     const draw=(data.deck||[]).filter(id=>!allUsed.has(id))
     let fp1=[...p1H],fp2=[...p2H]
-    // Зважений добір для обох гравців з решти колоди
     const drawCards=draw.map(id=>getCardById(id)).filter(Boolean)
     if(drawCards.length>0){const d1=weightedSample(drawCards,1);fp1=[...fp1,d1[0].id];const rem=drawCards.filter(c=>c.id!==d1[0].id);if(rem.length>0){const d2=weightedSample(rem,1);fp2=[...fp2,d2[0].id]}}
     const kyujo=newPHp<=0||newOHp<=0
@@ -1157,13 +1096,9 @@ function MultiGame({lang,onBack,sfx}){
       [`clash/${sid}/roundNum`]:newRound,[`clash/${sid}/roundLog`]:logs,
       [`clash/${sid}/status`]:isOver?'gameOver':'roundResult',[`clash/${sid}/processing`]:false,
     })
-    const sys1Card=p1Skip?null:getCardById(data.p1.selectedCard)
-    const sys2Card=p2Skip?null:getCardById(data.p2.selectedCard)
-    const p1Name=p1Skip?'⏩ Пропуск':(sys1Card?.id||'?')
-    const p2Name=p2Skip?'⏩ Пропуск':(sys2Card?.id||'?')
     const sysTs=Date.now()
     await update(ref(db),{
-      [`clash/${sid}/chat/${sysTs}`]:{text:`⚔️ Раунд ${newRound}: Ояката 1 → ${p1Name} | Ояката 2 → ${p2Name}`,role:'system',ts:sysTs},
+      [`clash/${sid}/chat/${sysTs}`]:{text:`⚔️ Раунд ${newRound}: Ояката 1 → ${p1Skip?'⏩ Пропуск':(p1Card?.id||'?')} | Ояката 2 → ${p2Skip?'⏩ Пропуск':(p2Card?.id||'?')}`,role:'system',ts:sysTs},
       [`clash/${sid}/chat/${sysTs+1}`]:{text:roundWinner==='p'?'✅ Раунд: Ояката 1':roundWinner==='o'?'✅ Раунд: Ояката 2':'🤝 Нічия',role:'system',ts:sysTs+1},
     })
   }
@@ -1178,8 +1113,7 @@ function MultiGame({lang,onBack,sfx}){
     if(status==='battle'&&screen==='roundResult'){
       const newMyHp=session[mk]?.hp??MAX_HP;const newOppHp=session[ok]?.hp??MAX_HP
       const newMyAr=session[mk]?.armor??0;const newOppAr=session[ok]?.armor??0
-      const mhd=newMyHp-prevHp.my;const ohd=newOppHp-prevHp.opp
-      const mad=newMyAr-prevArmor.my;const oad=newOppAr-prevArmor.opp
+      const mhd=newMyHp-prevHp.my;const ohd=newOppHp-prevHp.opp;const mad=newMyAr-prevArmor.my;const oad=newOppAr-prevArmor.opp
       setMyFlash(mhd<0?'damage':mhd>0?'heal':mad>0?'armor':null)
       setOppFlash(ohd<0?'damage':ohd>0?'heal':oad>0?'armor':null)
       setPrevHp({my:newMyHp,opp:newOppHp});setPrevArmor({my:newMyAr,opp:newOppAr})
@@ -1192,15 +1126,11 @@ function MultiGame({lang,onBack,sfx}){
   },[session?.status,session?.roundNum,session?.p2?.joined,session?.battleTrigger])
 
   async function createSession(){
-    // Зважено перемішуємо колоду — рідкісні карти рідше потрапляють на початок
     const shared=weightedShuffle(FULL_DECK);const ids=shared.map(c=>c.id)
-    // Початкові пули — зважений вибір для обох гравців
     const p1PoolCards=weightedSample(shared,DRAFT_POOL_SIZE)
     const remaining1=shared.filter(c=>!p1PoolCards.find(x=>x.id===c.id))
     const p2PoolCards=weightedSample(remaining1,DRAFT_POOL_SIZE)
-    const p1Pool=p1PoolCards.map(c=>c.id)
-    const p2Pool=p2PoolCards.map(c=>c.id)
-    await set(ref(db,`clash/${generateCode()}`),null)
+    const p1Pool=p1PoolCards.map(c=>c.id);const p2Pool=p2PoolCards.map(c=>c.id)
     const code=generateCode()
     await set(ref(db,`clash/${code}`),{status:'waiting',deck:ids,roundNum:0,roundLog:[],lastCards:null,processing:false,
       p1:{joined:true,hp:MAX_HP,armor:0,hand:[],draftPool:p1Pool,draftRound:0,wins:0,ready:false,draftDone:false,selectedCard:null,skipNext:false},
@@ -1226,12 +1156,10 @@ function MultiGame({lang,onBack,sfx}){
     const mk=role==='host'?'p1':'p2';const myData=data[mk]
     const currentHand=[...new Set([...(myData.hand||[]),card.id])]
     const newDraftRound=(myData.draftRound||0)+1;const isDone=newDraftRound>=DRAFT_ROUNDS
-    // Викидаємо ВЕСЬ поточний пул, наступний — зважений вибір
     const currentPool=myData.draftPool||[]
     const takenIds=new Set([...(data.p1?.hand||[]),...(data.p2?.hand||[]),...currentPool])
     const available=data.deck.filter(id=>!takenIds.has(id)).map(id=>getCardById(id)).filter(Boolean)
-    const nextPoolCards=weightedSample(available,DRAFT_POOL_SIZE)
-    const nextPool=nextPoolCards.map(c=>c.id)
+    const nextPoolCards=weightedSample(available,DRAFT_POOL_SIZE);const nextPool=nextPoolCards.map(c=>c.id)
     let updates={[`clash/${sessionId}/${mk}/hand`]:currentHand,[`clash/${sessionId}/${mk}/draftRound`]:newDraftRound,[`clash/${sessionId}/${mk}/draftDone`]:isDone}
     if(!isDone)updates[`clash/${sessionId}/${mk}/draftPool`]=nextPool
     await update(ref(db),updates)
@@ -1254,6 +1182,10 @@ function MultiGame({lang,onBack,sfx}){
   async function submitCard(){
     const mk=role==='host'?'p1':'p2';const mySkip=session?.[mk]?.skipNext||false
     if(!mySkip&&!playerSelected||submitting)return
+
+    // Записуємо відкриту карту
+    if(playerSelected) onCardPlayed?.(playerSelected.id)
+
     setSubmitting(true)
     await update(ref(db,`clash/${sessionId}/${mk}`),{selectedCard:mySkip?'SKIP':(playerSelected?.id||'SKIP'),ready:true})
   }
@@ -1279,7 +1211,6 @@ function MultiGame({lang,onBack,sfx}){
   const lastCards=session?.lastCards
   const myLastCard=lastCards?getCardById(lastCards[mk]):null
   const oppLastCard=lastCards?getCardById(lastCards[ok]):null
-  // СПІЛЬНА КОЛОДА: draw pile = всі картки мінус руки обох гравців
   const allHandIds=new Set([...(session?.p1?.hand||[]),...(session?.p2?.hand||[])])
   const deckForSwap=(session?.deck||[]).map(id=>getCardById(id)).filter(c=>c&&!allHandIds.has(c.id))
   const oya1=t('Ояката 1','Oyakata 1');const oya2=t('Ояката 2','Oyakata 2')
@@ -1292,33 +1223,23 @@ function MultiGame({lang,onBack,sfx}){
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
     {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease',padding:'2rem 1rem'}}>
       <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🌐</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'1.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 4px rgba(0,0,0,0.9)'}}>{t('Мультиплеєр','Multiplayer')}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'1.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>{t('Мультиплеєр','Multiplayer')}</div>
       <GameBtn variant='gold' onClick={createSession} style={{width:'100%',maxWidth:480,justifyContent:'center',padding:'0.9rem',fontSize:'0.9rem',letterSpacing:'0.1em',marginBottom:'1rem',boxShadow:'0 4px 20px rgba(184,134,11,0.5)'}}>
         {t('Створити гру (Ояката 1)','Create game (Oyakata 1)')}
       </GameBtn>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.75rem'}}>{t('або','or')}</div>
       <div style={{display:'flex',gap:8,marginBottom:'0.5rem',maxWidth:480,margin:'0 auto 0.5rem'}}>
-        <input
-          value={inputCode}
-          onChange={e=>setInputCode(e.target.value.toUpperCase())}
-          placeholder={t('КОД СЕСІЇ...','SESSION CODE...')}
-          maxLength={6}
-          style={{flex:1,padding:'0.75rem 1rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'2px solid #4a3e28',color:'#f0c060',fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,borderRadius:5,outline:'none',letterSpacing:'0.3em',textTransform:'uppercase',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)'}}
-        />
-        <GameBtn variant='dark' onClick={joinSession} style={{padding:'0.75rem 1.25rem',fontSize:'0.85rem',fontWeight:700}}>
-          {t('Ояката 2','Oyakata 2')}
-        </GameBtn>
+        <input value={inputCode} onChange={e=>setInputCode(e.target.value.toUpperCase())} placeholder={t('КОД СЕСІЇ...','SESSION CODE...')} maxLength={6} style={{flex:1,padding:'0.75rem 1rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'2px solid #4a3e28',color:'#f0c060',fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,borderRadius:5,outline:'none',letterSpacing:'0.3em',textTransform:'uppercase',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)'}}/>
+        <GameBtn variant='dark' onClick={joinSession} style={{padding:'0.75rem 1.25rem',fontSize:'0.85rem',fontWeight:700}}>{t('Ояката 2','Oyakata 2')}</GameBtn>
       </div>
-      {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#e74c3c',marginTop:8,textShadow:'0 1px 2px rgba(0,0,0,0.8)'}}>{error}</div>}
+      {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#e74c3c',marginTop:8}}>{error}</div>}
     </div>)}
     {screen==='waiting'&&(<div style={{textAlign:'center',paddingTop:'3rem',animation:'slideIn 0.25s ease'}}>
       <div style={{fontSize:'3rem',marginBottom:'1rem',animation:'pulse 1.5s ease infinite'}}>⏳</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:900,color:'#f0c060',marginBottom:'0.5rem',textShadow:'0 0 16px rgba(240,192,96,0.6), 0 2px 6px rgba(0,0,0,0.9)',letterSpacing:'0.05em'}}>
-        {role==='host'?t('Ояката 1 чекає...','Oyakata 1 waiting...'):t('Ояката 2 підключається...','Oyakata 2 connecting...')}
-      </div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:900,color:'#f0c060',marginBottom:'0.5rem',textShadow:'0 0 16px rgba(240,192,96,0.6)'}}>{role==='host'?t('Ояката 1 чекає...','Oyakata 1 waiting...'):t('Ояката 2 підключається...','Oyakata 2 connecting...')}</div>
       {role==='host'&&<div style={{background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid #4a3e28',borderRadius:8,padding:'1.5rem 2.5rem',display:'inline-block',animation:'pop 0.4s ease',marginTop:'1rem',boxShadow:'0 8px 32px rgba(0,0,0,0.8)'}}>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#8a7a60',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.12em'}}>{t('Код для Ояката 2','Code for Oyakata 2')}</div>
-        <div style={{fontFamily:'var(--jp)',fontSize:'3rem',fontWeight:900,color:'#f0c060',letterSpacing:'0.4em',textShadow:'0 0 20px rgba(240,192,96,0.5), 0 2px 6px rgba(0,0,0,0.9)'}}>{sessionId}</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'3rem',fontWeight:900,color:'#f0c060',letterSpacing:'0.4em',textShadow:'0 0 20px rgba(240,192,96,0.5)'}}>{sessionId}</div>
       </div>}
     </div>)}
     {screen==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
@@ -1350,21 +1271,19 @@ function MultiGame({lang,onBack,sfx}){
   </div>)
 }
 
-// ── Модальне вікно "Оцінити гру" ─────────────────────────────
+// ── ReviewModal ───────────────────────────────────────────────
 function ReviewModal({onClose,onSubmit,lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [stars,setStars]=useState(0)
   const [hovered,setHovered]=useState(0)
   const [comment,setComment]=useState('')
   const [submitted,setSubmitted]=useState(false)
-
   async function handleSubmit(){
     if(stars===0)return
     await onSubmit(stars,comment)
     setSubmitted(true)
     setTimeout(onClose,1800)
   }
-
   if(submitted)return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>
       <div style={{background:'var(--card)',border:'1px solid #b8860b',borderRadius:8,padding:'2rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.3s ease'}}>
@@ -1373,53 +1292,24 @@ function ReviewModal({onClose,onSubmit,lang}){
       </div>
     </div>
   )
-
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:8,padding:'1.5rem',maxWidth:360,width:'90%',animation:'pop 0.25s ease',boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}>
-        {/* Заголовок */}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,color:'var(--ink)'}}>
-            🏅 {t('Оцінити гру','Rate the game')}
-          </div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,color:'var(--ink)'}}>🏅 {t('Оцінити гру','Rate the game')}</div>
           <button onClick={onClose} style={{background:'transparent',border:'none',color:'var(--mid)',fontSize:'1.2rem',cursor:'pointer',lineHeight:1,padding:0}}>✕</button>
         </div>
-
-        {/* Зірки кінбоші */}
         <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:'1rem'}}>
           {[1,2,3,4,5].map(i=>(
-            <div
-              key={i}
-              onClick={()=>setStars(i)}
-              onMouseEnter={()=>setHovered(i)}
-              onMouseLeave={()=>setHovered(0)}
-              style={{fontSize:'2.2rem',cursor:'pointer',transition:'transform 0.1s',transform:(hovered||stars)>=i?'scale(1.15)':'scale(1)',filter:(hovered||stars)>=i?'none':'grayscale(1) opacity(0.35)'}}
-            >🏅</div>
+            <div key={i} onClick={()=>setStars(i)} onMouseEnter={()=>setHovered(i)} onMouseLeave={()=>setHovered(0)} style={{fontSize:'2.2rem',cursor:'pointer',transition:'transform 0.1s',transform:(hovered||stars)>=i?'scale(1.15)':'scale(1)',filter:(hovered||stars)>=i?'none':'grayscale(1) opacity(0.35)'}}>🏅</div>
           ))}
         </div>
         <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)',textAlign:'center',marginBottom:'1.25rem',minHeight:18}}>
-          {stars===0?t('Оберіть кінбоші','Select kinboshi'):
-           stars===1?t('Слабо','Weak'):
-           stars===2?t('Нормально','OK'):
-           stars===3?t('Добре','Good'):
-           stars===4?t('Відмінно','Great'):
-           t('Йокодзуна! Шедевр!','Yokozuna! Masterpiece!')}
+          {stars===0?t('Оберіть кінбоші','Select kinboshi'):stars===1?t('Слабо','Weak'):stars===2?t('Нормально','OK'):stars===3?t('Добре','Good'):stars===4?t('Відмінно','Great'):t('Йокодзуна! Шедевр!','Yokozuna! Masterpiece!')}
         </div>
-
-        {/* Коментар */}
-        <textarea
-          value={comment}
-          onChange={e=>setComment(e.target.value.slice(0,280))}
-          placeholder={t('Ваш відгук (необов\'язково)...','Your feedback (optional)...')}
-          rows={3}
-          style={{width:'100%',boxSizing:'border-box',padding:'0.65rem 0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',borderRadius:4,outline:'none',resize:'none',lineHeight:1.6,marginBottom:'1rem'}}
-        />
-
-        {/* Кнопки */}
+        <textarea value={comment} onChange={e=>setComment(e.target.value.slice(0,280))} placeholder={t('Ваш відгук (необов\'язково)...','Your feedback (optional)...')} rows={3} style={{width:'100%',boxSizing:'border-box',padding:'0.65rem 0.75rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',fontFamily:'var(--jp)',fontSize:'0.72rem',borderRadius:4,outline:'none',resize:'none',lineHeight:1.6,marginBottom:'1rem'}}/>
         <div style={{display:'flex',gap:8}}>
-          <button onClick={onClose} style={{flex:1,padding:'0.7rem',background:'var(--bg2)',color:'var(--mid)',border:'1px solid var(--border)',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer'}}>
-            {t('Пізніше','Later')}
-          </button>
+          <button onClick={onClose} style={{flex:1,padding:'0.7rem',background:'var(--bg2)',color:'var(--mid)',border:'1px solid var(--border)',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer'}}>{t('Пізніше','Later')}</button>
           <button onClick={handleSubmit} disabled={stars===0} style={{flex:2,padding:'0.7rem',background:stars>0?'#b8860b':'var(--bg2)',color:stars>0?'#fff':'var(--mid)',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,cursor:stars>0?'pointer':'default',transition:'all 0.15s'}}>
             {stars>0?t('⚔ Надіслати','⚔ Submit'):t('Оберіть оцінку','Choose rating')}
           </button>
@@ -1429,9 +1319,9 @@ function ReviewModal({onClose,onSubmit,lang}){
   )
 }
 
-// ── Головний компонент ────────────────────────────────────────
-export default function SumoClash({onClose,lang='uk'}){
-  const [mode,setMode]=useState('menu') // menu | cpu | campaign | multi | cardbook
+// ── SumoClash (головний компонент) ────────────────────────────
+export default function SumoClash({ onClose, lang='uk' }) {
+  const [mode, setMode] = useState('menu')
   const t=(uk,en)=>lang==='en'?en:uk
   const audioCtxRef=useRef(null)
   const audioRef=useRef(null)
@@ -1440,9 +1330,39 @@ export default function SumoClash({onClose,lang='uk'}){
   const [musicTheme,setMusicTheme]=useState('dohyo')
   const [confirmExit,setConfirmExit]=useState(false)
   const [showReview,setShowReview]=useState(false)
-  const [gameTheme,setGameTheme]=useState('dark') // 'dark' | 'light'
+  const [gameTheme,setGameTheme]=useState('dark')
 
-  // CSS змінні для теми гри — перекривають глобальні
+  // ── Система відкриття карток ──────────────────────────────
+  const [discoveredCards, setDiscoveredCards] = useState(new Set())
+  const [discoveryUid, setDiscoveryUid] = useState(null)
+
+  useEffect(() => {
+    getSumoClashUid().then(async uid => {
+      setDiscoveryUid(uid)
+      if (uid) {
+        try {
+          const snap = await get(ref(db, `campaignUsers/${uid}/discoveredCards`))
+          const val = snap.val()
+          if (val && Array.isArray(val)) setDiscoveredCards(new Set(val))
+        } catch(e) { console.warn('Could not load discovered cards', e) }
+      }
+    })
+  }, [])
+
+  async function handleCardDiscovered(cardId) {
+    if (!cardId || discoveredCards.has(cardId)) return
+    const next = new Set(discoveredCards)
+    next.add(cardId)
+    setDiscoveredCards(next)
+    if (discoveryUid) {
+      try {
+        await update(ref(db, `campaignUsers/${discoveryUid}`), {
+          discoveredCards: [...next]
+        })
+      } catch(e) { console.warn('Could not save discovered card', e) }
+    }
+  }
+
   const DARK_VARS = {
     '--card':'#1a1814','--bg':'#13110e','--bg2':'rgba(255,255,255,0.06)',
     '--ink':'rgba(255,255,255,0.9)','--mid':'rgba(255,255,255,0.45)',
@@ -1460,24 +1380,13 @@ export default function SumoClash({onClose,lang='uk'}){
   async function submitReview(stars,comment){
     try{
       const ts=Date.now()
-      await update(ref(db,`analytics/games/sumoClash/reviews/${ts}`),{
-        stars,
-        comment:comment.trim()||null,
-        ts,
-        lang,
-        mode: mode==='menu'?'general':mode,
-      })
+      await update(ref(db,`analytics/games/sumoClash/reviews/${ts}`),{stars,comment:comment.trim()||null,ts,lang,mode:mode==='menu'?'general':mode})
       const snap=await get(ref(db,'analytics/games/sumoClash/totalReviews'))
-      const current=snap.val()||0
-      await update(ref(db,'analytics/games/sumoClash'),{totalReviews:current+1})
+      await update(ref(db,'analytics/games/sumoClash'),{totalReviews:(snap.val()||0)+1})
     }catch(e){console.error('Review error:',e)}
   }
 
-  function handleClose(){
-    setConfirmExit(false)
-    setShowReview(true)
-  }
-
+  function handleClose(){setConfirmExit(false);setShowReview(true)}
   function ensureCtx(){if(!audioCtxRef.current)audioCtxRef.current=createAudioContext();return audioCtxRef.current}
   function sfx(type){if(sfxOn){const ctx=ensureCtx();playSound(ctx,type)}}
   function toggleSfx(){sfx('click');setSfxOn(v=>!v)}
@@ -1503,7 +1412,7 @@ export default function SumoClash({onClose,lang='uk'}){
       {confirmExit&&(
         <div onClick={e=>e.stopPropagation()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:3000,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div style={{...themeVars,background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',border:'1px solid #4a3e28',borderRadius:8,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'pop 0.2s ease',boxShadow:'0 16px 48px rgba(0,0,0,0.9)'}}>
-            <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:700,color:'#f0c060',marginBottom:'0.5rem',textShadow:'0 0 10px rgba(240,192,96,0.4)'}}>{t('Вийти з гри?','Exit game?')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:700,color:'#f0c060',marginBottom:'0.5rem'}}>{t('Вийти з гри?','Exit game?')}</div>
             <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#8a7a60',marginBottom:'1.25rem'}}>{t('Прогрес поточної гри буде втрачено','Current game progress will be lost')}</div>
             <div style={{display:'flex',gap:10}}>
               <GameBtn variant='dark' onClick={()=>setConfirmExit(false)} style={{flex:1,justifyContent:'center',padding:'0.7rem'}}>{t('Залишитись','Stay')}</GameBtn>
@@ -1512,22 +1421,15 @@ export default function SumoClash({onClose,lang='uk'}){
           </div>
         </div>
       )}
+
       <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
         <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:1100,width:'100%',maxHeight:'96vh',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
           {/* Header */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <img
-                src="/images/dohyo-legends-logo.png"
-                alt="DOHYO LEGENDS"
-                style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}}
-                onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}
-              />
-              <span style={{display:'none',alignItems:'center',gap:6}}>
-                <span style={{fontSize:'1.1rem'}}>⚔️</span>
-                <span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5), 0 1px 3px rgba(0,0,0,0.9)'}}>DOHYO LEGENDS</span>
-              </span>
+              <img src="/images/dohyo-legends-logo.png" alt="DOHYO LEGENDS" style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
+              <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>DOHYO LEGENDS</span></span>
               {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
             <div style={{display:'flex',alignItems:'center',gap:5}}>
@@ -1544,36 +1446,17 @@ export default function SumoClash({onClose,lang='uk'}){
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.png)',backgroundSize:'cover',backgroundPosition:'center'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
               <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
-                <img
-                  src="/images/dohyo-legends-logo.png"
-                  alt="DOHYO LEGENDS"
-                  style={{
-                    maxWidth:580,
-                    width:'88%',
-                    height:'auto',
-                    animation:'pop 0.5s ease',
-                    filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',
-                    marginBottom:'0.25rem',
-                  }}
-                  onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}
-                />
-                <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7), 0 2px 8px rgba(0,0,0,0.9)',letterSpacing:'0.2em',textTransform:'uppercase'}}>
-                  DOHYO LEGENDS
-                </div>
-
+                <img src="/images/dohyo-legends-logo.png" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
+                <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7)',letterSpacing:'0.2em',textTransform:'uppercase'}}>DOHYO LEGENDS</div>
                 {[
                   {img:'btn-campaign.png', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
                   {img:'btn-cpu.png',      action:()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}},
                   {img:'btn-multi.png',    action:()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}},
                   {img:'btn-cardbook.png', action:()=>{sfx('click');setMode('cardbook')}},
                 ].map(btn=>(
-                  <div
-                    key={btn.img}
-                    onClick={btn.action}
-                    style={{width:'100%',maxWidth:360,height:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
+                  <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:360,height:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
                     onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.6)'}}
-                  >
+                    onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.6)'}}>
                     <img src={`/images/${btn.img}`} alt="" style={{width:'100%',height:'100%',objectFit:'fill',display:'block'}}/>
                   </div>
                 ))}
@@ -1581,31 +1464,62 @@ export default function SumoClash({onClose,lang='uk'}){
             </div>
           )}
 
-          {/* CardBook */}
-          {mode==='cardbook'&&<CardBook lang={lang} onClose={()=>setMode('menu')}/>}
+          {/* CardBook — передаємо discoveredCards */}
+          {mode==='cardbook' && (
+            <CardBook
+              lang={lang}
+              onClose={()=>setMode('menu')}
+              discoveredCards={discoveredCards}
+            />
+          )}
 
-          {/* Modes */}
-          {mode==='cpu'&&(
+          {/* CPU — передаємо onCardPlayed */}
+          {mode==='cpu' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
+              <CpuGame
+                lang={lang}
+                onBack={()=>setMode('menu')}
+                sfx={sfx}
+                onCardPlayed={handleCardDiscovered}
+              />
             </div>
           )}
-          {mode==='campaign'&&(
+
+          {/* Campaign — передаємо onCardPlayed через GameBattle */}
+          {mode==='campaign' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <SumoClashCampaign onBack={()=>setMode('menu')} lang={lang} GameBattle={(props)=><CampaignBattleWrapper {...props} sfx={sfx}/>}/>
+              <SumoClashCampaign
+                onBack={()=>setMode('menu')}
+                lang={lang}
+                GameBattle={(props) => (
+                  <CampaignBattleWrapper
+                    {...props}
+                    sfx={sfx}
+                    onCardPlayed={handleCardDiscovered}
+                  />
+                )}
+              />
             </div>
           )}
-          {mode==='multi'&&(
+
+          {/* Multi — передаємо onCardPlayed */}
+          {mode==='multi' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx}/>
+              <MultiGame
+                lang={lang}
+                onBack={()=>setMode('menu')}
+                sfx={sfx}
+                onCardPlayed={handleCardDiscovered}
+              />
             </div>
           )}
+
         </div>
       </div>
     </>

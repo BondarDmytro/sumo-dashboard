@@ -1,87 +1,113 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { db } from '../lib/firebase'
-import { ref, get, set, update, onValue, off } from 'firebase/database'
+import { ref, get, update } from 'firebase/database'
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth'
 
-// ── Константи ───────────────────────────────────────────────
-const MAX_HP_PLAYER = 40
 const CAMPAIGN_LEVELS = [
   {
     id: 1, name: 'Маегашіра', nameEn: 'Maegashira', emoji: '🟤',
     bossHp: 30, bossArmor: 0, reward: 100, starReward: 20,
-    desc: 'Новачок дохьо. Слабкий суперник, але не розслабляйся.',
-    descEn: 'A dohyo newcomer. Weak opponent, but stay focused.',
-    cpuDeckFilter: (card) => {
-      if (card.type === 'rikishi') return card.rank === 'Maegashira'
-      return ['heal'].includes(card.type)
-    },
+    desc: 'Новачок дохьо. Тільки маєгашіра.',
+    descEn: 'A dohyo newcomer. Maegashira only.',
+    cpuDeckFilter: c => c.type==='rikishi'?c.rank==='Maegashira':c.type==='heal'&&c.heal<=5,
+    playerDeckFilter: c => c.type==='rikishi'?['Maegashira','Komusubi'].includes(c.rank):true,
     cpuHpMax: 30,
   },
   {
     id: 2, name: 'Комусубі', nameEn: 'Komusubi', emoji: '🔵',
     bossHp: 35, bossArmor: 0, reward: 150, starReward: 25,
-    desc: 'Сходинка до сан\'яку. Вже знає як битись.',
-    descEn: 'A step toward sanyaku. Knows how to fight.',
-    cpuDeckFilter: (card) => {
-      if (card.type === 'rikishi') return ['Maegashira','Komusubi'].includes(card.rank)
-      return ['heal','armor'].includes(card.type)
-    },
+    desc: 'Сходинка до сан\'яку. Маєгашіра + Комусубі.',
+    descEn: 'A step toward sanyaku.',
+    cpuDeckFilter: c => c.type==='rikishi'?['Maegashira','Komusubi'].includes(c.rank):['heal','armor'].includes(c.type)&&(c.heal||0)<=5&&(c.armor||0)<=5,
+    playerDeckFilter: c => c.type==='rikishi'?['Maegashira','Komusubi','Sekiwake'].includes(c.rank):true,
     cpuHpMax: 35,
   },
   {
-    id: 3, name: 'Секівake', nameEn: 'Sekiwake', emoji: '🟣',
+    id: 3, name: 'Секіваке', nameEn: 'Sekiwake', emoji: '🟣',
     bossHp: 40, bossArmor: 5, reward: 200, starReward: 30,
-    desc: 'Сан\'яку. Починає з бойовою стійкою.',
-    descEn: 'Sanyaku. Starts with battle stance armor.',
-    cpuDeckFilter: (card) => {
-      if (card.type === 'rikishi') return ['Maegashira','Komusubi','Sekiwake'].includes(card.rank)
-      return ['heal','armor','strike'].includes(card.type)
-    },
+    desc: 'Сан\'яку. До Секіваке включно.',
+    descEn: 'Sanyaku. Up to Sekiwake.',
+    cpuDeckFilter: c => c.type==='rikishi'?['Maegashira','Komusubi','Sekiwake'].includes(c.rank):['heal','armor','strike'].includes(c.type)&&(c.damage||0)<=5,
+    playerDeckFilter: () => true,
     cpuHpMax: 40,
   },
   {
     id: 4, name: 'Озекі', nameEn: 'Ozeki', emoji: '🟢',
     bossHp: 45, bossArmor: 0, reward: 300, starReward: 40,
-    desc: 'Майже вершина. Повна колода, розумна тактика.',
-    descEn: 'Near the top. Full deck, smart tactics.',
-    cpuDeckFilter: () => true,
+    desc: 'Майже вершина. До Озекі включно.',
+    descEn: 'Near the top. Up to Ozeki.',
+    cpuDeckFilter: c => c.type==='rikishi'?['Maegashira','Komusubi','Sekiwake','Ozeki'].includes(c.rank):true,
+    playerDeckFilter: () => true,
     cpuHpMax: 45,
   },
   {
     id: 5, name: 'Йокодзуна', nameEn: 'Yokozuna', emoji: '🟡',
     bossHp: 60, bossArmor: 10, reward: 500, starReward: 50,
-    desc: 'БОС. Починає з +10 броні. Має смертельний удар.',
-    descEn: 'BOSS. Starts with +10 armor. Has deadly strike.',
+    desc: 'БОС. Повна колода. +10 броні на старті.',
+    descEn: 'BOSS. Full deck. +10 armor.',
     isBoss: true,
     cpuDeckFilter: () => true,
+    playerDeckFilter: () => true,
     cpuHpMax: 60,
   },
 ]
 
 const SHOP_ITEMS = [
-  { id: 'atk_boost', type: 'permanent', label: '+1 ATK', labelEn: '+1 ATK', desc: 'Обрана карта +1 до атаки назавжди (в межах кампанії)', descEn: 'Selected card +1 ATK for this campaign', price: 150, emoji: '⚔️' },
-  { id: 'def_boost', type: 'permanent', label: '+1 DEF', labelEn: '+1 DEF', desc: 'Обрана карта +1 до захисту назавжди (в межах кампанії)', descEn: 'Selected card +1 DEF for this campaign', price: 150, emoji: '🛡' },
-  { id: 'battle_spirit', type: 'temp', label: 'Бойовий дух', labelEn: 'Battle Spirit', desc: 'Всі ATK +2 на 1 бій', descEn: 'All ATK +2 for 1 fight', price: 80, emoji: '🔥' },
-  { id: 'iron_stance', type: 'temp', label: 'Залізна стійка', labelEn: 'Iron Stance', desc: 'Починаєш бій з +5 броні', descEn: 'Start fight with +5 armor', price: 100, emoji: '🦾' },
-  { id: 'water_shield', type: 'temp', label: 'Водний щит', labelEn: 'Water Shield', desc: 'Перша отримана шкода блокується', descEn: 'First damage taken is blocked', price: 130, emoji: '💧' },
+  { id:'atk_boost',     type:'permanent', label:'+1 ATK',         labelEn:'+1 ATK',        desc:'Обрана карта +1 ATK (вся кампанія)', descEn:'Selected card +1 ATK (whole campaign)', price:150, emoji:'⚔️' },
+  { id:'def_boost',     type:'permanent', label:'+1 DEF',         labelEn:'+1 DEF',        desc:'Обрана карта +1 DEF (вся кампанія)', descEn:'Selected card +1 DEF (whole campaign)', price:150, emoji:'🛡'  },
+  { id:'battle_spirit', type:'temp',      label:'Бойовий дух',    labelEn:'Battle Spirit', desc:'Всі ATK +2 на 1 бій',                descEn:'All ATK +2 for 1 fight',               price:80,  emoji:'🔥' },
+  { id:'iron_stance',   type:'temp',      label:'Залізна стійка', labelEn:'Iron Stance',   desc:'Починаєш бій з +5 броні',            descEn:'Start fight with +5 armor',            price:100, emoji:'🦾' },
+  { id:'water_shield',  type:'temp',      label:'Водний щит',     labelEn:'Water Shield',  desc:'Перша шкода блокується',             descEn:'First damage blocked',                 price:130, emoji:'💧' },
 ]
 
-const ENVELOPE_REWARDS = [50, 75, 100, 125, 150]
+// Розміри оригінального зображення bg-shop.png
+const BG_W = 1586
+const BG_H = 992
 
-// ── Firebase Auth ────────────────────────────────────────────
+// Координати центрів слотів у ПІКСЕЛЯХ оригінального bg-shop.png (1586×992)
+// Виміряно піксельним аналізом самого файлу bg-shop.png:
+//   верхній ряд — за межами золотих рамок (золоті пікселі)
+//   нижній ряд  — за центрами яскравих педесталів + висота ніші
+const SHOP_SLOT_POS_PX = {
+  atk_boost:     { cx: 643,  cy: 374, iconSize: 165 },
+  def_boost:     { cx: 946,  cy: 374, iconSize: 165 },
+  battle_spirit: { cx: 565,  cy: 583, iconSize: 135 },
+  iron_stance:   { cx: 794,  cy: 588, iconSize: 135 },
+  water_shield:  { cx: 1021, cy: 586, iconSize: 135 },
+}
+
+const UPGRADE_IMAGES = {
+  atk_boost:      '/images/upgrades/upgrade-atk.png',
+  def_boost:      '/images/upgrades/upgrade-def.png',
+  battle_spirit:  '/images/upgrades/upgrade-spirit.png',
+  iron_stance:    '/images/upgrades/upgrade-stance.png',
+  water_shield:   '/images/upgrades/upgrade-water.png',
+}
+
+const ENVELOPE_REWARDS = [50,75,100,125,150]
+
+const RIKISHI_SAMPLE = [
+  { id:'Y1e', rank:'Yokozuna', rankShort:'Y1e', atk:10, def:7, color:'#b8860b' },
+  { id:'Y1w', rank:'Yokozuna', rankShort:'Y1w', atk:9,  def:8, color:'#b8860b' },
+  { id:'O1e', rank:'Ozeki',    rankShort:'O1e', atk:8,  def:6, color:'#8b1a1a' },
+  { id:'O1w', rank:'Ozeki',    rankShort:'O1w', atk:7,  def:7, color:'#8b1a1a' },
+  { id:'S1e', rank:'Sekiwake', rankShort:'S1e', atk:7,  def:5, color:'#1a4a7a' },
+  { id:'S1w', rank:'Sekiwake', rankShort:'S1w', atk:6,  def:6, color:'#1a4a7a' },
+  { id:'K1e', rank:'Komusubi', rankShort:'K1e', atk:6,  def:4, color:'#1f7a3a' },
+  { id:'K1w', rank:'Komusubi', rankShort:'K1w', atk:5,  def:5, color:'#1f7a3a' },
+]
+
 let _authPromise = null
 function getAnonymousUid() {
   if (!_authPromise) {
-    _authPromise = new Promise((resolve) => {
+    _authPromise = new Promise(resolve => {
       const auth = getAuth()
-      onAuthStateChanged(auth, async (user) => {
-        if (user) { resolve(user.uid) }
+      onAuthStateChanged(auth, async user => {
+        if (user) resolve(user.uid)
         else {
-          try {
-            const cred = await signInAnonymously(auth)
-            resolve(cred.user.uid)
-          } catch { resolve(null) }
+          try { const c = await signInAnonymously(auth); resolve(c.user.uid) }
+          catch { resolve(null) }
         }
       })
     })
@@ -100,154 +126,321 @@ async function saveUserData(uid, data) {
   await update(ref(db, `campaignUsers/${uid}`), data)
 }
 
-// ── Утиліти ─────────────────────────────────────────────────
-function shuffle(arr) {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
+function calcStars(hp, maxHp) {
+  const p = hp / maxHp
+  return p > 0.66 ? 3 : p > 0.33 ? 2 : 1
 }
 
-function calcStars(myHp, maxHp) {
-  const pct = myHp / maxHp
-  if (pct > 0.66) return 3
-  if (pct > 0.33) return 2
-  return 1
-}
-
-// ── Анімації ────────────────────────────────────────────────
 const CAMP_ANIM = `
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap');
+:root { --jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif; }
 @keyframes campSlideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes campPop{0%{transform:scale(0.7);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
-@keyframes campShake{0%,100%{transform:translate(0)}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}}
-@keyframes yokoinFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.4)}}
-@keyframes bossEntrance{0%{opacity:0;transform:scale(2) rotate(-10deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes starPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.3)}100%{transform:scale(1);opacity:1}}
-@keyframes envelopeOpen{0%{transform:rotateX(0)}50%{transform:rotateX(-30deg)}100%{transform:rotateX(0)}}
+@keyframes envelopePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 `
 
-// ── Компоненти ───────────────────────────────────────────────
-function YokoinDisplay({ amount, flash }) {
+// ── Хук: динамічний розрахунок пікселів з урахуванням cover-кропу ──
+// Контейнер з background-size:cover та background-position:center обрізає
+// зображення якщо AR контейнера != AR зображення. Цей хук рахує реальне
+// положення точки (cx,cy) оригіналу у пікселях контейнера.
+function useComputedSlots(containerRef) {
+  const [computed, setComputed] = useState({})
+
+  useEffect(() => {
+    function recalc() {
+      const el = containerRef.current
+      if (!el) return
+      const { width, height } = el.getBoundingClientRect()
+      if (!width || !height) return
+
+      const containerAR = width / height
+      const imageAR    = BG_W / BG_H
+
+      let scale, offsetX, offsetY
+
+      if (containerAR > imageAR) {
+        // Контейнер ширший → зображення масштабується по ширині, обрізається по висоті
+        scale   = width / BG_W
+        offsetX = 0
+        // offsetY < 0 означає що верх зображення "їде" за межі контейнера
+        offsetY = (height - BG_H * scale) / 2
+      } else {
+        // Контейнер вищий → зображення масштабується по висоті, обрізається по ширині
+        scale   = height / BG_H
+        offsetY = 0
+        offsetX = (width - BG_W * scale) / 2
+      }
+
+      const result = {}
+      for (const [id, slot] of Object.entries(SHOP_SLOT_POS_PX)) {
+        result[id] = {
+          left: Math.round(slot.cx * scale + offsetX),  // px від лівого краю контейнера
+          top:  Math.round(slot.cy * scale + offsetY),  // px від верхнього краю контейнера
+          size: Math.round(slot.iconSize * scale),       // ширина іконки в px
+        }
+      }
+      setComputed(result)
+    }
+
+    recalc()
+    // ResizeObserver — точніший ніж window.resize, реагує на зміни самого контейнера
+    const ro = new ResizeObserver(recalc)
+    if (containerRef.current) ro.observe(containerRef.current)
+    return () => ro.disconnect()
+  }, [])
+
+  return computed
+}
+
+// ── YokoinDisplay ─────────────────────────────────────────────
+function YokoinDisplay({ amount }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      background: 'rgba(184,134,11,0.15)', border: '1px solid rgba(184,134,11,0.4)',
-      borderRadius: 4, padding: '4px 10px',
-      animation: flash ? 'campPop 0.4s ease' : undefined,
-    }}>
-      <span style={{ fontSize: '0.9rem' }}>🪙</span>
-      <span style={{ fontFamily: 'Georgia,serif', fontSize: '0.9rem', fontWeight: 800, color: '#b8860b' }}>{amount}</span>
-      <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#b8860b' }}>¥</span>
+    <div style={{display:'flex',alignItems:'center',gap:6,cursor:'default'}}>
+      <img
+        src="/images/icon-yokoin.png"
+        alt="yokoin"
+        style={{height:28,width:'auto',filter:'drop-shadow(0 0 6px rgba(240,160,20,0.7))'}}
+        onError={e=>{e.currentTarget.style.display='none'}}
+      />
+      <span style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 10px rgba(240,192,96,0.6), 0 1px 3px rgba(0,0,0,0.9)'}}>{amount}</span>
     </div>
   )
 }
 
+// ── StarsDisplay ──────────────────────────────────────────────
 function StarsDisplay({ stars, animate }) {
   return (
-    <div style={{ display: 'flex', gap: 4 }}>
-      {[1, 2, 3].map(i => (
-        <span key={i} style={{
-          fontSize: '1.2rem',
-          filter: i <= stars ? 'none' : 'grayscale(1) opacity(0.3)',
-          animation: animate && i <= stars ? `starPop 0.4s ease ${i * 0.15}s both` : undefined,
-        }}>⭐</span>
+    <div style={{display:'flex',gap:4}}>
+      {[1,2,3].map(i => (
+        <span key={i} style={{fontSize:'1.1rem',filter:i<=stars?'none':'grayscale(1) opacity(0.3)',animation:animate&&i<=stars?`starPop 0.4s ease ${i*0.15}s both`:undefined}}>⭐</span>
       ))}
     </div>
   )
 }
 
-function HPBar({ hp, maxHp, armor = 0, label, color }) {
-  const pct = Math.max(0, (hp / maxHp) * 100)
-  const barColor = pct > 60 ? '#1a6b5c' : pct > 30 ? '#b8860b' : '#c0392b'
+// ── SlotItem — іконка прив'язана до слота через px-координати ─
+// pos = { left: px, top: px, size: px } — розраховані хуком useComputedSlots
+function SlotItem({ item, pos, can, owned, lang, onBuy }) {
+  const [hovered, setHovered] = useState(false)
+  const t = (uk, en) => lang === 'en' ? en : uk
+  const imgSrc = UPGRADE_IMAGES[item.id]
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'var(--mid)' }}>{label}</span>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700, color: barColor }}>{hp}/{maxHp}</span>
+    <div
+      onClick={can ? onBuy : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position:      'absolute',
+        left:           pos.left,
+        top:            pos.top,
+        width:          pos.size,
+        transform:     'translate(-50%, -50%)',
+        cursor:        can ? 'pointer' : 'default',
+        zIndex:        hovered ? 10 : 1,
+        pointerEvents: 'auto',   // перекриваємо pointerEvents:none батьківського overlay
+      }}
+    >
+      {/* ── Зображення іконки ─────────────────────────── */}
+      <div style={{
+        position:  'relative',
+        width:     '100%',
+        transform: hovered && can ? 'translateY(-8px) scale(1.1)' : 'none',
+        transition:'transform 0.18s ease',
+        filter: hovered && can
+          ? 'drop-shadow(0 10px 24px rgba(184,134,11,0.85)) brightness(1.1)'
+          : can
+            ? 'drop-shadow(0 3px 10px rgba(0,0,0,0.8))'
+            : 'grayscale(0.7) brightness(0.4)',
+      }}>
+        <img
+          src={imgSrc}
+          alt={lang === 'en' ? item.labelEn : item.label}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+          onError={e => {
+            e.currentTarget.style.display = 'none'
+            e.currentTarget.nextSibling.style.display = 'flex'
+          }}
+        />
+        {/* Emoji-fallback */}
+        <div style={{
+          display: 'none', width: '100%', aspectRatio: '1',
+          background: 'rgba(10,7,3,0.8)', border: '2px solid rgba(184,134,11,0.35)',
+          borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+          fontSize: `${pos.size * 0.4}px`,
+        }}>
+          {item.emoji}
         </div>
-        {armor > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(31,97,141,0.15)', border: '1px solid rgba(31,97,141,0.4)', borderRadius: 3, padding: '1px 7px' }}>
-            <span style={{ fontSize: '0.7rem' }}>🛡</span>
-            <span style={{ fontFamily: 'monospace', fontSize: '0.72rem', fontWeight: 700, color: '#1f618d' }}>{armor}</span>
-          </div>
+
+        {/* Бейдж "куплено×N" для тимчасових */}
+        {owned > 0 && (
+          <div style={{
+            position: 'absolute', top: '4%', right: '4%',
+            background: 'rgba(46,204,113,0.95)', borderRadius: 3,
+            padding: '1px 5px', fontFamily: 'var(--jp)',
+            fontSize: `${Math.max(8, pos.size * 0.09)}px`,
+            fontWeight: 700, color: '#fff',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.6)',
+          }}>✓×{owned}</div>
         )}
+
+        {/* Недоступний — тільки затемнення через filter, без замка */}
       </div>
-      <div style={{ height: 8, background: 'var(--bg2)', borderRadius: 4, overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 4, transition: 'width 0.6s cubic-bezier(.4,0,.2,1)' }} />
+
+      {/* ── Ціна під іконкою — тільки монета + число, без рамки ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: 5, marginTop: `${Math.round(pos.size * 0.07)}px`,
+      }}>
+        <img
+          src="/images/icon-yokoin.png" alt=""
+          style={{ height: `${Math.max(20, pos.size * 0.2)}px`, width: 'auto',
+            filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.8))' }}
+          onError={e => e.currentTarget.style.display = 'none'}
+        />
+        <span style={{
+          fontFamily: 'var(--jp)',
+          fontSize: `${Math.max(18, pos.size * 0.2)}px`,
+          fontWeight: 900,
+          color: can ? '#f0c060' : '#5a4a30',
+          textShadow: can ? '0 0 8px rgba(240,192,96,0.5), 0 1px 3px rgba(0,0,0,0.9)' : '0 1px 3px rgba(0,0,0,0.8)',
+        }}>{item.price}</span>
       </div>
+
+      {/* ── Тултіп при ховері ─────────────────────────── */}
+      {hovered && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 12px)',
+          left: '50%', transform: 'translateX(-50%)',
+          background: 'linear-gradient(160deg,#2a2218,#16110a)',
+          border: '1px solid rgba(184,134,11,0.55)',
+          borderRadius: 6, padding: '0.45rem 0.65rem',
+          minWidth: 150, maxWidth: 200,
+          boxShadow: '0 8px 28px rgba(0,0,0,0.95)',
+          pointerEvents: 'none', zIndex: 30,
+          animation: 'campPop 0.15s ease',
+          whiteSpace: 'normal',
+        }}>
+          {/* Стрілка вгору */}
+          <div style={{
+            position: 'absolute', top: -5, left: '50%',
+            width: 9, height: 9,
+            background: '#2a2218',
+            borderTop: '1px solid rgba(184,134,11,0.55)',
+            borderLeft: '1px solid rgba(184,134,11,0.55)',
+            transform: 'translateX(-50%) rotate(45deg)',
+          }} />
+          <div style={{ fontFamily:'var(--jp)', fontSize:'0.68rem', fontWeight:700, color:'#f0c060', marginBottom:3 }}>
+            {item.emoji} {lang === 'en' ? item.labelEn : item.label}
+          </div>
+          <div style={{ fontFamily:'var(--jp)', fontSize:'0.57rem', color:'rgba(255,255,255,0.65)', lineHeight:1.5 }}>
+            {lang === 'en' ? item.descEn : item.desc}
+          </div>
+          {item.type === 'permanent' && (
+            <div style={{ fontFamily:'var(--jp)', fontSize:'0.5rem', color:'rgba(184,134,11,0.75)', marginTop:4, borderTop:'1px solid rgba(184,134,11,0.2)', paddingTop:3 }}>
+              {lang === 'en' ? '→ Select a rikishi card' : '→ Оберіть карту рікіші'}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
-// ── Головний екран кампанії ──────────────────────────────────
-function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, lang }) {
-  const t = (uk, en) => lang === 'en' ? en : uk
+// ── CampaignMap ───────────────────────────────────────────────
+function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onReset, lang }) {
+  const t = (uk,en) => lang==='en'?en:uk
+  const frameColors = { 1:'#6f6f6f', 2:'#1f7a3a', 3:'#1a4a7a', 4:'#8b1a1a', 5:'#b8860b' }
+  const [confirmReset, setConfirmReset] = useState(false)
+  const hasProgress = Object.keys(progress?.levels||{}).length > 0
+  const dark = 'rgba(0,0,0,0.7)'
+  const border = '1px solid rgba(255,255,255,0.12)'
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer', marginBottom: '1rem', padding: 0 }}>
-        ‹ {t('Назад', 'Back')}
-      </button>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <div style={{ fontFamily: 'Georgia,serif', fontSize: '1.2rem', fontWeight: 800, color: '#b8860b' }}>⚔️ {t('Кампанія', 'Campaign')}</div>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', marginTop: 2 }}>{t('Дорога до дохьо', 'Road to the Dohyo')}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <YokoinDisplay amount={yokoin} />
-          <button onClick={onOpenShop} style={{ background: '#b8860b', border: 'none', color: '#fff', borderRadius: 4, padding: '6px 14px', fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}>
-            🏪 {t('Магазин', 'Shop')}
+    <div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+        <button onClick={onBack} style={{background:dark,border,color:'rgba(255,255,255,0.8)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:'5px 12px',borderRadius:4,fontWeight:600}}>
+          ‹ {t('Назад','Back')}
+        </button>
+        {hasProgress&&(
+          <button onClick={()=>setConfirmReset(true)} style={{background:'rgba(192,57,43,0.2)',border:'1px solid rgba(192,57,43,0.5)',color:'#e74c3c',borderRadius:4,padding:'5px 12px',fontFamily:'var(--jp)',fontSize:'0.62rem',cursor:'pointer',fontWeight:600}}>
+            ↺ {t('Почати з початку','Reset')}
           </button>
+        )}
+      </div>
+
+      {confirmReset&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>
+          <div style={{background:'#1a1710',border:'1px solid rgba(184,134,11,0.4)',borderRadius:8,padding:'1.5rem',maxWidth:320,width:'90%',textAlign:'center',animation:'campPop 0.2s ease'}}>
+            <div style={{fontSize:'2rem',marginBottom:'0.5rem'}}>⚠️</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,color:'#f0c060',marginBottom:'0.5rem'}}>{t('Скинути прогрес?','Reset progress?')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'rgba(255,255,255,0.5)',lineHeight:1.6,marginBottom:'1.25rem'}}>
+              {t('Весь прогрес кампанії та Йокоіни будуть видалені.','All campaign progress and Yokoin will be deleted.')}
+            </div>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>setConfirmReset(false)} style={{flex:1,padding:'0.7rem',background:'rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.7)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700}}>
+                {t('Продовжити','Continue')}
+              </button>
+              <button onClick={()=>{setConfirmReset(false);onReset()}} style={{flex:1,padding:'0.7rem',background:'#c0392b',color:'#fff',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700}}>
+                {t('Скинути','Reset')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
+        <div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1.2rem',fontWeight:800,color:'#f0c060',textShadow:'0 0 16px rgba(240,192,96,0.5)'}}>⚔️ {t('Кампанія','Campaign')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.45)',marginTop:2}}>{t('Дорога до дохьо','Road to the Dohyo')}</div>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <YokoinDisplay amount={yokoin}/>
+          <div
+            onClick={onOpenShop}
+            style={{cursor:'pointer',transition:'all 0.15s'}}
+            onMouseEnter={e=>e.currentTarget.style.filter='drop-shadow(0 0 10px rgba(184,134,11,0.7)) brightness(1.1)'}
+            onMouseLeave={e=>e.currentTarget.style.filter='drop-shadow(0 0 6px rgba(184,134,11,0.4))'}
+          >
+            <img
+              src="/images/btn-shop.png"
+              alt={t('Магазин','Shop')}
+              style={{height:38,width:'auto',display:'block',filter:'drop-shadow(0 0 6px rgba(184,134,11,0.4))'}}
+              onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}
+            />
+            <div style={{display:'none',background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',color:'#f0c060',borderRadius:4,padding:'6px 14px',fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700}}>
+              🏪 {t('Магазин','Shop')}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {CAMPAIGN_LEVELS.map(level => {
-          const levelProgress = progress?.levels?.[level.id] || {}
-          const isUnlocked = level.id === 1 || (progress?.levels?.[level.id - 1]?.completed)
-          const isCompleted = levelProgress.completed
-          const stars = levelProgress.stars || 0
-
+      <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',padding:'0.5rem 0'}}>
+        {CAMPAIGN_LEVELS.map((level,idx) => {
+          const lp = progress?.levels?.[level.id] || {}
+          const isUnlocked = level.id===1 || progress?.levels?.[level.id-1]?.completed
+          const isCompleted = lp.completed
+          const stars = lp.stars || 0
+          const frameColor = frameColors[level.id] || '#6f6f6f'
           return (
-            <div key={level.id} onClick={isUnlocked ? () => onSelectLevel(level) : undefined} style={{
-              background: 'var(--card)', border: `1px solid ${isCompleted ? 'rgba(184,134,11,0.4)' : isUnlocked ? 'var(--border)' : 'transparent'}`,
-              borderLeft: `4px solid ${isCompleted ? '#b8860b' : isUnlocked ? 'var(--border)' : '#444'}`,
-              borderRadius: 4, padding: '1rem',
-              cursor: isUnlocked ? 'pointer' : 'default',
-              opacity: isUnlocked ? 1 : 0.4,
-              animation: 'campSlideIn 0.3s ease',
-              transition: 'all 0.15s',
-            }}
-              onMouseEnter={e => isUnlocked && (e.currentTarget.style.background = 'var(--bg2)')}
-              onMouseLeave={e => isUnlocked && (e.currentTarget.style.background = 'var(--card)')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ fontSize: '2rem', animation: level.isBoss ? 'campPop 0.5s ease' : undefined }}>{level.emoji}</div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', letterSpacing: '0.1em' }}>
-                        {t('Рівень', 'Level')} {level.id}
-                      </span>
-                      {level.isBoss && <span style={{ fontFamily: 'monospace', fontSize: '0.52rem', background: '#c0392b', color: '#fff', padding: '1px 6px', borderRadius: 2 }}>БОС</span>}
-                    </div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--ink)' }}>{lang === 'en' ? level.nameEn : level.name}</div>
-                    <div style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'var(--mid)', marginTop: 2 }}>{lang === 'en' ? level.descEn : level.desc}</div>
+            <div key={level.id} onClick={isUnlocked?()=>onSelectLevel(level):undefined}
+              style={{width:180,flexShrink:0,cursor:isUnlocked?'pointer':'default',opacity:isUnlocked?1:0.35,animation:`campSlideIn 0.3s ease ${idx*0.08}s both`,transition:'transform 0.18s, filter 0.18s'}}
+              onMouseEnter={e=>{if(isUnlocked){e.currentTarget.style.transform='translateY(-8px)';e.currentTarget.style.filter=`drop-shadow(0 12px 24px ${frameColor}99)`}}}
+              onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.filter='none'}}>
+              <div style={{borderRadius:12,overflow:'hidden',border:`3px solid ${isCompleted?'#f0c060':isUnlocked?frameColor:'#333'}`,boxShadow:isCompleted?`0 0 28px rgba(240,192,96,0.5)`:`0 4px 12px rgba(0,0,0,0.6)`,background:'#0d0d0d'}}>
+                <div style={{height:230,position:'relative',overflow:'hidden'}}>
+                  <img src={`/images/level-${level.id}.png`} alt={level.name} style={{width:'100%',height:'100%',objectFit:'cover',display:'block',position:'absolute',inset:0}} onError={e=>{e.currentTarget.style.display='none'}}/>
+                  <div style={{width:'100%',height:'100%',background:`linear-gradient(160deg,${frameColor}44 0%,#111 100%)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <span style={{fontSize:'4rem'}}>{level.emoji}</span>
                   </div>
+                  {!isUnlocked&&<div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:3}}><span style={{fontSize:'2.5rem'}}>🔒</span></div>}
+                  {isCompleted&&<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}><div style={{background:'rgba(0,0,0,0.6)',borderRadius:20,padding:'6px 12px',backdropFilter:'blur(4px)',border:'1px solid rgba(240,192,96,0.3)'}}><StarsDisplay stars={stars}/></div></div>}
+                  {isUnlocked&&!isCompleted&&<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}><div style={{background:`${frameColor}cc`,borderRadius:20,padding:'6px 16px',border:`1px solid ${frameColor}`,backdropFilter:'blur(4px)'}}><span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:'#fff'}}>▶ {t('Грати','Play')}</span></div></div>}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                  {isCompleted ? (
-                    <StarsDisplay stars={stars} />
-                  ) : isUnlocked ? (
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#b8860b' }}>▶ {t('Грати', 'Play')}</span>
-                  ) : (
-                    <span style={{ fontSize: '1.1rem' }}>🔒</span>
-                  )}
-                  <div style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'var(--mid)' }}>
-                    🪙 {level.reward}¥ + ⭐{level.starReward}¥
-                  </div>
+                <div style={{background:level.isBoss?'linear-gradient(135deg,#2a0505,#130000)':`linear-gradient(135deg,${frameColor}22,#0d0d0d)`,padding:'8px 10px',borderTop:`1px solid ${frameColor}33`,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                  <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,210,80,0.8)'}}>🪙{level.reward} + ⭐{level.starReward}</div>
                 </div>
               </div>
             </div>
@@ -258,347 +451,273 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, lang
   )
 }
 
-// ── Магазин ──────────────────────────────────────────────────
-function Shop({ yokoin, boostedCard, tempBoosts, onBuy, onBack, lang }) {
+// ── Магазин ───────────────────────────────────────────────────
+function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
   const t = (uk, en) => lang === 'en' ? en : uk
-  const [selectingCard, setSelectingCard] = useState(null)
+  const [selectingItem, setSelectingItem] = useState(null)
   const [msg, setMsg] = useState(null)
+
+  // Ref на контейнер основної зони — хук буде спостерігати за його розміром
+  const areaRef = useRef(null)
+  // Динамічно розраховані пікселі для кожного слота
+  const computedSlots = useComputedSlots(areaRef)
 
   function showMsg(text, color = '#1a6b5c') {
     setMsg({ text, color })
-    setTimeout(() => setMsg(null), 2000)
+    setTimeout(() => setMsg(null), 2500)
   }
 
   function handleBuy(item) {
     if (yokoin < item.price) { showMsg(t('Недостатньо Йокоінів!', 'Not enough Yokoin!'), '#c0392b'); return }
-    if (item.type === 'permanent') {
-      setSelectingCard(item)
-    } else {
-      onBuy(item, null)
-      showMsg(`${item.emoji} ${lang === 'en' ? item.labelEn : item.label} ${t('придбано!', 'purchased!')}`)
-    }
+    if (item.type === 'permanent') setSelectingItem(item)
+    else { onBuy(item, null); showMsg(`${item.emoji} ${lang === 'en' ? item.labelEn : item.label} ${t('придбано!', 'purchased!')}`) }
   }
 
-  const RIKISHI_SAMPLE = [
-    { id: 'Y1', rank: 'Yokozuna', rankShort: 'Y1e', atk: 10, def: 7, color: '#b8860b' },
-    { id: 'Y2', rank: 'Yokozuna', rankShort: 'Y1w', atk: 9, def: 8, color: '#b8860b' },
-    { id: 'O1', rank: 'Ozeki', rankShort: 'O1e', atk: 8, def: 6, color: '#1a6b5c' },
-    { id: 'O2', rank: 'Ozeki', rankShort: 'O1w', atk: 7, def: 7, color: '#1a6b5c' },
-    { id: 'S1', rank: 'Sekiwake', rankShort: 'S1e', atk: 7, def: 5, color: '#1a4a7a' },
-    { id: 'S2', rank: 'Sekiwake', rankShort: 'S1w', atk: 6, def: 6, color: '#1a4a7a' },
-    { id: 'K1', rank: 'Komusubi', rankShort: 'K1e', atk: 6, def: 4, color: '#6b3fa0' },
-    { id: 'K2', rank: 'Komusubi', rankShort: 'K1w', atk: 5, def: 5, color: '#6b3fa0' },
-  ]
+  // ── Екран вибору карти для постійного буста ──
+  if (selectingItem) return (
+    <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
+      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.8)', zIndex:0 }} />
+      <div style={{ position:'relative', zIndex:1, height:'100%', overflowY:'auto', padding:'1.25rem', animation:'campSlideIn 0.25s ease' }}>
+        <button onClick={() => setSelectingItem(null)} style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.7)', fontFamily:'var(--jp)', fontSize:'0.72rem', cursor:'pointer', marginBottom:'1rem', padding:'4px 10px', borderRadius:4 }}>
+          ‹ {t('Назад', 'Back')}
+        </button>
+        <div style={{ fontFamily:'var(--jp)', fontSize:'0.85rem', fontWeight:700, marginBottom:'0.5rem', color:'#f0c060' }}>
+          {selectingItem.emoji} {t('Оберіть карту для бусту', 'Select card to boost')}
+        </div>
+        <div style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,255,255,0.4)', marginBottom:'1.25rem' }}>
+          {lang === 'en' ? selectingItem.descEn : selectingItem.desc}
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+          {RIKISHI_SAMPLE.map(card => {
+            const boost = boostedCards?.find(b => b.cardId === card.id)
+            return (
+              <div key={card.id}
+                onClick={() => { onBuy(selectingItem, card); showMsg(`${card.rankShort} ${t('отримав буст!', 'boosted!')}`); setSelectingItem(null) }}
+                style={{ background:boost?'rgba(184,134,11,0.15)':'rgba(0,0,0,0.5)', border:`1px solid ${boost?'rgba(184,134,11,0.5)':'rgba(255,255,255,0.1)'}`, borderRadius:4, padding:'0.75rem 1rem', cursor:'pointer', display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:card.color, flexShrink:0 }} />
+                <div style={{ flex:1 }}>
+                  <span style={{ fontFamily:'var(--jp)', fontSize:'0.75rem', fontWeight:700, color:card.color }}>{card.rankShort}</span>
+                  <span style={{ fontFamily:'var(--jp)', fontSize:'0.6rem', color:'rgba(255,255,255,0.4)', marginLeft:8 }}>{card.rank}</span>
+                </div>
+                <div style={{ display:'flex', gap:12, fontFamily:'var(--jp)', fontSize:'0.72rem' }}>
+                  <span style={{ color:'#e74c3c' }}>⚔ {card.atk}{boost?.atk?<span style={{color:'#f0c060'}}>+{boost.atk}</span>:null}</span>
+                  <span style={{ color:'#3498db' }}>🛡 {card.def}{boost?.def?<span style={{color:'#f0c060'}}>+{boost.def}</span>:null}</span>
+                </div>
+                {boost && <span style={{ color:'#f0c060', fontSize:'0.7rem' }}>✓</span>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
 
-  if (selectingCard) return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', animation: 'campSlideIn 0.25s ease' }}>
-      <button onClick={() => setSelectingCard(null)} style={{ background: 'transparent', border: 'none', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer', marginBottom: '1rem', padding: 0 }}>
-        ‹ {t('Назад', 'Back')}
-      </button>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-        {selectingCard.emoji} {t('Оберіть карту для бусту', 'Select card to boost')}
-      </div>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', marginBottom: '1.25rem' }}>
-        {lang === 'en' ? selectingCard.descEn : selectingCard.desc}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {RIKISHI_SAMPLE.map(card => {
-          const isBoosted = boostedCard?.cardId === card.id
-          const boost = boostedCard?.cardId === card.id ? boostedCard : null
+  // ── Головний екран магазину ──────────────────────────────
+  return (
+    // Root div — flex:1 + position:relative. Заповнює весь outer container
+    // (той самий що має background-image). Тому position:absolute всередині
+    // позиціонується відносно того ж origin що і фон.
+    <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
+
+      {/*
+        areaRef — невидимий div position:absolute inset:0.
+        Його розміри = розмірам outer container = розмірам фону.
+        useComputedSlots спостерігає за ним через ResizeObserver і рахує
+        ТОЧНІ піксельні координати слотів з урахуванням cover-кропу.
+        SlotItem-и рендеряться всередині нього — position:absolute відносно нього.
+        zIndex:1 — під хедером (zIndex:3) але над фоном.
+      */}
+      <div ref={areaRef} style={{ position:'absolute', inset:0, zIndex:1, pointerEvents:'none' }}>
+        {SHOP_ITEMS.map(item => {
+          const pos = computedSlots[item.id]
+          if (!pos) return null
           return (
-            <div key={card.id} onClick={() => {
-              onBuy(selectingCard, card)
-              showMsg(`${card.rankShort} ${t('отримав буст!', 'boosted!')}`)
-              setSelectingCard(null)
-            }} style={{
-              background: isBoosted ? 'rgba(184,134,11,0.1)' : 'var(--bg2)',
-              border: `1px solid ${isBoosted ? '#b8860b' : 'var(--border)'}`,
-              borderRadius: 4, padding: '0.75rem 1rem',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
-            }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: card.color, flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, color: card.color }}>{card.rankShort}</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'var(--mid)', marginLeft: 8 }}>{card.rank}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 12, fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                <span style={{ color: '#e74c3c' }}>⚔ {card.atk}{boost?.atk ? <span style={{ color: '#b8860b' }}>+{boost.atk}</span> : null}</span>
-                <span style={{ color: '#3498db' }}>🛡 {card.def}{boost?.def ? <span style={{ color: '#b8860b' }}>+{boost.def}</span> : null}</span>
-              </div>
-              {isBoosted && <span style={{ color: '#b8860b', fontSize: '0.7rem' }}>✓</span>}
-            </div>
+            <SlotItem
+              key={item.id}
+              item={item}
+              pos={pos}
+              can={yokoin >= item.price}
+              owned={tempBoosts?.[item.id] || 0}
+              lang={lang}
+              onBuy={() => handleBuy(item)}
+            />
           )
         })}
       </div>
-    </div>
-  )
 
-  return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', animation: 'campSlideIn 0.25s ease' }}>
-      <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem', cursor: 'pointer', marginBottom: '1rem', padding: 0 }}>
-        ‹ {t('Назад', 'Back')}
-      </button>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div style={{ fontFamily: 'Georgia,serif', fontSize: '1.1rem', fontWeight: 800, color: '#b8860b' }}>🏪 {t('Магазин', 'Shop')}</div>
-        <YokoinDisplay amount={yokoin} />
-      </div>
-
-      {msg && (
-        <div style={{ background: `${msg.color}22`, border: `1px solid ${msg.color}`, borderRadius: 4, padding: '0.5rem 1rem', marginBottom: '1rem', fontFamily: 'monospace', fontSize: '0.72rem', color: msg.color, textAlign: 'center', animation: 'campPop 0.3s ease' }}>
-          {msg.text}
-        </div>
-      )}
-
-      <div style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'var(--mid)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>
-        {t('Постійні бусти', 'Permanent boosts')}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: '1.5rem' }}>
-        {SHOP_ITEMS.filter(i => i.type === 'permanent').map(item => (
-          <ShopItem key={item.id} item={item} yokoin={yokoin} onBuy={() => handleBuy(item)} lang={lang} />
-        ))}
-      </div>
-
-      <div style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'var(--mid)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>
-        {t('Тимчасові бусти (на 1 бій)', 'Temporary boosts (1 fight)')}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {SHOP_ITEMS.filter(i => i.type === 'temp').map(item => {
-          const owned = tempBoosts?.[item.id] || 0
-          return <ShopItem key={item.id} item={item} yokoin={yokoin} onBuy={() => handleBuy(item)} lang={lang} owned={owned} />
-        })}
-      </div>
-
-      {boostedCard && (
-        <div style={{ marginTop: '1.5rem', background: 'rgba(184,134,11,0.1)', border: '1px solid rgba(184,134,11,0.3)', borderRadius: 4, padding: '0.75rem 1rem' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: '#b8860b', textTransform: 'uppercase', marginBottom: 4 }}>{t('Активний буст', 'Active boost')}</div>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--ink)' }}>
-            {boostedCard.cardId} — {boostedCard.atk ? `+${boostedCard.atk} ATK` : ''} {boostedCard.def ? `+${boostedCard.def} DEF` : ''}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ShopItem({ item, yokoin, onBuy, lang, owned }) {
-  const t = (uk, en) => lang === 'en' ? en : uk
-  const canAfford = yokoin >= item.price
-  return (
-    <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 4, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: 12 }}>
-      <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{item.emoji}</span>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700, fontSize: '0.82rem', marginBottom: 2 }}>{lang === 'en' ? item.labelEn : item.label}</div>
-        <div style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'var(--mid)' }}>{lang === 'en' ? item.descEn : item.desc}</div>
-        {owned > 0 && <div style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#1a6b5c', marginTop: 2 }}>✓ {t('Є:', 'Owned:')} {owned}</div>}
-      </div>
-      <button onClick={onBuy} disabled={!canAfford} style={{
-        background: canAfford ? '#b8860b' : 'var(--bg2)', color: canAfford ? '#fff' : 'var(--mid)',
-        border: `1px solid ${canAfford ? '#b8860b' : 'var(--border)'}`,
-        borderRadius: 4, padding: '5px 12px', fontFamily: 'monospace', fontSize: '0.68rem',
-        cursor: canAfford ? 'pointer' : 'default', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap',
+      {/* Хедер — поверх слотів */}
+      <div style={{
+        flexShrink:0, position:'relative', zIndex:3,
+        display:'flex', justifyContent:'space-between', alignItems:'center',
+        padding:'0.5rem 1rem',
+        background:'linear-gradient(180deg,rgba(6,4,2,0.96) 0%,rgba(6,4,2,0.55) 100%)',
+        borderBottom:'1px solid rgba(184,134,11,0.2)',
+        backdropFilter:'blur(6px)',
       }}>
-        🪙 {item.price}¥
-      </button>
-    </div>
-  )
-}
-
-// ── Бій кампанії ─────────────────────────────────────────────
-export function CampaignBattle({ level, boostedCard, tempBoosts, onWin, onLose, onBack, lang }) {
-  const t = (uk, en) => lang === 'en' ? en : uk
-  // Імпортуємо з основного файлу через props — колоди та логіку
-  // Повертаємо результат через onWin(starsCount, yokoinEarned) або onLose()
-  const [phase, setPhase] = useState('intro') // intro | battle | result
-  const [introStep, setIntroStep] = useState(0)
-
-  useEffect(() => {
-    if (phase === 'intro') {
-      const t1 = setTimeout(() => setIntroStep(1), 300)
-      const t2 = setTimeout(() => setIntroStep(2), 1000)
-      const t3 = setTimeout(() => { setIntroStep(3); setTimeout(() => setPhase('battle'), 600) }, 1800)
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
-    }
-  }, [phase])
-
-  if (phase === 'intro') return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: '2rem' }}>
-      <div style={{ fontSize: introStep >= 1 ? '3rem' : '0', transition: 'font-size 0.3s', animation: introStep >= 1 ? 'campPop 0.5s ease' : undefined }}>{level.emoji}</div>
-      <div style={{ fontFamily: 'Georgia,serif', fontSize: 'clamp(1.2rem,5vw,2rem)', fontWeight: 900, color: '#b8860b', textAlign: 'center', opacity: introStep >= 2 ? 1 : 0, transition: 'opacity 0.4s', animation: level.isBoss && introStep >= 2 ? 'bossEntrance 0.6s ease' : undefined }}>
-        {level.isBoss ? '👹 ' : ''}{lang === 'en' ? level.nameEn : level.name}
-      </div>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--mid)', textAlign: 'center', opacity: introStep >= 3 ? 1 : 0, transition: 'opacity 0.4s' }}>
-        {t('БІЙ!', 'FIGHT!')}
-      </div>
-    </div>
-  )
-
-  // Передаємо управління в BattleWrapper
-  return (
-    <CampaignBattleCore
-      level={level} boostedCard={boostedCard} tempBoosts={tempBoosts}
-      onWin={onWin} onLose={onLose} onBack={onBack} lang={lang}
-    />
-  )
-}
-
-// ── Результат ────────────────────────────────────────────────
-function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue, onRetry, lang }) {
-  const t = (uk, en) => lang === 'en' ? en : uk
-  const [step, setStep] = useState(0)
-  const [openedEnvelope, setOpenedEnvelope] = useState(null)
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setStep(1), 200)
-    const t2 = setTimeout(() => setStep(2), 700)
-    const t3 = setTimeout(() => setStep(3), 1200)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
-  }, [])
-
-  return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', textAlign: 'center', animation: 'campSlideIn 0.3s ease' }}>
-      <div style={{ fontSize: '3rem', animation: 'campPop 0.5s ease', marginBottom: '0.5rem' }}>
-        {won ? (level.isBoss ? '🏆' : '✅') : '😤'}
-      </div>
-      <div style={{ fontFamily: 'Georgia,serif', fontSize: '1.4rem', fontWeight: 800, color: won ? '#b8860b' : '#c0392b', marginBottom: '0.5rem' }}>
-        {won ? t('Перемога!', 'Victory!') : t('Поразка', 'Defeat')}
-      </div>
-
-      {won && (
-        <>
-          <div style={{ opacity: step >= 1 ? 1 : 0, transition: 'opacity 0.4s', marginBottom: '1rem' }}>
-            <StarsDisplay stars={stars} animate={step >= 1} />
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <button onClick={onBack} style={{ background:'rgba(0,0,0,0.55)', border:'1px solid rgba(255,255,255,0.14)', color:'rgba(255,255,255,0.85)', fontFamily:'var(--jp)', fontSize:'0.72rem', cursor:'pointer', padding:'5px 12px', borderRadius:4, fontWeight:600 }}>
+            ‹ {t('Назад', 'Back')}
+          </button>
+          <img
+            src="/images/btn-shop.png"
+            alt={t('Магазин', 'Shop')}
+            style={{ height:34, width:'auto', filter:'drop-shadow(0 0 8px rgba(184,134,11,0.55))' }}
+            onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='block' }}
+          />
+          <div style={{ display:'none', fontFamily:'var(--jp)', fontSize:'0.95rem', fontWeight:800, color:'#f0c060' }}>
+            🏪 {t('Магазин', 'Shop')}
           </div>
-
-          <div style={{ opacity: step >= 2 ? 1 : 0, transform: step >= 2 ? 'none' : 'translateY(10px)', transition: 'all 0.4s', background: 'rgba(184,134,11,0.1)', border: '1px solid rgba(184,134,11,0.3)', borderRadius: 4, padding: '1rem', marginBottom: '1rem' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', marginBottom: 8 }}>{t('Нагорода', 'Reward')}</div>
-            <div style={{ fontFamily: 'Georgia,serif', fontSize: '1.6rem', fontWeight: 800, color: '#b8860b', animation: step >= 2 ? 'campPop 0.4s ease' : undefined }}>
-              +{yokoinEarned} 🪙
-            </div>
-          </div>
-
-          {envelopes > 0 && (
-            <div style={{ opacity: step >= 3 ? 1 : 0, transition: 'opacity 0.4s', marginBottom: '1rem' }}>
-              <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', marginBottom: 8 }}>
-                📨 {t('Конверти від рекламодавців', 'Sponsor envelopes')}: {envelopes}
-              </div>
-              {!openedEnvelope ? (
-                <button onClick={() => {
-                  const reward = ENVELOPE_REWARDS[Math.floor(Math.random() * ENVELOPE_REWARDS.length)]
-                  setOpenedEnvelope(reward)
-                }} style={{ background: '#1a4a7a', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 20px', fontFamily: 'monospace', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 700, animation: 'envelopeOpen 0.5s ease infinite' }}>
-                  📨 {t('Відкрити конверт', 'Open envelope')}
-                </button>
-              ) : (
-                <div style={{ background: 'rgba(26,74,122,0.2)', border: '1px solid #1a4a7a', borderRadius: 4, padding: '0.75rem', animation: 'campPop 0.4s ease' }}>
-                  <div style={{ fontFamily: 'Georgia,serif', fontSize: '1.3rem', fontWeight: 800, color: '#1a6b5c' }}>+{openedEnvelope} 🪙</div>
-                  <div style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'var(--mid)' }}>{t('від рекламодавця', 'from sponsor')}</div>
-                </div>
-              )}
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          {msg && (
+            <div style={{ background:`${msg.color}22`, border:`1px solid ${msg.color}`, borderRadius:4, padding:'4px 12px', fontFamily:'var(--jp)', fontSize:'0.68rem', color:msg.color, animation:'campPop 0.3s ease' }}>
+              {msg.text}
             </div>
           )}
-        </>
-      )}
+          <YokoinDisplay amount={yokoin} />
+        </div>
+      </div>
 
-      <div style={{ display: 'flex', gap: 10, marginTop: '1.5rem' }}>
-        {!won && (
-          <button onClick={onRetry} style={{ flex: 1, padding: '0.8rem', background: '#b8860b', color: '#fff', border: 'none', borderRadius: 4, fontFamily: 'monospace', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700 }}>
-            🔄 {t('Знову', 'Retry')}
-          </button>
+      {/* Spacer — щоб footer притиснувся донизу */}
+      <div style={{ flex:1 }} />
+
+      {/* Смуга активних постійних бустів */}
+      {boostedCards?.length > 0 && (
+        <div style={{
+          flexShrink:0, position:'relative', zIndex:3,
+          display:'flex', gap:12, alignItems:'center', flexWrap:'wrap',
+          padding:'0.35rem 1rem',
+          background:'linear-gradient(180deg,rgba(6,4,2,0.55) 0%,rgba(6,4,2,0.92) 100%)',
+          borderTop:'1px solid rgba(184,134,11,0.18)',
+          backdropFilter:'blur(4px)',
+        }}>
+          <span style={{ fontFamily:'var(--jp)', fontSize:'0.52rem', color:'#b8860b', textTransform:'uppercase', letterSpacing:'0.1em', flexShrink:0 }}>
+            {t('Активні бусти', 'Active boosts')}
+          </span>
+          {boostedCards.map(b => (
+            <div key={b.cardId} style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,255,255,0.75)', background:'rgba(184,134,11,0.12)', border:'1px solid rgba(184,134,11,0.28)', borderRadius:3, padding:'2px 8px' }}>
+              {b.cardId}{b.atk?` +${b.atk}⚔`:''}{b.def?` +${b.def}🛡`:''}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── CampaignResult ────────────────────────────────────────────
+function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue, onRetry, lang }) {
+  const t = (uk,en) => lang==='en'?en:uk
+  const [step, setStep] = useState(0)
+  const [openedEnvelope, setOpenedEnvelope] = useState(null)
+  useEffect(()=>{
+    const t1=setTimeout(()=>setStep(1),200)
+    const t2=setTimeout(()=>setStep(2),700)
+    const t3=setTimeout(()=>setStep(3),1200)
+    return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3)}
+  },[])
+  const winColor = won ? '#f0c060' : '#e74c3c'
+  return (
+    <div style={{flex:1,overflowY:'auto',padding:'1.5rem',textAlign:'center',animation:'campSlideIn 0.3s ease',position:'relative',zIndex:1}}>
+      <div style={{fontSize:'3.5rem',animation:'campPop 0.5s ease',marginBottom:'0.75rem'}}>{won?(level.isBoss?'🏆':'✅'):'💪'}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:winColor,marginBottom:'0.4rem',textShadow:`0 0 20px ${winColor}66`}}>
+        {won?t('Перемога!','Victory!'):t('Маке-коші','Make-koshi')}
+      </div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.45)',marginBottom:'1.5rem'}}>
+        {won?t('Рівень пройдено','Level cleared'):t('Суперник переміг','Opponent wins')}
+      </div>
+      {won&&(<>
+        <div style={{opacity:step>=1?1:0,transition:'opacity 0.4s',marginBottom:'1.25rem'}}><StarsDisplay stars={stars} animate={step>=1}/></div>
+        <div style={{opacity:step>=2?1:0,transform:step>=2?'none':'translateY(10px)',transition:'all 0.4s',background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:6,padding:'1rem',marginBottom:'1rem'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,255,255,0.4)',marginBottom:6}}>{t('Нагорода','Reward')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1.8rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>+{yokoinEarned} 🪙</div>
+        </div>
+        {envelopes>0&&(
+          <div style={{opacity:step>=3?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.4)',marginBottom:8}}>📨 {t('Конверти','Envelopes')}: {envelopes}</div>
+            {!openedEnvelope?(
+              <button onClick={()=>setOpenedEnvelope(ENVELOPE_REWARDS[Math.floor(Math.random()*ENVELOPE_REWARDS.length)])} style={{background:'rgba(26,74,122,0.3)',color:'#7ec8f0',border:'1px solid #1a4a7a',borderRadius:4,padding:'8px 20px',fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700,animation:'envelopePulse 1s ease infinite'}}>
+                📨 {t('Відкрити','Open')}
+              </button>
+            ):(
+              <div style={{background:'rgba(26,74,122,0.2)',border:'1px solid #1a4a7a',borderRadius:4,padding:'0.75rem',animation:'campPop 0.4s ease'}}>
+                <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:800,color:'#2ecc71'}}>+{openedEnvelope} 🪙</div>
+              </div>
+            )}
+          </div>
         )}
-        <button onClick={() => onContinue(openedEnvelope || 0)} style={{ flex: 1, padding: '0.8rem', background: 'var(--ink)', color: 'var(--bg)', border: 'none', borderRadius: 4, fontFamily: 'monospace', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700 }}>
-          {won ? t('Далі ›', 'Continue ›') : t('В меню', 'Menu')}
+      </>)}
+      <div style={{display:'flex',gap:10,marginTop:'1.5rem'}}>
+        {!won&&<button onClick={onRetry} style={{flex:1,padding:'0.8rem',background:'rgba(184,134,11,0.2)',color:'#f0c060',border:'1px solid rgba(184,134,11,0.4)',borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>🔄 {t('Знову','Retry')}</button>}
+        <button onClick={()=>onContinue(openedEnvelope||0)} style={{flex:1,padding:'0.8rem',background:won?'rgba(184,134,11,0.2)':'rgba(255,255,255,0.08)',color:won?'#f0c060':'rgba(255,255,255,0.7)',border:`1px solid ${won?'rgba(184,134,11,0.4)':'rgba(255,255,255,0.15)'}`,borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>
+          {won?t('Далі ›','Continue ›'):t('В меню','Menu')}
         </button>
       </div>
     </div>
   )
 }
 
-// ── Основний компонент кампанії ──────────────────────────────
+// ── SumoClashCampaign ─────────────────────────────────────────
 export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
-  const t = (uk, en) => lang === 'en' ? en : uk
-  const [screen, setScreen] = useState('map') // map | shop | battle | result
+  const t = (uk,en) => lang==='en'?en:uk
+  const [screen, setScreen] = useState('map')
   const [uid, setUid] = useState(null)
   const [yokoin, setYokoin] = useState(0)
-  const [progress, setProgress] = useState({ levels: {} })
-  const [boostedCard, setBoostedCard] = useState(null)
+  const [progress, setProgress] = useState({levels:{}})
+  const [boostedCards, setBoostedCards] = useState([])
   const [tempBoosts, setTempBoosts] = useState({})
   const [selectedLevel, setSelectedLevel] = useState(null)
   const [battleResult, setBattleResult] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [yokoinFlash, setYokoinFlash] = useState(false)
 
-  useEffect(() => {
-    getAnonymousUid().then(async (id) => {
+  useEffect(()=>{
+    getAnonymousUid().then(async id=>{
       setUid(id)
       if (id) {
         const data = await loadUserData(id)
         if (data) {
-          setYokoin(data.yokoin || 0)
-          setProgress(data.progress || { levels: {} })
-          setBoostedCard(data.boostedCard || null)
-          setTempBoosts(data.tempBoosts || {})
+          setYokoin(data.yokoin||0)
+          setProgress(data.progress||{levels:{}})
+          if (data.boostedCards) setBoostedCards(Array.isArray(data.boostedCards)?data.boostedCards:[data.boostedCards])
+          else if (data.boostedCard) setBoostedCards([data.boostedCard])
+          setTempBoosts(data.tempBoosts||{})
         }
-        setLoading(false)
-      } else {
-        setLoading(false)
       }
+      setLoading(false)
     })
-  }, [])
-
-  async function addYokoin(amount) {
-    const newAmount = yokoin + amount
-    setYokoin(newAmount)
-    setYokoinFlash(true)
-    setTimeout(() => setYokoinFlash(false), 500)
-    if (uid) await saveUserData(uid, { yokoin: newAmount })
-  }
+  },[])
 
   async function handleBuy(item, selectedCard) {
     if (yokoin < item.price) return
     const newYokoin = yokoin - item.price
     setYokoin(newYokoin)
-    let updates = { yokoin: newYokoin }
-    if (item.type === 'permanent' && selectedCard) {
-      const boost = {
-        cardId: selectedCard.id,
-        atk: item.id === 'atk_boost' ? (boostedCard?.atk || 0) + 1 : (boostedCard?.atk || 0),
-        def: item.id === 'def_boost' ? (boostedCard?.def || 0) + 1 : (boostedCard?.def || 0),
-      }
-      setBoostedCard(boost)
-      updates.boostedCard = boost
-    } else if (item.type === 'temp') {
-      const newBoosts = { ...tempBoosts, [item.id]: (tempBoosts[item.id] || 0) + 1 }
-      setTempBoosts(newBoosts)
-      updates.tempBoosts = newBoosts
+    let updates = {yokoin: newYokoin}
+    if (item.type==='permanent' && selectedCard) {
+      const existing = boostedCards.find(b=>b.cardId===selectedCard.id) || {cardId:selectedCard.id,atk:0,def:0}
+      const boost = {...existing, atk:item.id==='atk_boost'?(existing.atk||0)+1:(existing.atk||0), def:item.id==='def_boost'?(existing.def||0)+1:(existing.def||0)}
+      const newBoosts = [...boostedCards.filter(b=>b.cardId!==selectedCard.id), boost]
+      setBoostedCards(newBoosts); updates.boostedCards = newBoosts
+    } else if (item.type==='temp') {
+      const newBoosts = {...tempBoosts,[item.id]:(tempBoosts[item.id]||0)+1}
+      setTempBoosts(newBoosts); updates.tempBoosts = newBoosts
     }
     if (uid) await saveUserData(uid, updates)
-  }
-
-  function handleSelectLevel(level) {
-    setSelectedLevel(level)
-    setScreen('battle')
   }
 
   async function handleBattleWin(playerHp, playerMaxHp, envelopesEarned) {
     const stars = calcStars(playerHp, playerMaxHp)
     const yokoinEarned = selectedLevel.reward + stars * selectedLevel.starReward
-    const newProgress = {
-      ...progress,
-      levels: {
-        ...progress.levels,
-        [selectedLevel.id]: { completed: true, stars: Math.max(stars, progress.levels?.[selectedLevel.id]?.stars || 0) }
-      }
-    }
+    const newProgress = {...progress,levels:{...progress.levels,[selectedLevel.id]:{completed:true,stars:Math.max(stars,progress.levels?.[selectedLevel.id]?.stars||0)}}}
     setProgress(newProgress)
     const newYokoin = yokoin + yokoinEarned
     setYokoin(newYokoin)
-    setBattleResult({ won: true, stars, yokoinEarned, envelopes: envelopesEarned })
+    setBattleResult({won:true,stars,yokoinEarned,envelopes:envelopesEarned})
     setScreen('result')
-    if (uid) await saveUserData(uid, { yokoin: newYokoin, progress: newProgress })
+    if (uid) await saveUserData(uid, {yokoin:newYokoin,progress:newProgress})
   }
 
   async function handleBattleLose() {
-    setBattleResult({ won: false, stars: 0, yokoinEarned: 0, envelopes: 0 })
+    setBattleResult({won:false,stars:0,yokoinEarned:0,envelopes:0})
     setScreen('result')
   }
 
@@ -606,57 +725,62 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
     if (bonusYokoin > 0) {
       const newYokoin = yokoin + bonusYokoin
       setYokoin(newYokoin)
-      if (uid) await saveUserData(uid, { yokoin: newYokoin })
+      if (uid) await saveUserData(uid, {yokoin:newYokoin})
     }
-    // Скидаємо тимчасові бусти після бою
-    const newBoosts = {}
-    setTempBoosts(newBoosts)
-    if (uid) await saveUserData(uid, { tempBoosts: newBoosts })
+    setTempBoosts({})
+    if (uid) await saveUserData(uid, {tempBoosts:{}})
     setScreen('map')
   }
 
+  async function handleReset() {
+    setYokoin(0); setProgress({levels:{}}); setBoostedCards([]); setTempBoosts({})
+    if (uid) await saveUserData(uid, {yokoin:0, progress:{levels:{}}, boostedCards:[], tempBoosts:{}})
+  }
+
   if (loading) return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--mid)', animation: 'campSlideIn 0.3s ease' }}>
-        ⏳ {t('Завантаження...', 'Loading...')}
-      </div>
+    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'rgba(255,255,255,0.4)'}}>⏳ {t('Завантаження...','Loading...')}</div>
     </div>
   )
 
   return (
     <>
       <style>{CAMP_ANIM}</style>
-      {screen === 'map' && (
-        <CampaignMap
-          progress={progress} yokoin={yokoin}
-          onSelectLevel={handleSelectLevel}
-          onOpenShop={() => setScreen('shop')}
-          onBack={onBack} lang={lang}
+
+      {screen==='map' && (
+        <CampaignMap progress={progress} yokoin={yokoin}
+          onSelectLevel={l=>{setSelectedLevel(l);setScreen('battle')}}
+          onOpenShop={()=>setScreen('shop')}
+          onBack={onBack} onReset={handleReset} lang={lang}
         />
       )}
-      {screen === 'shop' && (
-        <Shop
-          yokoin={yokoin} boostedCard={boostedCard} tempBoosts={tempBoosts}
-          onBuy={handleBuy} onBack={() => setScreen('map')} lang={lang}
+
+      {screen==='shop' && (
+        <div style={{ flex:1, display:'flex', flexDirection:'column', position:'relative', overflow:'hidden' }}>
+          {/* Фон без важкого overlay — Shop сам керує затемненням */}
+          <div style={{ position:'absolute', inset:0, backgroundImage:'url(/images/bg-shop.png)', backgroundSize:'cover', backgroundPosition:'center', pointerEvents:'none' }} />
+          <Shop
+            yokoin={yokoin} boostedCards={boostedCards} tempBoosts={tempBoosts}
+            onBuy={handleBuy} onBack={()=>setScreen('map')} lang={lang}
+          />
+        </div>
+      )}
+
+      {screen==='battle' && selectedLevel && (
+        <GameBattle level={selectedLevel} boostedCards={boostedCards} tempBoosts={tempBoosts}
+          onWin={handleBattleWin} onLose={handleBattleLose} onBack={()=>setScreen('map')} lang={lang}
         />
       )}
-      {screen === 'battle' && selectedLevel && (
-        <GameBattle
-          level={selectedLevel} boostedCard={boostedCard} tempBoosts={tempBoosts}
-          onWin={handleBattleWin} onLose={handleBattleLose}
-          onBack={() => setScreen('map')} lang={lang}
-        />
-      )}
-      {screen === 'result' && battleResult && (
-        <CampaignResult
-          won={battleResult.won} stars={battleResult.stars}
+
+      {screen==='result' && battleResult && (
+        <CampaignResult won={battleResult.won} stars={battleResult.stars}
           yokoinEarned={battleResult.yokoinEarned} envelopes={battleResult.envelopes}
-          level={selectedLevel}
-          onContinue={handleResultContinue}
-          onRetry={() => setScreen('battle')}
-          lang={lang}
+          level={selectedLevel} onContinue={handleResultContinue}
+          onRetry={()=>setScreen('battle')} lang={lang}
         />
       )}
     </>
   )
 }
+
+export { CAMPAIGN_LEVELS, ENVELOPE_REWARDS }
