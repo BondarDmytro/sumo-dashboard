@@ -353,19 +353,20 @@ export default function VSScreen({ playerLabel, opponentLabel, lang, onDone }) {
           overflow: 'hidden',
         }}>
           <SpeedLines side="right" active={isCharging && !isImpact} />
+          {/* Анімація на зовнішньому div, flip — на внутрішньому. Інакше animation переписує transform */}
           <div style={{
             position: 'relative', zIndex: 2,
-            // scaleX(-1) тільки якщо немає окремого дзеркального зображення
-            transform: 'scaleX(-1)',
             animation: isCharging ? 'vsRikishiCharge 0.2s ease infinite' : 'vsRikishiIdle 1.8s ease 0.4s infinite',
             marginBottom: '1.5rem',
             filter: 'drop-shadow(0 8px 24px rgba(140,30,30,0.5))',
           }}>
-            <RikishiImage
-              src="/images/vs/rikishi-opponent.webp"
-              svgColor="#c06050"
-              size={200}
-            />
+            <div style={{ transform: 'scaleX(-1)' }}>
+              <RikishiImage
+                src="/images/vs/rikishi-opponent.webp"
+                svgColor="#c06050"
+                size={200}
+              />
+            </div>
           </div>
           <div style={{
             fontFamily: "'Noto Serif JP', serif",
