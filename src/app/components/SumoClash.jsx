@@ -711,13 +711,13 @@ function RikishiPortraitFigure({ side, height = 115 }) {
   return (
     <div style={{
       position:  'absolute',
-      bottom:    0,
-      [isLeft ? 'left' : 'right']: 6,
-      width:     Math.round(height * 0.626),
+      bottom:    -10,
+      [isLeft ? 'left' : 'right']: -8,
+      width:     Math.round(height * 0.72),
       height:    height,
       zIndex:    6,
       pointerEvents: 'none',
-      filter: `drop-shadow(0 -2px 18px ${glow}) drop-shadow(0 6px 14px rgba(0,0,0,0.9))`,
+      filter: `drop-shadow(0 -2px 20px ${glow}) drop-shadow(0 6px 16px rgba(0,0,0,0.95))`,
     }}>
       {!failed ? (
         <img
@@ -806,8 +806,10 @@ function PremiumHPBar({ hp, armor = 0, flash = null }) {
             borderRadius: 4, padding: '2px 7px',
             boxShadow: '0 0 8px rgba(80,150,255,0.2)',
           }}>
-            <span style={{ fontSize: '0.62rem' }}>🛡</span>
-            <span style={{ fontFamily: 'var(--jp)', fontSize: '0.75rem', fontWeight: 800, color: '#7ec8f0' }}>{armor}</span>
+            <img src="/images/upgrades/upgrade-def.webp" alt="def"
+              style={{height:18,width:'auto',imageRendering:'high-quality',filter:'drop-shadow(0 0 4px rgba(100,180,255,0.6))'}}
+              onError={e=>{e.currentTarget.style.display='none'}}/>
+            <span style={{ fontFamily: 'var(--jp)', fontSize: '0.9rem', fontWeight: 900, color: '#7ec8f0', textShadow:'0 0 8px rgba(100,180,255,0.6)' }}>{armor}</span>
           </div>
         )}
       </div>
@@ -913,9 +915,9 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   const oppPlayed = playedCards.map(r=>r.opp).filter(Boolean).slice(-6)
 
   // ── Мобільні значення ─────────────────────────────────────
-  const portraitH   = isMobile ? 70  : 115
-  const hpPadL      = isMobile ? '0.5rem 0.5rem 0.5rem 60px' : '0.55rem 0.75rem 0.55rem 84px'
-  const hpPadR      = isMobile ? '0.5rem 60px 0.5rem 0.5rem' : '0.55rem 84px 0.55rem 0.75rem'
+  const portraitH   = isMobile ? 80  : 145
+  const hpPadL      = isMobile ? '0.5rem 0.5rem 0.5rem 62px' : '0.55rem 0.75rem 0.55rem 96px'
+  const hpPadR      = isMobile ? '0.5rem 62px 0.5rem 0.5rem' : '0.55rem 96px 0.55rem 0.75rem'
   const scoreSize   = isMobile ? '1.2rem' : '1.55rem'
   const scoreSep    = isMobile ? '1rem'   : '1.4rem'
   const scoreW      = isMobile ? 52       : 68
@@ -961,11 +963,11 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
     {!isMobile&&(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
       <div style={{display:'grid',gridTemplateColumns:'1fr 68px 1fr',gap:8,marginBottom:'0.6rem'}}>
         <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-start',alignItems:'center'}}>
-          {myPlayed.map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.5,0.55+(i/arr.length)*0.45)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
+          {myPlayed.map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.72,0.72+(i/arr.length)*0.28)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
         </div>
         <div/>
         <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-end',alignItems:'center'}}>
-          {[...oppPlayed].reverse().map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.5,0.55+((arr.length-1-i)/arr.length)*0.45)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
+          {[...oppPlayed].reverse().map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.72,0.72+((arr.length-1-i)/arr.length)*0.28)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
         </div>
       </div>
     )}
@@ -976,7 +978,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
       <>
         <div style={{marginBottom:'0.4rem'}}>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.9)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:isMobile?4:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-          <div style={{display:'flex',gap:isMobile?'clamp(6px,2vw,10px)':'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:isMobile?8:4,paddingTop:isMobile?8:6,justifyContent:'center',scrollbarWidth:'none',WebkitOverflowScrolling:'touch'}}>
+          <div style={{display:'flex',gap:isMobile?'clamp(6px,2vw,10px)':'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',overflowY:'visible',paddingBottom:isMobile?8:4,paddingTop:isMobile?16:18,justifyContent:'center',scrollbarWidth:'none',WebkitOverflowScrolling:'touch'}}>
             {deduped(myHand).map((c,i)=>(<div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
               {c.type==='swap'&&!myReady?(
                 <><GameCard card={c} selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/><div style={{position:'absolute',bottom:-14,left:'50%',transform:'translateX(-50%)',fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#27ae60',whiteSpace:'nowrap'}}>{t('активувати','tap')}</div></>
@@ -1149,11 +1151,11 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
-    {phase==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
+    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
       {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'rgba(255,220,150,0.95)',textShadow:'0 1px 6px rgba(0,0,0,0.95)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
       {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/{DRAFT_ROUNDS})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
@@ -1265,7 +1267,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
@@ -1273,7 +1275,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
       {level.isBoss&&<div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',background:'#c0392b',color:'#fff',padding:'1px 8px',borderRadius:2}}>БОС</div>}
     </div>
     <CardGuide lang={lang}/>
-    {phase==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
+    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
       {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'rgba(255,220,150,0.95)',textShadow:'0 1px 6px rgba(0,0,0,0.95)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
       {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/{DRAFT_ROUNDS})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
@@ -1480,7 +1482,7 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   const myHpDelta=myHp-prevHp.my;const oppHpDelta=oppHp-prevHp.opp
   const myArmorDelta=myArmor-prevArmor.my;const oppArmorDelta=oppArmor-prevArmor.opp
 
-  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
     {screen==='vs'&&<VSScreen playerLabel={myLabel} opponentLabel={oppLabel} lang={lang} onDone={()=>setScreen('battle')}/>}
@@ -1505,7 +1507,7 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
         <div style={{fontFamily:'var(--jp)',fontSize:'3rem',fontWeight:900,color:'#f0c060',letterSpacing:'0.4em',textShadow:'0 0 20px rgba(240,192,96,0.5)'}}>{sessionId}</div>
       </div>}
     </div>)}
-    {screen==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
+    {screen==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
       {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'rgba(255,220,150,0.95)',textShadow:'0 1px 6px rgba(0,0,0,0.95)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
       {myHandCards.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({myHandCards.length})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{[...new Map(myHandCards.filter(Boolean).map(c=>[c.id,c])).values()].map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
@@ -1702,8 +1704,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
         </div>
       )}
 
-      <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:isMobile?0:'0.75rem',backdropFilter:'blur(4px)'}}>
-        <div ref={gameContainerRef} onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isMobile?'none':'1px solid var(--border)',borderRadius:isMobile?0:6,maxWidth:1100,width:'100%',maxHeight:isMobile?'100dvh':'96vh',height:isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+      <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:isFullscreen?0:isMobile?0:'0.75rem',backdropFilter:'blur(4px)'}}>
+        <div ref={gameContainerRef} onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isFullscreen||isMobile?'none':'1px solid var(--border)',borderRadius:isFullscreen||isMobile?0:6,maxWidth:isFullscreen?'100vw':1100,width:'100%',maxHeight:isFullscreen?'100vh':isMobile?'100dvh':'96vh',height:isFullscreen||isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
           {/* Header — компактний на мобільному */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:isMobile?'0.45rem 0.75rem':'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
@@ -1738,8 +1740,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.webp)',backgroundSize:'cover',backgroundPosition:'center'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
               <SakuraPetals/>
-              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:isMobile?'0.65rem':'0.9rem',width:'100%',padding:isMobile?'1.5rem 1rem':'2rem',animation:'slideIn 0.3s ease'}}>
-                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:isMobile?'92%':'88%',height:'auto',animation:'pop 0.5s ease, logoBreathe 3.5s ease-in-out 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
+              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:isMobile?'0.65rem':isFullscreen?'1.1rem':'0.9rem',width:'100%',padding:isMobile?'1.5rem 1rem':isFullscreen?'2.5rem 2rem':'2rem',animation:'slideIn 0.3s ease'}}>
+                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:isFullscreen?780:580,width:isMobile?'92%':'88%',height:'auto',animation:'pop 0.5s ease, logoBreathe 3.5s ease-in-out 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
                 <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7)',letterSpacing:'0.2em',textTransform:'uppercase'}}>DOHYO LEGENDS</div>
                 {[
                   {img:'btn-campaign.webp', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
@@ -1747,7 +1749,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   {img:'btn-multi.webp',    action:()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}},
                   {img:'btn-cardbook.webp', action:()=>{sfx('click');setMode('cardbook')}},
                 ].map(btn=>(
-                  <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:isMobile?'100%':360,height:isMobile?56:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
+                  <div key={btn.img} onClick={btn.action}
+                    style={{width:'100%',maxWidth:isMobile?'100%':isFullscreen?520:360,height:isMobile?56:isFullscreen?78:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
                     onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}}
                     onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.6)'}}>
                     <img src={`/images/${btn.img}`} alt="" style={{width:'100%',height:'100%',objectFit:'fill',imageRendering:'high-quality',display:'block'}}/>
@@ -1772,50 +1775,43 @@ export default function SumoClash({ onClose, lang='uk' }) {
             />
           )}
 
-          {/* CPU — передаємо onCardPlayed */}
+          {/* CPU */}
           {mode==='cpu' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <CpuGame
-                lang={lang}
-                onBack={()=>setMode('menu')}
-                sfx={sfx}
-                onCardPlayed={handleCardDiscovered}
-              />
+              <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1300:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
+                <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx} onCardPlayed={handleCardDiscovered}/>
+              </div>
             </div>
           )}
 
-          {/* Campaign — передаємо onCardPlayed через GameBattle */}
+          {/* Campaign */}
           {mode==='campaign' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <SumoClashCampaign
-                onBack={()=>setMode('menu')}
-                lang={lang}
-                GameBattle={(props) => (
-                  <CampaignBattleWrapper
-                    {...props}
-                    sfx={sfx}
-                    onCardPlayed={handleCardDiscovered}
-                  />
-                )}
-              />
+              <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1400:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
+                <SumoClashCampaign
+                  onBack={()=>setMode('menu')}
+                  lang={lang}
+                  discoveredCards={discoveredCards}
+                  GameBattle={(props) => (
+                    <CampaignBattleWrapper {...props} sfx={sfx} onCardPlayed={handleCardDiscovered}/>
+                  )}
+                />
+              </div>
             </div>
           )}
 
-          {/* Multi — передаємо onCardPlayed */}
+          {/* Multi */}
           {mode==='multi' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
-              <MultiGame
-                lang={lang}
-                onBack={()=>setMode('menu')}
-                sfx={sfx}
-                onCardPlayed={handleCardDiscovered}
-              />
+              <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1300:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
+                <MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx} onCardPlayed={handleCardDiscovered}/>
+              </div>
             </div>
           )}
 

@@ -239,7 +239,7 @@ function SlotItem({ item, pos, can, owned, lang, onBuy }) {
   return (
     <div onClick={can ? onBuy : undefined}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{position:'absolute',left:pos.left,top:pos.top,width:pos.size,transform:'translate(-50%, -50%)',cursor:can?'pointer':'default',zIndex:hovered?10:1,pointerEvents:'auto'}}>
+      style={{position:'absolute',left:pos.left,top:pos.top,width:pos.size,transform:'translate(-50%, -50%)',cursor:can?'pointer':'default',zIndex:hovered?20:4,pointerEvents:'auto'}}>
       <div style={{position:'relative',width:'100%',transform:hovered&&can?'translateY(-8px) scale(1.1)':'none',transition:'transform 0.18s ease',filter:hovered&&can?'drop-shadow(0 10px 24px rgba(184,134,11,0.85)) brightness(1.1)':can?'drop-shadow(0 3px 10px rgba(0,0,0,0.8))':'grayscale(0.7) brightness(0.4)'}}>
         <img src={imgSrc} alt={lang==='en'?item.labelEn:item.label}
           style={{width:'100%',height:'auto',display:'block'}}
@@ -349,15 +349,17 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
   const dark = 'rgba(0,0,0,0.7)'
   const border = '1px solid rgba(255,255,255,0.12)'
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const isLargeScreen = typeof window !== 'undefined' && window.innerHeight > 850
   const [, forceUpdate] = useState(0)
   useEffect(() => {
     const fn = () => forceUpdate(v=>v+1)
     window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
+    document.addEventListener('fullscreenchange', fn)
+    return () => { window.removeEventListener('resize', fn); document.removeEventListener('fullscreenchange', fn) }
   }, [])
 
   return (
-    <div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1}}>
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
         <button onClick={onBack} style={{background:dark,border,color:'rgba(255,255,255,0.8)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:'5px 12px',borderRadius:4,fontWeight:600}}>
           ‹ {t('Назад','Back')}
@@ -376,9 +378,10 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
           </div>
         </div>
         {hasProgress ? (
-          <button onClick={()=>setConfirmReset(true)} style={{background:'rgba(180,30,20,0.18)',border:'1.5px solid rgba(220,50,40,0.6)',color:'#ff7060',borderRadius:5,padding:'6px 14px',fontFamily:'var(--jp)',fontSize:'0.68rem',cursor:'pointer',fontWeight:700,textShadow:'0 1px 4px rgba(0,0,0,0.8)',boxShadow:'0 0 8px rgba(200,40,30,0.2)',transition:'all 0.15s'}}
-            onMouseEnter={e=>{e.currentTarget.style.background='rgba(200,40,30,0.32)';e.currentTarget.style.borderColor='rgba(255,80,60,0.8)'}}
-            onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,30,20,0.18)';e.currentTarget.style.borderColor='rgba(220,50,40,0.6)'}}>
+          <button onClick={()=>setConfirmReset(true)}
+            style={{background:'rgba(180,30,20,0.55)',border:'1.5px solid rgba(220,50,40,0.9)',color:'#ffb0a0',borderRadius:5,padding:'6px 14px',fontFamily:'var(--jp)',fontSize:'0.68rem',cursor:'pointer',fontWeight:700,textShadow:'0 1px 4px rgba(0,0,0,0.9)',boxShadow:'0 0 10px rgba(200,40,30,0.35)',transition:'all 0.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.background='rgba(200,40,30,0.75)';e.currentTarget.style.borderColor='rgba(255,80,60,0.95)'}}
+            onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,30,20,0.55)';e.currentTarget.style.borderColor='rgba(220,50,40,0.9)'}}>
             ↺ {t('Почати з початку','Reset')}
           </button>
         ) : <div style={{width:120}}/>}
@@ -404,7 +407,17 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
         </div>
       )}
 
-      <div style={{display:'flex',gap:isMobile?8:14,justifyContent:'center',flexWrap:'wrap',padding:'0.5rem 0'}}>
+      <div style={{
+        flex:1,
+        display:'flex',
+        flexWrap:'wrap',
+        gap:isMobile?8:14,
+        justifyContent:'center',
+        alignContent:'center',
+        alignItems:'center',
+        padding:'0.5rem 0',
+        minHeight: isMobile ? 'auto' : 0,
+      }}>
         {CAMPAIGN_LEVELS.map((level,idx) => {
           const lp = progress?.levels?.[level.id] || {}
           const isUnlocked = level.id===1 || progress?.levels?.[level.id-1]?.completed
@@ -441,13 +454,19 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
 }
 
 // ── Магазин ───────────────────────────────────────────────────
-function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
+const CARD_SKIN_ALIAS = {
+  'H2':'H1','H3':'H1','Ar2':'Ar1','Ar4':'Ar3',
+  'St2':'St1','St4':'St3','Sw2':'Sw1','Sw3':'Sw1','Sw4':'Sw1',
+}
+
+function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang, discoveredCards = new Set() }) {
   const t = (uk, en) => lang === 'en' ? en : uk
   const [selectingItem, setSelectingItem] = useState(null)
   const [msg, setMsg] = useState(null)
   const [tipIndex, setTipIndex] = useState(0)
   const [tipVisible, setTipVisible] = useState(false)
   const [shopkeeperHovered, setShopkeeperHovered] = useState(false)
+  const [hoveredCard, setHoveredCard] = useState(null)
 
   const areaRef = useRef(null)
   const computedSlots = useComputedSlots(areaRef)
@@ -465,16 +484,18 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
 
   function handleShopkeeperClick() {
     if (tipVisible) {
-      // Наступна підказка при повторному кліку
       setTipIndex(i => (i + 1) % SHOPKEEPER_TIPS.length)
     } else {
       setTipVisible(true)
     }
   }
 
+  // Лише розблоковані картки рікіші
+  const availableCards = RIKISHI_SAMPLE.filter(c => discoveredCards.has(c.id))
+
   if (selectingItem) return (
     <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.8)', zIndex:0 }} />
+      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.85)', zIndex:0 }} />
       <div style={{ position:'relative', zIndex:1, height:'100%', overflowY:'auto', padding:'1.25rem', animation:'campSlideIn 0.25s ease' }}>
         <button onClick={() => setSelectingItem(null)} style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.7)', fontFamily:'var(--jp)', fontSize:'0.72rem', cursor:'pointer', marginBottom:'1rem', padding:'4px 10px', borderRadius:4 }}>
           ‹ {t('Назад', 'Back')}
@@ -482,30 +503,69 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
         <div style={{ fontFamily:'var(--jp)', fontSize:'0.85rem', fontWeight:700, marginBottom:'0.5rem', color:'#f0c060' }}>
           {selectingItem.emoji} {t('Оберіть карту для бусту', 'Select card to boost')}
         </div>
-        <div style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,255,255,0.4)', marginBottom:'1.25rem' }}>
+        <div style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,220,150,0.6)', marginBottom:'1.25rem' }}>
           {lang === 'en' ? selectingItem.descEn : selectingItem.desc}
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-          {RIKISHI_SAMPLE.map(card => {
-            const boost = boostedCards?.find(b => b.cardId === card.id)
-            return (
-              <div key={card.id}
-                onClick={() => { onBuy(selectingItem, card); showMsg(`${card.rankShort} ${t('отримав буст!', 'boosted!')}`); setSelectingItem(null) }}
-                style={{ background:boost?'rgba(184,134,11,0.15)':'rgba(0,0,0,0.5)', border:`1px solid ${boost?'rgba(184,134,11,0.5)':'rgba(255,255,255,0.1)'}`, borderRadius:4, padding:'0.75rem 1rem', cursor:'pointer', display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ width:8, height:8, borderRadius:'50%', background:card.color, flexShrink:0 }} />
-                <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'var(--jp)', fontSize:'0.75rem', fontWeight:700, color:card.color }}>{card.rankShort}</span>
-                  <span style={{ fontFamily:'var(--jp)', fontSize:'0.6rem', color:'rgba(255,255,255,0.4)', marginLeft:8 }}>{card.rank}</span>
+
+        {availableCards.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'2rem', fontFamily:'var(--jp)', fontSize:'0.75rem', color:'rgba(255,220,150,0.5)' }}>
+            🔒 {t('Зіграйте більше карт, щоб розблокувати', 'Play more cards to unlock')}
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:10, justifyContent:'center' }}>
+            {availableCards.map(card => {
+              const boost = boostedCards?.find(b => b.cardId === card.id)
+              const skinId = CARD_SKIN_ALIAS[card.id] || card.id
+              const isHovered = hoveredCard === card.id
+              const atkVal = card.atk + (boost?.atk || 0)
+              const defVal = card.def + (boost?.def || 0)
+              return (
+                <div key={card.id}
+                  onClick={() => { onBuy(selectingItem, card); showMsg(`${card.rankShort} ${t('отримав буст!', 'boosted!')}`); setSelectingItem(null) }}
+                  onMouseEnter={() => setHoveredCard(card.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  style={{ position:'relative', cursor:'pointer', borderRadius:8, overflow:'visible',
+                    transform: isHovered ? 'translateY(-6px) scale(1.05)' : 'none',
+                    transition:'transform 0.15s',
+                    filter: isHovered ? `drop-shadow(0 8px 20px ${card.color}99)` : 'none',
+                  }}>
+                  {/* Картка */}
+                  <div style={{ width:110, height:165, borderRadius:8, overflow:'hidden',
+                    border: `2px solid ${boost ? '#f0c060' : isHovered ? card.color : 'rgba(255,255,255,0.15)'}`,
+                    boxShadow: boost ? '0 0 16px rgba(240,192,96,0.5)' : 'none',
+                    background:'#111' }}>
+                    <img src={`/cards/${skinId}_${lang}.webp`} alt={card.id}
+                      style={{ width:'100%', height:'100%', objectFit:'cover', imageRendering:'high-quality', display:'block' }}
+                      onError={e => e.currentTarget.style.display='none'}/>
+                  </div>
+
+                  {/* ATK/DEF значення */}
+                  <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, padding:'0 2px' }}>
+                    <span style={{ fontFamily:'var(--jp)', fontSize:'0.6rem', fontWeight:700, color:'#e74c3c' }}>
+                      ⚔{atkVal}{boost?.atk ? <span style={{color:'#f0c060',fontSize:'0.55rem'}}>+{boost.atk}</span> : null}
+                    </span>
+                    <span style={{ fontFamily:'var(--jp)', fontSize:'0.6rem', fontWeight:700, color:'#3498db' }}>
+                      🛡{defVal}{boost?.def ? <span style={{color:'#f0c060',fontSize:'0.55rem'}}>+{boost.def}</span> : null}
+                    </span>
+                  </div>
+
+                  {/* Boost badge — для вже апгрейднутих карток */}
+                  {boost && (
+                    <div style={{ position:'absolute', top:-8, right:-8, zIndex:10,
+                      background:'linear-gradient(135deg,#b8860b,#f0c060)',
+                      borderRadius:10, padding:'2px 6px',
+                      fontFamily:'var(--jp)', fontSize:'0.5rem', fontWeight:900,
+                      color:'#1a1200', boxShadow:'0 2px 8px rgba(0,0,0,0.8)',
+                      whiteSpace:'nowrap', border:'1px solid rgba(255,220,80,0.6)',
+                    }}>
+                      {boost.atk ? `⚔+${boost.atk}` : ''}{boost.atk && boost.def ? ' ' : ''}{boost.def ? `🛡+${boost.def}` : ''}
+                    </div>
+                  )}
                 </div>
-                <div style={{ display:'flex', gap:12, fontFamily:'var(--jp)', fontSize:'0.72rem' }}>
-                  <span style={{ color:'#e74c3c' }}>⚔ {card.atk}{boost?.atk?<span style={{color:'#f0c060'}}>+{boost.atk}</span>:null}</span>
-                  <span style={{ color:'#3498db' }}>🛡 {card.def}{boost?.def?<span style={{color:'#f0c060'}}>+{boost.def}</span>:null}</span>
-                </div>
-                {boost && <span style={{ color:'#f0c060', fontSize:'0.7rem' }}>✓</span>}
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -542,8 +602,8 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang }) {
           style={{
             position: 'absolute',
             bottom: '-26%',
-            right: '-10%',
-            height: '115%',
+            right: '-4%',
+            height: '112%',
             width: 'auto',
             zIndex: tipVisible ? 5 : 2,
             pointerEvents: 'auto',
@@ -661,7 +721,7 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
   )
 }
 
-export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
+export default function SumoClashCampaign({ onBack, lang, GameBattle, discoveredCards = new Set() }) {
   const t = (uk,en) => lang==='en'?en:uk
   const [screen, setScreen] = useState('map')
   const [uid, setUid] = useState(null)
@@ -759,7 +819,7 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle }) {
         <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
           <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-shop.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
           <Shop yokoin={yokoin} boostedCards={boostedCards} tempBoosts={tempBoosts}
-            onBuy={handleBuy} onBack={()=>setScreen('map')} lang={lang}/>
+            onBuy={handleBuy} onBack={()=>setScreen('map')} lang={lang} discoveredCards={discoveredCards}/>
         </div>
       )}
       {screen==='battle' && selectedLevel && (
