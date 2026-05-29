@@ -360,13 +360,11 @@ export default function VSScreen({ playerLabel, opponentLabel, lang, onDone }) {
             marginBottom: '1.5rem',
             filter: 'drop-shadow(0 8px 24px rgba(140,30,30,0.5))',
           }}>
-            <div style={{ transform: 'scaleX(-1)' }}>
-              <RikishiImage
-                src="/images/vs/rikishi-opponent.webp"
-                svgColor="#c06050"
-                size={200}
-              />
-            </div>
+            <RikishiImage
+              src="/images/vs/rikishi-opponent.webp"
+              svgColor="#c06050"
+              size={200}
+            />
           </div>
           <div style={{
             fontFamily: "'Noto Serif JP', serif",
