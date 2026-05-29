@@ -420,7 +420,7 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
               onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.filter='none'}}>
               <div style={{borderRadius:12,overflow:'hidden',border:`3px solid ${isCompleted?'#f0c060':isUnlocked?frameColor:'#333'}`,boxShadow:isCompleted?`0 0 28px rgba(240,192,96,0.5)`:`0 4px 12px rgba(0,0,0,0.6)`,background:'#0d0d0d'}}>
                 <div style={{height:imgH,position:'relative',overflow:'hidden'}}>
-                  <img src={`/images/level-${level.id}.webp`} alt={level.name} style={{width:'100%',height:'100%',objectFit:'cover',display:'block',position:'absolute',inset:0}} onError={e=>{e.currentTarget.style.display='none'}}/>
+                  <img src={`/images/level-${level.id}.webp`} alt={level.name} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',position:'absolute',inset:0}} onError={e=>{e.currentTarget.style.display='none'}}/>
                   <div style={{width:'100%',height:'100%',background:`linear-gradient(160deg,${frameColor}44 0%,#111 100%)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <span style={{fontSize:'4rem'}}>{level.emoji}</span>
                   </div>

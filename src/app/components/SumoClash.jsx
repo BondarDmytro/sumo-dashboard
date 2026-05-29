@@ -426,7 +426,7 @@ function GameCard({card,selected,onClick,disabled,small,tiny,showBack,lang='uk',
   const h=tiny?78:small?'clamp(105px,24vw,138px)':225
   return(
     <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',flexShrink:0,border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'none',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a'}}>
-      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block'}} onError={e=>{e.currentTarget.style.display='none'}}/>
     </div>
   )
 }
@@ -563,7 +563,7 @@ function CardBook({ lang, onClose, discoveredCards = new Set() }) {
               <img
                 src={`/cards/${getCardSkinId(selected.id)}_${lang}.webp`}
                 alt={selected.id}
-                style={{width:'100%',height:'100%',objectFit:'cover',display:'block',minHeight:570}}
+                style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',minHeight:570}}
                 onError={e=>{e.currentTarget.style.display='none'}}
               />
             </div>
@@ -725,7 +725,7 @@ function RikishiPortraitFigure({ side, height = 115 }) {
           alt=""
           style={{
             width: '100%', height: '100%',
-            objectFit: 'contain',
+            objectFit: 'contain', imageRendering: 'high-quality',
             objectPosition: 'bottom center',
             display: 'block',
             transform: 'none',
@@ -1733,7 +1733,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:isMobile?'100%':360,height:isMobile?56:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
                     onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}}
                     onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.6)'}}>
-                    <img src={`/images/${btn.img}`} alt="" style={{width:'100%',height:'100%',objectFit:'fill',display:'block'}}/>
+                    <img src={`/images/${btn.img}`} alt="" style={{width:'100%',height:'100%',objectFit:'fill',imageRendering:'high-quality',display:'block'}}/>
                   </div>
                 ))}
               </div>

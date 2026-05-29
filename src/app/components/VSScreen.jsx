@@ -114,7 +114,7 @@ function RikishiImage({ src, svgColor, size = 200 }) {
     <img
       src={src}
       alt=""
-      style={{ width: size, height: 'auto', display: 'block' }}
+      style={{ width: size, height: 'auto', display: 'block', imageRendering: 'high-quality' }}
       onError={() => setFailed(true)}
     />
   )
