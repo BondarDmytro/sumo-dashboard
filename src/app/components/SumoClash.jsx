@@ -417,16 +417,16 @@ function HPBar({hp,armor=0,flash=null}){
 function GameCard({card,selected,onClick,disabled,small,tiny,showBack,lang='uk',isNew=false}){
   const [hovered,setHovered]=useState(false)
   if(!card)return null
-  if(showBack)return(<div style={{width:small?'clamp(70px,16vw,92px)':tiny?52:150,height:small?'clamp(105px,24vw,138px)':tiny?78:225,borderRadius:8,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'1.2rem',opacity:0.5}}>相</span></div>)
+  // Розміри: desktop full=170×255, small=clamp(70,16vw,92), tiny=52×78
+  if(showBack)return(<div style={{width:small?'clamp(70px,16vw,92px)':tiny?52:170,height:small?'clamp(105px,24vw,138px)':tiny?78:255,borderRadius:8,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'1.2rem',opacity:0.5}}>相</span></div>)
   const color=card.color||'#b8860b'
   const hoverColor=color==='var(--mid)'?'#888':color
   const canHover=!disabled&&!selected
-  // tiny — для зіграних карт, фіксований маленький розмір
-  const w=tiny?52:small?'clamp(70px,16vw,92px)':150
-  const h=tiny?78:small?'clamp(105px,24vw,138px)':225
+  const w=tiny?52:small?'clamp(70px,16vw,92px)':170
+  const h=tiny?78:small?'clamp(105px,24vw,138px)':255
   return(
-    <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',flexShrink:0,border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'none',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a'}}>
-      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+    <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',flexShrink:0,border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'translateZ(0)',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a',willChange:'transform'}}>
+      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',transform:'translateZ(0)',willChange:'transform'}} onError={e=>{e.currentTarget.style.display='none'}}/>
     </div>
   )
 }
@@ -559,11 +559,11 @@ function CardBook({ lang, onClose, discoveredCards = new Set() }) {
       {selected && discoveredCards.has(selected.id) && (
         <div onClick={()=>setSelected(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.75)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',animation:'fadeIn 0.15s ease'}}>
           <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:`2px solid ${selected.color||'#b8860b'}`,borderRadius:12,display:'flex',gap:0,overflow:'hidden',maxHeight:'90%',animation:'pop 0.2s ease',boxShadow:`0 0 40px ${selected.color||'#b8860b'}44`}}>
-            <div style={{width:420,flexShrink:0,background:'#111',minHeight:570}}>
+            <div style={{width:480,flexShrink:0,background:'#111',minHeight:640}}>
               <img
                 src={`/cards/${getCardSkinId(selected.id)}_${lang}.webp`}
                 alt={selected.id}
-                style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',minHeight:570}}
+                style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',minHeight:640,transform:'translateZ(0)',willChange:'transform'}}
                 onError={e=>{e.currentTarget.style.display='none'}}
               />
             </div>
