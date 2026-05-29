@@ -1595,6 +1595,22 @@ export default function SumoClash({ onClose, lang='uk' }) {
   const [confirmExit,setConfirmExit]=useState(false)
   const [showReview,setShowReview]=useState(false)
   const [gameTheme,setGameTheme]=useState('dark')
+  const [isFullscreen,setIsFullscreen]=useState(false)
+  const gameContainerRef=useRef(null)
+
+  useEffect(()=>{
+    const handler=()=>setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange',handler)
+    return()=>document.removeEventListener('fullscreenchange',handler)
+  },[])
+
+  function toggleFullscreen(){
+    if(!document.fullscreenElement){
+      gameContainerRef.current?.requestFullscreen?.()
+    } else {
+      document.exitFullscreen?.()
+    }
+  }
 
   // ── Система відкриття карток ──────────────────────────────
   const [discoveredCards, setDiscoveredCards] = useState(new Set())
@@ -1687,7 +1703,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
       )}
 
       <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:isMobile?0:'0.75rem',backdropFilter:'blur(4px)'}}>
-        <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isMobile?'none':'1px solid var(--border)',borderRadius:isMobile?0:6,maxWidth:1100,width:'100%',maxHeight:isMobile?'100dvh':'96vh',height:isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+        <div ref={gameContainerRef} onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isMobile?'none':'1px solid var(--border)',borderRadius:isMobile?0:6,maxWidth:1100,width:'100%',maxHeight:isMobile?'100dvh':'96vh',height:isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
           {/* Header — компактний на мобільному */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:isMobile?'0.45rem 0.75rem':'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
@@ -1707,6 +1723,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
               ) : (
                 <>
                   <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
+                  <GameBtn variant='dark' onClick={toggleFullscreen} title={isFullscreen?t('Вийти з повного екрану','Exit fullscreen'):t('Повний екран','Fullscreen')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>{isFullscreen?'🗗':'🗖'}</GameBtn>
                   <GameBtn variant='dark' onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>{gameTheme==='dark'?'☀️':'🌙'}</GameBtn>
                   <GameBtn variant='dark' onClick={()=>setShowReview(true)} style={{fontSize:'0.8rem',padding:'5px 9px'}}>🏅</GameBtn>
                   <GameBtn variant='red' onClick={()=>setConfirmExit(true)} style={{fontSize:'1rem',padding:'5px 10px',fontWeight:900}}>✕</GameBtn>
