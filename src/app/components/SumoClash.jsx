@@ -7,6 +7,18 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth'
 import SumoClashCampaign from './SumoClashCampaign'
 import VSScreen from './VSScreen'
 
+// ── Mobile detection ──────────────────────────────────────────
+function useIsMobile() {
+  const [m, setM] = useState(false)
+  useEffect(() => {
+    const fn = () => setM(window.innerWidth < 768)
+    fn()
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+  return m
+}
+
 const MAX_HP = 40
 const MAX_ROUNDS = 15
 const DRAFT_ROUNDS = 5
@@ -689,7 +701,7 @@ function HPFlask({hp,armor=0,flash=null,label,color='#1a6b5c',align='left'}){
 
 // ── RikishiPortraitFigure — велика фігура поверх HP блоку ────
 // Стоїть на нижньому краї блоку і виступає вгору, не закриваючи HP бар
-function RikishiPortraitFigure({ side }) {
+function RikishiPortraitFigure({ side, height = 115 }) {
   const [failed, setFailed] = useState(false)
   const isLeft   = side === 'left'
   const src      = isLeft ? '/images/vs/rikishi-player.webp' : '/images/vs/rikishi-opponent.webp'
@@ -701,8 +713,8 @@ function RikishiPortraitFigure({ side }) {
       position:  'absolute',
       bottom:    0,
       [isLeft ? 'left' : 'right']: 6,
-      width:     72,
-      height:    115,      // виступає ~55px вище блоку (~60px висота)
+      width:     Math.round(height * 0.626),
+      height:    height,
       zIndex:    6,
       pointerEvents: 'none',
       filter: `drop-shadow(0 -2px 18px ${glow}) drop-shadow(0 6px 14px rgba(0,0,0,0.9))`,
@@ -883,6 +895,7 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
 
 function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLabel,oppLabel,myHand,oppHand,playerSelected,onSelect,myReady,oppReady,onSubmit,roundLog,phase,onNext,lang,myCard,oppCard,drawPile,onSwapDone,mySkipped,sfx,myHpDelta,oppHpDelta,myArmorDelta,oppArmorDelta,myFlash,oppFlash,showRoundBanner,playedCards=[]}){
   const t=(uk,en)=>lang==='en'?en:uk
+  const isMobile=useIsMobile()
   const isRoundResult=phase==='roundResult'
   const [swapping,setSwapping]=useState(false)
   const [swapOptions,setSwapOptions]=useState([])
@@ -898,107 +911,72 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   if(swapping)return <SwapScreen hand={myHand} drawOptions={swapOptions} onSwap={doSwap} lang={lang}/>
   const myPlayed  = playedCards.map(r=>r.my).filter(Boolean).slice(-6)
   const oppPlayed = playedCards.map(r=>r.opp).filter(Boolean).slice(-6)
+
+  // ── Мобільні значення ─────────────────────────────────────
+  const portraitH   = isMobile ? 70  : 115
+  const hpPadL      = isMobile ? '0.5rem 0.5rem 0.5rem 60px' : '0.55rem 0.75rem 0.55rem 84px'
+  const hpPadR      = isMobile ? '0.5rem 60px 0.5rem 0.5rem' : '0.55rem 84px 0.55rem 0.75rem'
+  const scoreSize   = isMobile ? '1.2rem' : '1.55rem'
+  const scoreSep    = isMobile ? '1rem'   : '1.4rem'
+  const scoreW      = isMobile ? 52       : 68
+  const btnW        = isMobile ? '100%'   : '60%'
+  const btnPad      = isMobile ? '1rem'   : '0.8rem 1rem'
+  const btnFs       = isMobile ? '0.95rem': '0.85rem'
+
   return(<div style={{animation:'slideIn 0.25s ease'}}>
     {showRoundBanner&&<RoundBanner roundNum={roundNum} lang={lang}/>}
 
-    {/* Рядок раунду — читабельний */}
-    <div style={{textAlign:'center',marginBottom:'0.35rem'}}>
-      <span style={{
-        fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,
-        color:'rgba(255,255,255,0.8)',letterSpacing:'0.1em',
-        background:'rgba(0,0,0,0.6)',
-        border:'1px solid rgba(255,255,255,0.1)',
-        borderRadius:10,padding:'2px 12px',
-      }}>
+    {/* Рядок раунду */}
+    <div style={{textAlign:'center',marginBottom:'0.3rem'}}>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.8)',letterSpacing:'0.1em',background:'rgba(0,0,0,0.6)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'2px 12px'}}>
         {t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}
       </span>
     </div>
 
-    {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.5rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
+    {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.4rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
 
-    {/* HP панелі + рахунок по центру */}
-    <div style={{display:'grid',gridTemplateColumns:'1fr 68px 1fr',gap:8,marginBottom:'0.6rem',alignItems:'stretch'}}>
+    {/* HP панелі + рахунок */}
+    <div style={{display:'grid',gridTemplateColumns:`1fr ${scoreW}px 1fr`,gap:isMobile?5:8,marginBottom:'0.5rem',alignItems:'stretch'}}>
 
-      {/* Лівий HP — overflow:visible щоб портрет міг виступати вгору */}
-      <div style={{
-        position:'relative', overflow:'visible',
-        background:'rgba(0,0,0,0.65)',
-        padding:'0.55rem 0.75rem 0.55rem 84px', // відступ зліва для фігури
-        borderRadius:6, border:'1px solid rgba(26,107,92,0.4)',
-        minHeight: 62,
-      }}>
-        <RikishiPortraitFigure side="left"/>
+      <div style={{position:'relative',overflow:'visible',background:'rgba(0,0,0,0.65)',padding:hpPadL,borderRadius:6,border:'1px solid rgba(26,107,92,0.4)',minHeight:isMobile?50:62}}>
+        <RikishiPortraitFigure side="left" height={portraitH}/>
         <PlayerBadge label={myLabel} side="left"/>
         <PremiumHPBar hp={myHp} armor={myArmor} flash={myFlash}/>
       </div>
 
-      {/* Рахунок по центру */}
-      <div style={{
-        display:'flex',flexDirection:'column',
-        alignItems:'center',justifyContent:'center',
-        background:'rgba(0,0,0,0.55)',
-        borderRadius:6,border:'1px solid rgba(184,134,11,0.22)',
-        padding:'4px 2px',
-      }}>
-        <div style={{
-          fontFamily:'var(--jp)',fontSize:'1.55rem',fontWeight:900,
-          color:'#f0c060',lineHeight:1,
-          textShadow:'0 0 16px rgba(240,192,96,0.5), 0 2px 6px rgba(0,0,0,0.9)',
-          letterSpacing:'-0.02em',
-        }}>
-          {myWins}
-          <span style={{fontSize:'1.4rem',color:'#c8a020',margin:'0 2px',lineHeight:1}}>–</span>
-          {oppWins}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.55)',borderRadius:6,border:'1px solid rgba(184,134,11,0.22)',padding:'2px'}}>
+        <div style={{fontFamily:'var(--jp)',fontSize:scoreSize,fontWeight:900,color:'#f0c060',lineHeight:1,textShadow:'0 0 16px rgba(240,192,96,0.5), 0 2px 6px rgba(0,0,0,0.9)',letterSpacing:'-0.02em'}}>
+          {myWins}<span style={{fontSize:scoreSep,color:'#c8a020',margin:'0 1px',lineHeight:1}}>–</span>{oppWins}
         </div>
       </div>
 
-      {/* Правий HP — overflow:visible + відступ справа для фігури */}
-      <div style={{
-        position:'relative', overflow:'visible',
-        background:'rgba(0,0,0,0.65)',
-        padding:'0.55rem 84px 0.55rem 0.75rem', // відступ справа для фігури
-        borderRadius:6, border:'1px solid rgba(192,57,43,0.4)',
-        minHeight: 62,
-      }}>
-        <RikishiPortraitFigure side="right"/>
+      <div style={{position:'relative',overflow:'visible',background:'rgba(0,0,0,0.65)',padding:hpPadR,borderRadius:6,border:'1px solid rgba(192,57,43,0.4)',minHeight:isMobile?50:62}}>
+        <RikishiPortraitFigure side="right" height={portraitH}/>
         <PlayerBadge label={oppLabel} side="right"/>
         <PremiumHPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
       </div>
     </div>
-    {(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
+
+    {/* Зіграні картки — ховаємо на мобільному */}
+    {!isMobile&&(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
       <div style={{display:'grid',gridTemplateColumns:'1fr 68px 1fr',gap:8,marginBottom:'0.6rem'}}>
-        {/* Ліва сторона: від найстарішої (зліва, мала) до найновішої (справа, велика) */}
         <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-start',alignItems:'center'}}>
-          {myPlayed.map((c,i,arr)=>(
-            <div key={i} style={{
-              flexShrink:0,
-              opacity: Math.max(0.5, 0.55 + (i/arr.length)*0.45),
-            }}>
-              <GameCard card={c} tiny disabled lang={lang}/>
-            </div>
-          ))}
+          {myPlayed.map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.5,0.55+(i/arr.length)*0.45)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
         </div>
         <div/>
-        {/* Права сторона: ДЗЕРКАЛЬНО — найновіша зліва (біля центру), найстаріша справа */}
         <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-end',alignItems:'center'}}>
-          {[...oppPlayed].reverse().map((c,i,arr)=>(
-            <div key={i} style={{
-              flexShrink:0,
-              opacity: Math.max(0.5, 0.55 + ((arr.length-1-i)/arr.length)*0.45),
-            }}>
-              <GameCard card={c} tiny disabled lang={lang}/>
-            </div>
-          ))}
+          {[...oppPlayed].reverse().map((c,i,arr)=>(<div key={i} style={{flexShrink:0,opacity:Math.max(0.5,0.55+((arr.length-1-i)/arr.length)*0.45)}}><GameCard card={c} tiny disabled lang={lang}/></div>))}
         </div>
       </div>
     )}
+
     {isRoundResult?(
       <RoundResult myCard={myCard} oppCard={oppCard} roundLog={roundLog} myLabel={myLabel} oppLabel={oppLabel} onNext={onNext} roundNum={roundNum} lang={lang} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myHp={myHp} oppHp={oppHp} myArmor={myArmor} oppArmor={oppArmor} myFlash={myFlash} oppFlash={oppFlash}/>
     ):(
       <>
-        <div style={{marginBottom:'0.5rem'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
-          <div style={{display:'flex',gap:'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:4,paddingTop:6,justifyContent:'center',scrollbarWidth:'none'}}>
+        <div style={{marginBottom:'0.4rem'}}>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',marginBottom:isMobile?4:6,letterSpacing:'0.08em'}}>{t('Ваша рука','Your hand')} ({deduped(myHand).length}) · {t('Колода','Deck')}: {drawPile.length}</div>
+          <div style={{display:'flex',gap:isMobile?'clamp(6px,2vw,10px)':'clamp(4px,1.5vw,12px)',flexWrap:'nowrap',overflowX:'auto',paddingBottom:isMobile?8:4,paddingTop:isMobile?8:6,justifyContent:'center',scrollbarWidth:'none',WebkitOverflowScrolling:'touch'}}>
             {deduped(myHand).map((c,i)=>(<div key={c.id} style={{animation:`slideIn 0.2s ease ${i*0.05}s both`,position:'relative',flexShrink:0}}>
               {c.type==='swap'&&!myReady?(
                 <><GameCard card={c} selected={false} onClick={activateSwap} disabled={myReady} lang={lang}/><div style={{position:'absolute',bottom:-14,left:'50%',transform:'translateX(-50%)',fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#27ae60',whiteSpace:'nowrap'}}>{t('активувати','tap')}</div></>
@@ -1008,19 +986,23 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
             </div>))}
           </div>
         </div>
-        <div style={{marginBottom:'0.5rem',display:'flex',alignItems:'center',gap:8}}>
+
+        <div style={{marginBottom:'0.4rem',display:'flex',alignItems:'center',gap:8}}>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#8a7a60',textTransform:'uppercase',letterSpacing:'0.08em'}}>{oppLabel}</div>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:700,color:'#e0d0a0',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid #4a3e28',borderRadius:4,padding:'2px 10px',boxShadow:'0 1px 4px rgba(0,0,0,0.6)'}}>🂠 {oppHand}</div>
         </div>
-        {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#2ecc71',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
-        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.5rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        <div style={{paddingTop:8,marginTop:4}}>
+
+        {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#2ecc71',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
+        {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#8a7a60',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
+
+        {/* Кнопка підтвердження — на мобільному повна ширина і більший розмір для пальця */}
+        <div style={{paddingTop:isMobile?6:8,marginTop:4}}>
           {((!playerSelected&&!mySkipped)||myReady)?(
-            <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em'}}>
+            <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em'}}>
               {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
             </GameBtn>
           ):(
-            <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:'60%',minWidth:200,justifyContent:'center',padding:'0.8rem 1rem',fontSize:'0.85rem',letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
+            <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
               {mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):t('⚔ Підтвердити','⚔ Confirm')}
             </GameBtn>
           )}
@@ -1076,6 +1058,7 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
 // ── CpuGame ───────────────────────────────────────────────────
 function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
+  const isMobile=useIsMobile()
   const [phase,setPhase]=useState('draft')
   const [vsActive,setVsActive]=useState(false)
   const [draftPool,setDraftPool]=useState([])
@@ -1166,7 +1149,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
@@ -1184,6 +1167,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
 // ── CampaignBattleWrapper ─────────────────────────────────────
 function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, onBack, lang, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
+  const isMobile=useIsMobile()
   const SANYAKU=['Yokozuna','Ozeki','Sekiwake','Komusubi']
   const [phase,setPhase]=useState('draft')
   const [vsActive,setVsActive]=useState(false)
@@ -1281,7 +1265,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
@@ -1302,6 +1286,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
 // ── MultiGame ─────────────────────────────────────────────────
 function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
+  const isMobile=useIsMobile()
   const [screen,setScreen]=useState('lobby')
   const [role,setRole]=useState(null)
   const [sessionId,setSessionId]=useState('')
@@ -1495,7 +1480,7 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   const myHpDelta=myHp-prevHp.my;const oppHpDelta=oppHp-prevHp.opp
   const myArmorDelta=myArmor-prevArmor.my;const oppArmorDelta=oppArmor-prevArmor.opp
 
-  return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
     {screen==='vs'&&<VSScreen playerLabel={myLabel} opponentLabel={oppLabel} lang={lang} onDone={()=>setScreen('battle')}/>}
@@ -1601,6 +1586,7 @@ function ReviewModal({onClose,onSubmit,lang}){
 export default function SumoClash({ onClose, lang='uk' }) {
   const [mode, setMode] = useState('menu')
   const t=(uk,en)=>lang==='en'?en:uk
+  const isMobile=useIsMobile()
   const audioCtxRef=useRef(null)
   const audioRef=useRef(null)
   const [sfxOn,setSfxOn]=useState(true)
@@ -1700,21 +1686,32 @@ export default function SumoClash({ onClose, lang='uk' }) {
         </div>
       )}
 
-      <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.75rem',backdropFilter:'blur(4px)'}}>
-        <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:'1px solid var(--border)',borderRadius:6,maxWidth:1100,width:'100%',maxHeight:'96vh',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+      <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:isMobile?0:'0.75rem',backdropFilter:'blur(4px)'}}>
+        <div onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isMobile?'none':'1px solid var(--border)',borderRadius:isMobile?0:6,maxWidth:1100,width:'100%',maxHeight:isMobile?'100dvh':'96vh',height:isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
 
-          {/* Header */}
-          <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
-            <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
-              <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>DOHYO LEGENDS</span></span>
-              {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
+          {/* Header — компактний на мобільному */}
+          <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:isMobile?'0.45rem 0.75rem':'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{height:isMobile?26:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
+              <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060'}}>DOHYO LEGENDS</span></span>
+              {mode!=='menu'&&!isMobile&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
-            <div style={{display:'flex',alignItems:'center',gap:5}}>
-              <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
-              <GameBtn variant='dark' onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')} title={gameTheme==='dark'?t('Світла тема','Light theme'):t('Темна тема','Dark theme')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>{gameTheme==='dark'?'☀️':'🌙'}</GameBtn>
-              <GameBtn variant='dark' onClick={()=>setShowReview(true)} title={t('Оцінити гру','Rate game')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>🏅</GameBtn>
-              <GameBtn variant='red' onClick={()=>setConfirmExit(true)} style={{fontSize:'1rem',padding:'5px 10px',fontWeight:900}}>✕</GameBtn>
+            <div style={{display:'flex',alignItems:'center',gap:isMobile?3:5}}>
+              {/* На мобільному — тільки SFX + Music + Exit */}
+              {isMobile ? (
+                <>
+                  <GameBtn variant={sfxOn?'gold':'dark'} onClick={toggleSfx} style={{fontSize:'0.75rem',padding:'4px 8px'}}>{sfxOn?'🔊':'🔇'}</GameBtn>
+                  <GameBtn variant={musicOn?'gold':'dark'} onClick={toggleMusic} style={{fontSize:'0.75rem',padding:'4px 8px'}}>🎵</GameBtn>
+                  <GameBtn variant='red' onClick={()=>setConfirmExit(true)} style={{fontSize:'0.95rem',padding:'4px 9px',fontWeight:900}}>✕</GameBtn>
+                </>
+              ) : (
+                <>
+                  <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
+                  <GameBtn variant='dark' onClick={()=>setGameTheme(v=>v==='dark'?'light':'dark')} style={{fontSize:'0.8rem',padding:'5px 9px'}}>{gameTheme==='dark'?'☀️':'🌙'}</GameBtn>
+                  <GameBtn variant='dark' onClick={()=>setShowReview(true)} style={{fontSize:'0.8rem',padding:'5px 9px'}}>🏅</GameBtn>
+                  <GameBtn variant='red' onClick={()=>setConfirmExit(true)} style={{fontSize:'1rem',padding:'5px 10px',fontWeight:900}}>✕</GameBtn>
+                </>
+              )}
             </div>
           </div>
 
@@ -1723,8 +1720,9 @@ export default function SumoClash({ onClose, lang='uk' }) {
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',minHeight:400}}>
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.webp)',backgroundSize:'cover',backgroundPosition:'center'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
-              <SakuraPetals/>              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
-                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease, logoBreathe 3.5s ease-in-out 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
+              <SakuraPetals/>
+              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:isMobile?'0.65rem':'0.9rem',width:'100%',padding:isMobile?'1.5rem 1rem':'2rem',animation:'slideIn 0.3s ease'}}>
+                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:isMobile?'92%':'88%',height:'auto',animation:'pop 0.5s ease, logoBreathe 3.5s ease-in-out 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
                 <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7)',letterSpacing:'0.2em',textTransform:'uppercase'}}>DOHYO LEGENDS</div>
                 {[
                   {img:'btn-campaign.webp', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
@@ -1732,8 +1730,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   {img:'btn-multi.webp',    action:()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}},
                   {img:'btn-cardbook.webp', action:()=>{sfx('click');setMode('cardbook')}},
                 ].map(btn=>(
-                  <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:360,height:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
-                    onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}
+                  <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:isMobile?'100%':360,height:isMobile?56:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
+                    onMouseEnter={e=>{if(!isMobile){e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}}
                     onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.6)'}}>
                     <img src={`/images/${btn.img}`} alt="" style={{width:'100%',height:'100%',objectFit:'fill',display:'block'}}/>
                   </div>

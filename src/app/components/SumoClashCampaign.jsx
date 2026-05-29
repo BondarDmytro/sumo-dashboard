@@ -348,6 +348,13 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
   const hasProgress = Object.keys(progress?.levels||{}).length > 0
   const dark = 'rgba(0,0,0,0.7)'
   const border = '1px solid rgba(255,255,255,0.12)'
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const [, forceUpdate] = useState(0)
+  useEffect(() => {
+    const fn = () => forceUpdate(v=>v+1)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
 
   return (
     <div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1}}>
@@ -397,20 +404,22 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
         </div>
       )}
 
-      <div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',padding:'0.5rem 0'}}>
+      <div style={{display:'flex',gap:isMobile?8:14,justifyContent:'center',flexWrap:'wrap',padding:'0.5rem 0'}}>
         {CAMPAIGN_LEVELS.map((level,idx) => {
           const lp = progress?.levels?.[level.id] || {}
           const isUnlocked = level.id===1 || progress?.levels?.[level.id-1]?.completed
           const isCompleted = lp.completed
           const stars = lp.stars || 0
           const frameColor = frameColors[level.id] || '#6f6f6f'
+          const cardW = isMobile ? 'calc(50% - 4px)' : 180
+          const imgH  = isMobile ? 160 : 230
           return (
             <div key={level.id} onClick={isUnlocked?()=>onSelectLevel(level):undefined}
-              style={{width:180,flexShrink:0,cursor:isUnlocked?'pointer':'default',opacity:isUnlocked?1:0.35,animation:`campSlideIn 0.3s ease ${idx*0.08}s both`,transition:'transform 0.18s, filter 0.18s'}}
-              onMouseEnter={e=>{if(isUnlocked){e.currentTarget.style.transform='translateY(-8px)';e.currentTarget.style.filter=`drop-shadow(0 12px 24px ${frameColor}99)`}}}
+              style={{width:cardW,flexShrink:0,cursor:isUnlocked?'pointer':'default',opacity:isUnlocked?1:0.35,animation:`campSlideIn 0.3s ease ${idx*0.08}s both`,transition:'transform 0.18s, filter 0.18s'}}
+              onMouseEnter={e=>{if(isUnlocked&&!isMobile){e.currentTarget.style.transform='translateY(-8px)';e.currentTarget.style.filter=`drop-shadow(0 12px 24px ${frameColor}99)`}}}
               onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.filter='none'}}>
               <div style={{borderRadius:12,overflow:'hidden',border:`3px solid ${isCompleted?'#f0c060':isUnlocked?frameColor:'#333'}`,boxShadow:isCompleted?`0 0 28px rgba(240,192,96,0.5)`:`0 4px 12px rgba(0,0,0,0.6)`,background:'#0d0d0d'}}>
-                <div style={{height:230,position:'relative',overflow:'hidden'}}>
+                <div style={{height:imgH,position:'relative',overflow:'hidden'}}>
                   <img src={`/images/level-${level.id}.webp`} alt={level.name} style={{width:'100%',height:'100%',objectFit:'cover',display:'block',position:'absolute',inset:0}} onError={e=>{e.currentTarget.style.display='none'}}/>
                   <div style={{width:'100%',height:'100%',background:`linear-gradient(160deg,${frameColor}44 0%,#111 100%)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
                     <span style={{fontSize:'4rem'}}>{level.emoji}</span>
