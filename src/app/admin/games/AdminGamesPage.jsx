@@ -10,6 +10,99 @@ const GAMES = [
   { id: 'yushoGame',  label: 'Юшо Гра 🃏',    hasMode: false },
 ]
 
+// ── Deploy Button ─────────────────────────────────────────────
+const DEPLOY_STATES = {
+  idle:    { label: '🚀 Задеплоїти на Vercel', bg: '#1a4a7a', pulse: false },
+  loading: { label: '⏳ Деплоїться...',         bg: '#b8860b', pulse: true  },
+  success: { label: '✅ Деплой запущено',        bg: '#1a6b5c', pulse: false },
+  error:   { label: '❌ Помилка деплою',         bg: '#8b1a1a', pulse: false },
+}
+
+function DeployButton() {
+  const [status, setStatus]   = useState('idle')
+  const [detail, setDetail]   = useState('')
+  const [history, setHistory] = useState([])
+
+  async function handleDeploy() {
+    if (status === 'loading') return
+    setStatus('loading')
+    setDetail('')
+    const startedAt = new Date().toLocaleTimeString('uk-UA')
+    try {
+      const res  = await fetch('/api/deploy', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unknown error')
+      setStatus('success')
+      setDetail(`Job ID: ${data.jobId ?? '—'}`)
+      setHistory(h => [{ time: startedAt, ok: true, jobId: data.jobId }, ...h.slice(0, 4)])
+      setTimeout(() => { setStatus('idle'); setDetail('') }, 8000)
+    } catch (e) {
+      setStatus('error')
+      setDetail(e.message)
+      setHistory(h => [{ time: startedAt, ok: false, msg: e.message }, ...h.slice(0, 4)])
+      setTimeout(() => { setStatus('idle'); setDetail('') }, 6000)
+    }
+  }
+
+  const s = DEPLOY_STATES[status]
+
+  return (
+    <div>
+      <button
+        onClick={handleDeploy}
+        disabled={status === 'loading'}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '10px 20px',
+          background: s.bg, color: '#fff',
+          border: 'none', borderRadius: 6,
+          fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700,
+          cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+          opacity: status === 'loading' ? 0.85 : 1,
+          transition: 'all 0.2s',
+          boxShadow: `0 2px 8px ${s.bg}88`,
+          animation: s.pulse ? 'deployPulse 1.2s ease infinite' : 'none',
+        }}
+      >
+        {s.label}
+      </button>
+
+      {detail && (
+        <div style={{ marginTop: 6, fontSize: '0.62rem', color: status === 'error' ? '#e74c3c' : 'var(--mid)', fontFamily: 'monospace' }}>
+          {detail}
+          {status === 'success' && (
+            <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"
+              style={{ marginLeft: 10, color: '#b8860b' }}>
+              → Vercel Dashboard ↗
+            </a>
+          )}
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div style={{ fontSize: '0.55rem', color: 'var(--light)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>
+            Останні деплої
+          </div>
+          {history.map((h, i) => (
+            <div key={i} style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: h.ok ? '#1a6b5c' : '#e74c3c' }}>
+              {h.time} — {h.ok ? `✓ ${h.jobId ?? 'запущено'}` : `✗ ${h.msg}`}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes deployPulse {
+          0%,100% { box-shadow: 0 2px 8px #b8860b88; }
+          50%     { box-shadow: 0 2px 24px #b8860bcc; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ── Решта компонентів ─────────────────────────────────────────
 function StatCard({ label, value, color = 'var(--ink)' }) {
   return (
     <div style={{background:'var(--bg2)',borderRadius:6,padding:'1rem',border:'1px solid var(--border)',textAlign:'center'}}>
@@ -77,9 +170,23 @@ export default function AdminGamesPage() {
 
   return (
     <div style={{maxWidth:900,margin:'0 auto',padding:'2rem 1rem',fontFamily:'monospace'}}>
-      <div style={{marginBottom:'2rem'}}>
-        <h1 style={{fontFamily:'Georgia,serif',fontSize:'1.5rem',fontWeight:800,color:'#b8860b',marginBottom:'0.25rem'}}>🎮 Аналітика ігор</h1>
-        <div style={{fontSize:'0.7rem',color:'var(--mid)'}}>Дані в реальному часі · Firebase Realtime DB</div>
+
+      {/* ── Заголовок + Deploy ── */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'2rem',gap:16,flexWrap:'wrap'}}>
+        <div>
+          <h1 style={{fontFamily:'Georgia,serif',fontSize:'1.5rem',fontWeight:800,color:'#b8860b',marginBottom:'0.25rem'}}>🎮 Аналітика ігор</h1>
+          <div style={{fontSize:'0.7rem',color:'var(--mid)'}}>Дані в реальному часі · Firebase Realtime DB</div>
+        </div>
+        <div style={{
+          background:'var(--card)',border:'1px solid var(--border)',
+          borderRadius:8,padding:'1rem 1.25rem',
+          display:'flex',flexDirection:'column',gap:8,minWidth:240,
+        }}>
+          <div style={{fontSize:'0.6rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:2}}>
+            Деплой на Vercel
+          </div>
+          <DeployButton />
+        </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:'2rem'}}>

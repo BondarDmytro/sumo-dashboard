@@ -5,6 +5,7 @@ import { db } from '../lib/firebase'
 import { ref, set, get, onValue, update, off } from 'firebase/database'
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth'
 import SumoClashCampaign from './SumoClashCampaign'
+import VSScreen from './VSScreen'
 
 const MAX_HP = 40
 const MAX_ROUNDS = 15
@@ -303,7 +304,19 @@ const ANIM_STYLES=`
 @keyframes bubbleRise{0%{transform:translateY(0) scale(1);opacity:0.7}100%{transform:translateY(-40px) scale(0.3);opacity:0}}
 @keyframes lowHpPulse{0%,100%{color:#c0392b}50%{color:#ff6b6b}}
 @keyframes lockPulse{0%,100%{opacity:0.85}50%{opacity:1}}
-`
+@keyframes sakuraFall{
+  0%   { transform: translateY(-40px); opacity:0 }
+  8%   { opacity:1 }
+  85%  { opacity:0.75 }
+  100% { transform: translateY(calc(100vh + 60px)); opacity:0 }
+}
+@keyframes sakuraSway{
+  0%   { transform: translateX(0) rotate(0deg) }
+  20%  { transform: translateX(16px) rotate(80deg) }
+  45%  { transform: translateX(-10px) rotate(190deg) }
+  70%  { transform: translateX(20px) rotate(270deg) }
+  100% { transform: translateX(0) rotate(360deg) }
+}`
 
 const CARD_TYPES_INFO=[
   {type:'rikishi',emoji:'⚔️',label:{uk:'Рікіші',en:'Rikishi'},desc:{uk:'Атакує. ATK − DEF = шкода. Б\'є броню першою.',en:'Attacks. ATK − DEF = damage. Hits armor first.'}},
@@ -314,6 +327,43 @@ const CARD_TYPES_INFO=[
   {type:'salt',emoji:'🧂',label:{uk:'Сіль',en:'Salt'},desc:{uk:'Суперник пропускає наступний хід.',en:'Opponent skips next turn.'}},
   {type:'henka',emoji:'🌀',label:{uk:'Хенка',en:'Henka'},desc:{uk:'Уникаєте атаки суперника (рікіші або удар).',en:'Dodge opponent attack (rikishi or strike).'}},
 ]
+
+// ── Падаюче листя сакури — меню ──────────────────────────────
+const SAKURA_PETALS = Array.from({length: 28}, (_, i) => ({
+  id: i,
+  left: `${3 + (i * 97 / 27)}%`,
+  size: 7 + (i * 3) % 9,
+  fallDur: 5 + (i * 1.13) % 7,
+  swayDur: 2.2 + (i * 0.6) % 2.5,
+  delay: -((i * 1.9) % 12),
+  rotate: (i * 53) % 360,
+  color: ['rgba(255,168,185,0.88)','rgba(255,195,210,0.8)','rgba(255,148,168,0.82)','rgba(255,210,218,0.75)'][i%4],
+}))
+
+function SakuraPetals() {
+  return (
+    <div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:3}}>
+      {SAKURA_PETALS.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute',
+          left: p.left,
+          top: 0,
+          animation: `sakuraFall ${p.fallDur}s linear ${p.delay}s infinite`,
+        }}>
+          <div style={{
+            width: p.size,
+            height: Math.round(p.size * 0.72),
+            background: `radial-gradient(ellipse at 38% 32%, ${p.color}, rgba(255,120,145,0.35) 75%, transparent 100%)`,
+            borderRadius: '62% 38% 62% 38% / 52% 62% 38% 48%',
+            transform: `rotate(${p.rotate}deg)`,
+            animation: `sakuraSway ${p.swayDur}s ease-in-out ${p.delay}s infinite`,
+            filter: 'drop-shadow(0 1px 2px rgba(180,60,80,0.2))',
+          }}/>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function SaltParticles(){
   const particles=Array.from({length:16},(_,i)=>({id:i,tx:`${(Math.random()-0.5)*120}px`,ty:`${-30-Math.random()*60}px`,delay:`${Math.random()*0.3}s`,size:`${4+Math.random()*6}px`}))
@@ -348,18 +398,19 @@ function HPBar({hp,armor=0,flash=null}){
   )
 }
 
-function GameCard({card,selected,onClick,disabled,small,showBack,lang='uk',isNew=false}){
+function GameCard({card,selected,onClick,disabled,small,tiny,showBack,lang='uk',isNew=false}){
   const [hovered,setHovered]=useState(false)
   if(!card)return null
-  if(showBack)return(<div style={{width:small?'clamp(70px,16vw,92px)':150,height:small?'clamp(105px,24vw,138px)':225,borderRadius:8,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'1.2rem',opacity:0.5}}>相</span></div>)
+  if(showBack)return(<div style={{width:small?'clamp(70px,16vw,92px)':tiny?52:150,height:small?'clamp(105px,24vw,138px)':tiny?78:225,borderRadius:8,background:'linear-gradient(135deg,#1a1a2e,#0f3460)',border:'2px solid #b8860b',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'1.2rem',opacity:0.5}}>相</span></div>)
   const color=card.color||'#b8860b'
   const hoverColor=color==='var(--mid)'?'#888':color
   const canHover=!disabled&&!selected
-  const w=small?'clamp(70px,16vw,92px)':150
-  const h=small?'clamp(105px,24vw,138px)':225
+  // tiny — для зіграних карт, фіксований маленький розмір
+  const w=tiny?52:small?'clamp(70px,16vw,92px)':150
+  const h=tiny?78:small?'clamp(105px,24vw,138px)':225
   return(
     <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',flexShrink:0,border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'none',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a'}}>
-      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.png`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={e=>{e.currentTarget.style.display='none'}}/>
     </div>
   )
 }
@@ -494,7 +545,7 @@ function CardBook({ lang, onClose, discoveredCards = new Set() }) {
           <div onClick={e=>e.stopPropagation()} style={{background:'var(--card)',border:`2px solid ${selected.color||'#b8860b'}`,borderRadius:12,display:'flex',gap:0,overflow:'hidden',maxHeight:'90%',animation:'pop 0.2s ease',boxShadow:`0 0 40px ${selected.color||'#b8860b'}44`}}>
             <div style={{width:420,flexShrink:0,background:'#111',minHeight:570}}>
               <img
-                src={`/cards/${getCardSkinId(selected.id)}_${lang}.png`}
+                src={`/cards/${getCardSkinId(selected.id)}_${lang}.webp`}
                 alt={selected.id}
                 style={{width:'100%',height:'100%',objectFit:'cover',display:'block',minHeight:570}}
                 onError={e=>{e.currentTarget.style.display='none'}}
@@ -632,6 +683,148 @@ function HPFlask({hp,armor=0,flash=null,label,color='#1a6b5c',align='left'}){
   )
 }
 
+// ── RikishiPortraitFigure — велика фігура поверх HP блоку ────
+// Стоїть на нижньому краї блоку і виступає вгору, не закриваючи HP бар
+function RikishiPortraitFigure({ side }) {
+  const [failed, setFailed] = useState(false)
+  const isLeft   = side === 'left'
+  const src      = isLeft ? '/images/vs/rikishi-player.webp' : '/images/vs/rikishi-opponent.webp'
+  const glow     = isLeft ? 'rgba(46,204,113,0.55)'  : 'rgba(231,76,60,0.55)'
+  const svgColor = isLeft ? '#3edc81' : '#e07060'
+
+  return (
+    <div style={{
+      position:  'absolute',
+      bottom:    0,
+      [isLeft ? 'left' : 'right']: 6,
+      width:     72,
+      height:    115,      // виступає ~55px вище блоку (~60px висота)
+      zIndex:    6,
+      pointerEvents: 'none',
+      filter: `drop-shadow(0 -2px 18px ${glow}) drop-shadow(0 6px 14px rgba(0,0,0,0.9))`,
+    }}>
+      {!failed ? (
+        <img
+          src={src}
+          alt=""
+          style={{
+            width: '100%', height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'bottom center',
+            display: 'block',
+            transform: 'none',
+            filter: 'saturate(1.15) brightness(0.9) contrast(1.05)',
+          }}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <svg
+          viewBox="0 0 110 140" width="72" height="92"
+          style={{ display:'block' }}
+        >
+          <ellipse cx="62" cy="10" rx="7" ry="5" fill={svgColor}/>
+          <circle cx="58" cy="26" r="18" fill={svgColor}/>
+          <ellipse cx="50" cy="76" rx="30" ry="34" fill={svgColor} transform="rotate(-12 50 76)"/>
+          <ellipse cx="82" cy="62" rx="9" ry="20" fill={svgColor} transform="rotate(-50 82 62)"/>
+          <circle cx="92" cy="48" r="9" fill={svgColor}/>
+          <ellipse cx="18" cy="70" rx="8" ry="16" fill={svgColor} transform="rotate(25 18 70)"/>
+          <ellipse cx="68" cy="118" rx="14" ry="20" fill={svgColor} transform="rotate(-12 68 118)"/>
+          <ellipse cx="74" cy="137" rx="13" ry="8" fill={svgColor}/>
+          <ellipse cx="30" cy="116" rx="13" ry="18" fill={svgColor} transform="rotate(18 30 116)"/>
+          <ellipse cx="22" cy="133" rx="12" ry="7" fill={svgColor}/>
+        </svg>
+      )}
+    </div>
+  )
+}
+
+// ── PlayerBadge — тільки ім'я (портрет тепер окремо) ─────────
+function PlayerBadge({ label, side = 'left' }) {
+  const isLeft = side === 'left'
+  return (
+    <div style={{
+      fontFamily: 'var(--jp)', fontSize: '0.65rem', fontWeight: 700,
+      color: isLeft ? '#2ecc71' : '#e74c3c',
+      letterSpacing: '0.06em', textTransform: 'uppercase',
+      textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+      textAlign: isLeft ? 'left' : 'right',
+      marginBottom: 6,
+      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+    }}>
+      {label}
+    </div>
+  )
+}
+
+// ── PremiumHPBar ──────────────────────────────────────────────
+function PremiumHPBar({ hp, armor = 0, flash = null }) {
+  const pct   = Math.max(0, Math.min(100, (hp / MAX_HP) * 100))
+  const isLow = pct <= 30
+  const isMid = pct > 30 && pct <= 60
+  const fill  = isLow
+    ? 'linear-gradient(90deg,#5a0000,#a01818,#e74c3c)'
+    : isMid
+    ? 'linear-gradient(90deg,#4a2e00,#8a5a00,#c8900a)'
+    : 'linear-gradient(90deg,#053020,#0d5038,#1abc9c)'
+  const glow  = isLow ? '#e74c3c' : isMid ? '#f0c060' : '#1abc9c'
+  const flashA = flash === 'damage' ? 'flashRed 0.4s ease'
+               : flash === 'heal'   ? 'flashGreen 0.4s ease'
+               : flash === 'armor'  ? 'flashBlue 0.4s ease' : undefined
+  return (
+    <div style={{ animation: flashA }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+          <span style={{
+            fontFamily: 'var(--jp)', fontSize: '1.45rem', fontWeight: 900,
+            color: glow, textShadow: `0 0 14px ${glow}99`,
+            animation: isLow ? 'lowHpPulse 1s ease infinite' : undefined,
+            lineHeight: 1,
+          }}>{hp}</span>
+          <span style={{ fontFamily: 'var(--jp)', fontSize: '0.58rem', color: 'rgba(255,255,255,0.28)' }}>/{MAX_HP}</span>
+        </div>
+        {armor > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 3,
+            background: 'linear-gradient(180deg,#122038,#091428)',
+            border: '1px solid rgba(100,180,255,0.4)',
+            borderRadius: 4, padding: '2px 7px',
+            boxShadow: '0 0 8px rgba(80,150,255,0.2)',
+          }}>
+            <span style={{ fontSize: '0.62rem' }}>🛡</span>
+            <span style={{ fontFamily: 'var(--jp)', fontSize: '0.75rem', fontWeight: 800, color: '#7ec8f0' }}>{armor}</span>
+          </div>
+        )}
+      </div>
+      <div style={{
+        position: 'relative', height: 13,
+        background: 'linear-gradient(180deg,#0c0906,#181210)',
+        borderRadius: 7, border: '1px solid rgba(255,255,255,0.06)',
+        overflow: 'hidden', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.85)',
+      }}>
+        <div style={{
+          position: 'absolute', top: 1, bottom: 1, left: 1,
+          width: `calc(${pct}% - 2px)`,
+          background: fill, borderRadius: 5,
+          transition: 'width 0.5s cubic-bezier(.4,0,.2,1)',
+          boxShadow: `0 0 10px ${glow}44`,
+        }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '45%',
+            background: 'linear-gradient(180deg,rgba(255,255,255,0.16),transparent)',
+            borderRadius: '5px 5px 0 0',
+          }}/>
+        </div>
+        {[25, 50, 75].map(m => (
+          <div key={m} style={{
+            position: 'absolute', top: 0, bottom: 0, left: `${m}%`,
+            width: 1, background: 'rgba(0,0,0,0.4)', zIndex: 2,
+          }}/>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,lang,myHpDelta,oppHpDelta,myArmorDelta,oppArmorDelta,myHp,oppHp,myArmor,oppArmor,myFlash,oppFlash}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [step,setStep]=useState(0)
@@ -693,32 +886,99 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   function activateSwap(){if(sfx)sfx('swap');const pool=drawPile.filter(c=>!myHand.find(h=>h.id===c.id)).slice(0,DRAFT_POOL_SIZE);setSwapOptions(pool);setSwapping(true)}
   function doSwap(card){setSwapping(false);onSwapDone(card)}
   if(swapping)return <SwapScreen hand={myHand} drawOptions={swapOptions} onSwap={doSwap} lang={lang}/>
-  const myPlayed=playedCards.map(r=>r.my).filter(Boolean).slice(-3)
-  const oppPlayed=playedCards.map(r=>r.opp).filter(Boolean).slice(-3)
+  const myPlayed  = playedCards.map(r=>r.my).filter(Boolean).slice(-6)
+  const oppPlayed = playedCards.map(r=>r.opp).filter(Boolean).slice(-6)
   return(<div style={{animation:'slideIn 0.25s ease'}}>
     {showRoundBanner&&<RoundBanner roundNum={roundNum} lang={lang}/>}
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',color:'rgba(255,255,255,0.6)'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:800,color:'#f0c060'}}>{myWins}–{oppWins}</div>
+
+    {/* Рядок раунду — читабельний */}
+    <div style={{textAlign:'center',marginBottom:'0.35rem'}}>
+      <span style={{
+        fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,
+        color:'rgba(255,255,255,0.8)',letterSpacing:'0.1em',
+        background:'rgba(0,0,0,0.6)',
+        border:'1px solid rgba(255,255,255,0.1)',
+        borderRadius:10,padding:'2px 12px',
+      }}>
+        {t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}
+      </span>
     </div>
+
     {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.5rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'0.6rem'}}>
-      <div style={{background:'rgba(0,0,0,0.65)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(26,107,92,0.5)'}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#2ecc71',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{myLabel}</div>
-        <HPBar hp={myHp} armor={myArmor} flash={myFlash}/>
+
+    {/* HP панелі + рахунок по центру */}
+    <div style={{display:'grid',gridTemplateColumns:'1fr 68px 1fr',gap:8,marginBottom:'0.6rem',alignItems:'stretch'}}>
+
+      {/* Лівий HP — overflow:visible щоб портрет міг виступати вгору */}
+      <div style={{
+        position:'relative', overflow:'visible',
+        background:'rgba(0,0,0,0.65)',
+        padding:'0.55rem 0.75rem 0.55rem 84px', // відступ зліва для фігури
+        borderRadius:6, border:'1px solid rgba(26,107,92,0.4)',
+        minHeight: 62,
+      }}>
+        <RikishiPortraitFigure side="left"/>
+        <PlayerBadge label={myLabel} side="left"/>
+        <PremiumHPBar hp={myHp} armor={myArmor} flash={myFlash}/>
       </div>
-      <div style={{background:'rgba(0,0,0,0.65)',padding:'0.6rem 0.75rem',borderRadius:6,border:'1px solid rgba(192,57,43,0.5)'}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#e74c3c',marginBottom:5,fontWeight:700,letterSpacing:'0.05em'}}>{oppLabel}</div>
-        <HPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
+
+      {/* Рахунок по центру */}
+      <div style={{
+        display:'flex',flexDirection:'column',
+        alignItems:'center',justifyContent:'center',
+        background:'rgba(0,0,0,0.55)',
+        borderRadius:6,border:'1px solid rgba(184,134,11,0.22)',
+        padding:'4px 2px',
+      }}>
+        <div style={{
+          fontFamily:'var(--jp)',fontSize:'1.55rem',fontWeight:900,
+          color:'#f0c060',lineHeight:1,
+          textShadow:'0 0 16px rgba(240,192,96,0.5), 0 2px 6px rgba(0,0,0,0.9)',
+          letterSpacing:'-0.02em',
+        }}>
+          {myWins}
+          <span style={{fontSize:'1.4rem',color:'#c8a020',margin:'0 2px',lineHeight:1}}>–</span>
+          {oppWins}
+        </div>
+      </div>
+
+      {/* Правий HP — overflow:visible + відступ справа для фігури */}
+      <div style={{
+        position:'relative', overflow:'visible',
+        background:'rgba(0,0,0,0.65)',
+        padding:'0.55rem 84px 0.55rem 0.75rem', // відступ справа для фігури
+        borderRadius:6, border:'1px solid rgba(192,57,43,0.4)',
+        minHeight: 62,
+      }}>
+        <RikishiPortraitFigure side="right"/>
+        <PlayerBadge label={oppLabel} side="right"/>
+        <PremiumHPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
       </div>
     </div>
     {(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:'0.6rem'}}>
-        <div style={{display:'flex',gap:4,justifyContent:'flex-start',alignItems:'center'}}>
-          {myPlayed.map((c,i)=>(<div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'left center'}}><GameCard card={c} small disabled lang={lang}/></div>))}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 68px 1fr',gap:8,marginBottom:'0.6rem'}}>
+        {/* Ліва сторона: від найстарішої (зліва, мала) до найновішої (справа, велика) */}
+        <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-start',alignItems:'center'}}>
+          {myPlayed.map((c,i,arr)=>(
+            <div key={i} style={{
+              flexShrink:0,
+              opacity: Math.max(0.5, 0.55 + (i/arr.length)*0.45),
+            }}>
+              <GameCard card={c} tiny disabled lang={lang}/>
+            </div>
+          ))}
         </div>
-        <div style={{display:'flex',gap:4,justifyContent:'flex-end',alignItems:'center'}}>
-          {oppPlayed.map((c,i)=>(<div key={i} style={{opacity:0.4+i*0.2,transform:`scale(${0.75+i*0.05})`,transformOrigin:'right center'}}><GameCard card={c} small disabled lang={lang}/></div>))}
+        <div/>
+        {/* Права сторона: ДЗЕРКАЛЬНО — найновіша зліва (біля центру), найстаріша справа */}
+        <div style={{overflow:'hidden',minWidth:0,display:'flex',gap:3,justifyContent:'flex-end',alignItems:'center'}}>
+          {[...oppPlayed].reverse().map((c,i,arr)=>(
+            <div key={i} style={{
+              flexShrink:0,
+              opacity: Math.max(0.5, 0.55 + ((arr.length-1-i)/arr.length)*0.45),
+            }}>
+              <GameCard card={c} tiny disabled lang={lang}/>
+            </div>
+          ))}
         </div>
       </div>
     )}
@@ -780,12 +1040,12 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
       <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',color:'rgba(255,255,255,0.55)',marginBottom:'1.5rem',lineHeight:1.5}}>{subtitle}</div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,margin:'0 0 1rem 0'}}>
         <div style={{background:'rgba(0,0,0,0.6)',padding:'0.75rem',borderRadius:6,border:'1px solid rgba(46,204,113,0.3)'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#2ecc71',marginBottom:6,fontWeight:700}}>{myLabel}</div>
-          <HPBar hp={myHp} armor={myArmor}/>
+          <PlayerBadge label={myLabel} side="left"/>
+          <PremiumHPBar hp={myHp} armor={myArmor}/>
         </div>
         <div style={{background:'rgba(0,0,0,0.6)',padding:'0.75rem',borderRadius:6,border:'1px solid rgba(231,76,60,0.3)'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'#e74c3c',marginBottom:6,fontWeight:700}}>{oppLabel}</div>
-          <HPBar hp={oppHp} armor={oppArmor}/>
+          <PlayerBadge label={oppLabel} side="right"/>
+          <PremiumHPBar hp={oppHp} armor={oppArmor}/>
         </div>
       </div>
       <div style={{background:'rgba(0,0,0,0.5)',padding:'0.875rem 1rem',borderRadius:6,marginBottom:'1.5rem',border:`1px solid ${isKachiKoshi?'rgba(240,192,96,0.3)':'rgba(231,76,60,0.3)'}`}}>
@@ -807,6 +1067,7 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
 function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const [phase,setPhase]=useState('draft')
+  const [vsActive,setVsActive]=useState(false)
   const [draftPool,setDraftPool]=useState([])
   const [draftRound,setDraftRound]=useState(0)
   const [playerHand,setPlayerHand]=useState([])
@@ -850,9 +1111,9 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
     if(draftRound<DRAFT_ROUNDS-1){
       const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE)
       setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
-    }else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
+    }else{setPlayerHand(newHand);setDrawPile(newDraw);setVsActive(true)}
   }
-  function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
+  function handleSwapDone(nc){setPlayerHand(prev=>{const idx=prev.findIndex(c=>c.type==='swap');const h=idx>=0?[...prev.slice(0,idx),...prev.slice(idx+1)]:[...prev];return[...h,nc]});setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
 
   function fight(){
     const pCard=playerSkip?null:playerSelected
@@ -896,11 +1157,12 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed }) {
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
   return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+    {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
     {phase==='draft'&&(<div style={{animation:'slideIn 0.25s ease'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
-      {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'var(--mid)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
+      {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'var(--mid)',textAlign:'center',marginBottom:'1rem'}}>{t('Раунд','Round')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
       {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/{DRAFT_ROUNDS})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
       <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{draftPool.map((c,i)=><div key={c.id} style={{animation:`pop 0.3s ease ${i*0.08}s both`}}><GameCard card={c} onClick={()=>pickDraft(c)} lang={lang}/></div>)}</div>
     </div>)}
@@ -914,6 +1176,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   const t=(uk,en)=>lang==='en'?en:uk
   const SANYAKU=['Yokozuna','Ozeki','Sekiwake','Komusubi']
   const [phase,setPhase]=useState('draft')
+  const [vsActive,setVsActive]=useState(false)
   const [draftPool,setDraftPool]=useState([])
   const [draftRound,setDraftRound]=useState(0)
   const [playerHand,setPlayerHand]=useState([])
@@ -958,9 +1221,9 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
     if(draftRound<DRAFT_ROUNDS-1){
       const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE)
       setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
-    }else{setPlayerHand(newHand);setDrawPile(newDraw);setPhase('battle')}
+    }else{setPlayerHand(newHand);setDrawPile(newDraw);setVsActive(true)}
   }
-  function handleSwapDone(nc){setPlayerHand(prev=>[...prev.filter(c=>c.type!=='swap'),nc]);setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
+  function handleSwapDone(nc){setPlayerHand(prev=>{const idx=prev.findIndex(c=>c.type==='swap');const h=idx>=0?[...prev.slice(0,idx),...prev.slice(idx+1)]:[...prev];return[...h,nc]});setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
   function checkEnvelope(pCard,cCard,roundWinner){if(roundWinner==='p'&&pCard&&cCard&&SANYAKU.includes(pCard.rank)&&SANYAKU.includes(cCard.rank)){setEnvelopesEarned(e=>e+1)}}
 
   function fight(){
@@ -1009,6 +1272,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
 
   const levelName=lang==='en'?level.nameEn:level.name
   return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+    {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'var(--mid)'}}>{level.emoji} {t('Рівень','Level')} {level.id} — {levelName}</div>
@@ -1109,7 +1373,7 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
     const status=session.status
     if(status==='waiting'&&role==='host'&&session.p2?.joined)update(ref(db,`clash/${sessionId}`),{status:'draft'})
     if(status==='draft'&&screen==='waiting'){setDraftPool((session[mk]?.draftPool||[]).map(id=>getCardById(id)).filter(Boolean));setDraftRound(session[mk]?.draftRound||0);setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean));setScreen('draft')}
-    if(status==='battle'&&screen==='draft'){setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean));setPlayerSelected(null);setSubmitting(false);setRoundNum(session.roundNum||0);setScreen('battle')}
+    if(status==='battle'&&screen==='draft'){setPlayerHand((session[mk]?.hand||[]).map(id=>getCardById(id)).filter(Boolean));setPlayerSelected(null);setSubmitting(false);setRoundNum(session.roundNum||0);setScreen('vs')}
     if(status==='battle'&&screen==='roundResult'){
       const newMyHp=session[mk]?.hp??MAX_HP;const newOppHp=session[ok]?.hp??MAX_HP
       const newMyAr=session[mk]?.armor??0;const newOppAr=session[ok]?.armor??0
@@ -1172,7 +1436,10 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   async function handleSwapDone(newCard){
     const mk=role==='host'?'p1':'p2'
     const snap=await get(ref(db,`clash/${sessionId}/${mk}/hand`))
-    const handIds=(snap.val()||[]).filter(id=>getCardById(id)?.type!=='swap')
+    const allIds=snap.val()||[]
+    // Видаляємо тільки ПЕРШУ карту заміни, не всі
+    const swapIdx=allIds.findIndex(id=>getCardById(id)?.type==='swap')
+    const handIds=swapIdx>=0?[...allIds.slice(0,swapIdx),...allIds.slice(swapIdx+1)]:[...allIds]
     const newHand=[...handIds,newCard.id]
     await update(ref(db,`clash/${sessionId}/${mk}`),{hand:newHand})
     setPlayerHand(newHand.map(id=>getCardById(id)).filter(Boolean))
@@ -1221,6 +1488,7 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   return(<div style={{flex:1,overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
+    {screen==='vs'&&<VSScreen playerLabel={myLabel} opponentLabel={oppLabel} lang={lang} onDone={()=>setScreen('battle')}/>}
     {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease',padding:'2rem 1rem'}}>
       <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🌐</div>
       <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'1.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>{t('Мультиплеєр','Multiplayer')}</div>
@@ -1428,7 +1696,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
           {/* Header */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <img src="/images/dohyo-legends-logo.png" alt="DOHYO LEGENDS" style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
+              <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{height:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
               <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>DOHYO LEGENDS</span></span>
               {mode!=='menu'&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'#8a7a60',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
             </div>
@@ -1443,16 +1711,16 @@ export default function SumoClash({ onClose, lang='uk' }) {
           {/* Menu */}
           {mode==='menu'&&(
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',minHeight:400}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.png)',backgroundSize:'cover',backgroundPosition:'center'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.webp)',backgroundSize:'cover',backgroundPosition:'center'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
-              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
-                <img src="/images/dohyo-legends-logo.png" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
+              <SakuraPetals/>              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
+                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
                 <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7)',letterSpacing:'0.2em',textTransform:'uppercase'}}>DOHYO LEGENDS</div>
                 {[
-                  {img:'btn-campaign.png', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
-                  {img:'btn-cpu.png',      action:()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}},
-                  {img:'btn-multi.png',    action:()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}},
-                  {img:'btn-cardbook.png', action:()=>{sfx('click');setMode('cardbook')}},
+                  {img:'btn-campaign.webp', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
+                  {img:'btn-cpu.webp',      action:()=>{sfx('click');setMode('cpu');trackGameLaunch('sumoClash');trackClashMode('cpu')}},
+                  {img:'btn-multi.webp',    action:()=>{sfx('click');setMode('multi');trackGameLaunch('sumoClash');trackClashMode('multi')}},
+                  {img:'btn-cardbook.webp', action:()=>{sfx('click');setMode('cardbook')}},
                 ].map(btn=>(
                   <div key={btn.img} onClick={btn.action} style={{width:'100%',maxWidth:360,height:60,cursor:'pointer',borderRadius:6,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',transition:'transform 0.15s, box-shadow 0.15s',flexShrink:0}}
                     onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 28px rgba(0,0,0,0.8)'}}
@@ -1476,7 +1744,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
           {/* CPU — передаємо onCardPlayed */}
           {mode==='cpu' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <CpuGame
                 lang={lang}
@@ -1490,7 +1758,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
           {/* Campaign — передаємо onCardPlayed через GameBattle */}
           {mode==='campaign' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <SumoClashCampaign
                 onBack={()=>setMode('menu')}
@@ -1509,7 +1777,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
           {/* Multi — передаємо onCardPlayed */}
           {mode==='multi' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.png)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <MultiGame
                 lang={lang}
