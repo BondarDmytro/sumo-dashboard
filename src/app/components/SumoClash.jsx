@@ -304,9 +304,9 @@ const ANIM_STYLES=`
 @keyframes bubbleRise{0%{transform:translateY(0) scale(1);opacity:0.7}100%{transform:translateY(-40px) scale(0.3);opacity:0}}
 @keyframes lowHpPulse{0%,100%{color:#c0392b}50%{color:#ff6b6b}}
 @keyframes lockPulse{0%,100%{opacity:0.85}50%{opacity:1}}
-@keyframes logoPulse{
-  0%,100%{filter:drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))}
-  50%{filter:drop-shadow(0 0 55px rgba(255,180,20,1)) drop-shadow(0 0 90px rgba(220,100,0,0.55)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))}
+@keyframes logoBreathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.045)}
 }
 @keyframes sakuraFall{
   0%   { transform: translateY(-40px); opacity:0 }
@@ -1724,7 +1724,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
               <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/sumo-temple.webp)',backgroundSize:'cover',backgroundPosition:'center'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.45)'}}/>
               <SakuraPetals/>              <div style={{position:'relative',zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'0.9rem',width:'100%',padding:'2rem',animation:'slideIn 0.3s ease'}}>
-                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease, logoPulse 3s ease 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
+                <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{maxWidth:580,width:'88%',height:'auto',animation:'pop 0.5s ease, logoBreathe 3.5s ease-in-out 0.6s infinite',filter:'drop-shadow(0 0 28px rgba(240,160,20,0.8)) drop-shadow(0 6px 20px rgba(0,0,0,0.95))',marginBottom:'0.25rem'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
                 <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 30px rgba(240,192,96,0.7)',letterSpacing:'0.2em',textTransform:'uppercase'}}>DOHYO LEGENDS</div>
                 {[
                   {img:'btn-campaign.webp', action:()=>{sfx('click');setMode('campaign');trackGameLaunch('sumoClash')}},
