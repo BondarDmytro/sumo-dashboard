@@ -883,7 +883,13 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   const [swapping,setSwapping]=useState(false)
   const [swapOptions,setSwapOptions]=useState([])
   const deduped=arr=>[...new Map(arr.filter(Boolean).map(c=>[c.id,c])).values()]
-  function activateSwap(){if(sfx)sfx('swap');const pool=drawPile.filter(c=>!myHand.find(h=>h.id===c.id)).slice(0,DRAFT_POOL_SIZE);setSwapOptions(pool);setSwapping(true)}
+  function activateSwap(){
+    if(sfx)sfx('swap')
+    const available=drawPile.filter(c=>!myHand.find(h=>h.id===c.id))
+    const pool=weightedSample(available,DRAFT_POOL_SIZE)
+    setSwapOptions(pool)
+    setSwapping(true)
+  }
   function doSwap(card){setSwapping(false);onSwapDone(card)}
   if(swapping)return <SwapScreen hand={myHand} drawOptions={swapOptions} onSwap={doSwap} lang={lang}/>
   const myPlayed  = playedCards.map(r=>r.my).filter(Boolean).slice(-6)
