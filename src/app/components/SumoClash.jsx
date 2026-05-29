@@ -1737,6 +1737,12 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   </div>
                 ))}
               </div>
+              {/* Copyright — всередині фрейму, правий нижній кут */}
+              <div style={{position:'absolute',bottom:10,right:14,zIndex:10,pointerEvents:'none',userSelect:'none',textAlign:'right'}}>
+                <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.55)',letterSpacing:'0.1em',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>
+                  © 2026 TerraVetera. All rights reserved.
+                </div>
+              </div>
             </div>
           )}
 
