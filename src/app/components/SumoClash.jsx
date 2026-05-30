@@ -39,8 +39,12 @@ function YokoinAmount({amount,size=16,fontSize='inherit',fontWeight=700,color='#
 
 const MAX_HP = 40
 const MAX_ROUNDS = 15
-const DRAFT_ROUNDS = 5
-const DRAFT_POOL_SIZE = 3
+const PRESSURE_ROUND = 10    // після цього раунду — тиск судді
+const PRESSURE_DMG = 2       // HP що знімається щораунду після PRESSURE_ROUND
+const DRAFT_ROUNDS = 5       // скільки карт в руці після драфту
+const DRAFT_SNAKE_TOTAL = 10 // всього пік у змійці (5 гравець + 5 CPU)
+const DRAFT_POOL_SIZE = 5    // розмір спільного пулу для змійки
+const MAX_HAND_SAME_TYPE = 2 // не більше 2 карт одного типу в руці
 
 const RIKISHI_CARDS = [
   { id:'Y1e', type:'rikishi', rank:'Yokozuna', atk:10, def:7, color:'#b8860b' },
@@ -242,6 +246,14 @@ const CARD_SKIN_ALIAS = {
 }
 function getCardSkinId(id) { return CARD_SKIN_ALIAS[id] || id }
 
+// Перевіряє чи можна додати карту в руку (ліміт 2 одного типу)
+// Rikishi — кожен rank окремо рахується (Yokozuna, Ozeki тощо)
+function canAddToHand(hand, card) {
+  // Ліміт по типу картки (не по ранку рікіші — 2 рікіші будь-якого рангу дозволено)
+  const count = hand.filter(c => c.type === card.type).length
+  return count < MAX_HAND_SAME_TYPE
+}
+
 function cpuChooseCard(hand,oppSkipped){
   if(oppSkipped){const safe=hand.filter(c=>['heal','armor','swap'].includes(c.type));if(safe.length>0)return safe[0]}
   const strikes=hand.filter(c=>c.type==='strike');if(strikes.length>0)return strikes.sort((a,b)=>b.damage-a.damage)[0]
@@ -250,7 +262,7 @@ function cpuChooseCard(hand,oppSkipped){
   return hand[0]
 }
 
-function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,playedCards=[]){
+function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,playedCards=[],roundNum=0){
   let nPHp=pHp,nOHp=oHp,nPAr=pArmor,nOAr=oArmor
   const logs=[]
   const pEff=pSkipped?null:pCard
@@ -266,35 +278,38 @@ function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,played
     nPHp=Math.max(0,nPHp-10)
     nOHp=Math.max(0,nOHp-10)
     logs.push({text:'💥 Хаос! Обидва борці -10 HP (ігнорує броню)!',color:'#9b59b6'})
-    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null}
+    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null,gyojiChoices:null}
   }
 
-  // ── Ґьоджі: повертає останню зіграну карту гравця ────────
+  // ── Ґьоджі: гравець обирає яку зіграну карту активувати
+  // Повертаємо gyojiChoices — список унікальних карток для вибору (обробка в UI)
   if(pEff?.type==='gyoji'){
-    // playedCards вже НЕ містить поточний раунд — шукаємо справді останню зіграну карту
-    const myPlayed=playedCards.map(r=>r.my).filter(c=>c&&!['skip','gyoji','chaos','swap'].includes(c.type))
-    if(myPlayed.length>0){
-      returnCardToHand=myPlayed[myPlayed.length-1]
-      logs.push({text:`⚖️ Ґьоджі! Повертає "${returnCardToHand.label||returnCardToHand.id}" у руку!`,color:'#e8c547'})
+    const choices=[...new Map(
+      playedCards.map(r=>r.my)
+        .filter(c=>c&&!['skip','gyoji','chaos','swap'].includes(c.type))
+        .map(c=>[c.id,c])
+    ).values()].slice(-6) // останні 6 унікальних
+    if(choices.length>0){
+      logs.push({text:`⚖️ Ґьоджі! Судді зупиняють бій — оберіть карту для повторної активації!`,color:'#e8c547'})
     } else {
-      logs.push({text:'⚖️ Ґьоджі! Немає карти для повернення.',color:'#e8c547'})
+      logs.push({text:'⚖️ Ґьоджі! Немає зіграних карток для вибору.',color:'#e8c547'})
     }
     if(oEff?.type==='heal'){const h=Math.min(MAX_HP,nOHp+oEff.heal)-nOHp;nOHp=Math.min(MAX_HP,nOHp+oEff.heal);logs.push({text:`Opp: +${h} HP`,color:'#c0392b'})}
     if(oEff?.type==='armor'){nOAr+=oEff.armor;logs.push({text:`Opp: +${oEff.armor} armor`,color:'#1f618d'})}
-    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand}
+    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null,gyojiChoices:choices}
   }
 
   if(pEff?.type==='henka'&&(oEff?.type==='rikishi'||oEff?.type==='strike')){
     logs.push({text:'You: 🌀 Henka! Dodged opponent attack!',color:'#8e44ad'})
     if(oEff?.type==='heal'){const h=Math.min(MAX_HP,nOHp+oEff.heal)-nOHp;nOHp=Math.min(MAX_HP,nOHp+oEff.heal);logs.push({text:`Opp: +${h} HP`,color:'#c0392b'})}
     if(oEff?.type==='armor'){nOAr+=oEff.armor;logs.push({text:`Opp: +${oEff.armor} armor`,color:'#1f618d'})}
-    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null}
+    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null,gyojiChoices:null}
   }
   if(oEff?.type==='henka'&&(pEff?.type==='rikishi'||pEff?.type==='strike')){
     logs.push({text:'Opp: 🌀 Henka! Dodged your attack!',color:'#8e44ad'})
     if(pEff?.type==='heal'){const h=Math.min(MAX_HP,nPHp+pEff.heal)-nPHp;nPHp=Math.min(MAX_HP,nPHp+pEff.heal);logs.push({text:`You: +${h} HP`,color:'#2471a3'})}
     if(pEff?.type==='armor'){nPAr+=pEff.armor;logs.push({text:`You: +${pEff.armor} armor`,color:'#1f618d'})}
-    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null}
+    return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner:'tie',pNextSkip:false,oNextSkip:false,returnCardToHand:null,gyojiChoices:null}
   }
   function applyDmg(dmg,hp,armor,label,isOpp){
     let nHp=hp,nAr=armor
@@ -325,7 +340,13 @@ function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,played
   const pDmgT=pEff?.type==='rikishi'?Math.max(0,pEff.atk-(oEff?.type==='rikishi'?oEff.def:0)):pEff?.type==='strike'?pEff.damage:0
   const oDmgT=oEff?.type==='rikishi'?Math.max(0,oEff.atk-(pEff?.type==='rikishi'?pEff.def:0)):oEff?.type==='strike'?oEff.damage:0
   const roundWinner=pDmgT>oDmgT?'p':oDmgT>pDmgT?'o':'tie'
-  return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand:null}
+  // Тиск судді: після раунду PRESSURE_ROUND обидва -2 HP щораунду
+  if(roundNum>=PRESSURE_ROUND){
+    nPHp=Math.max(0,nPHp-PRESSURE_DMG)
+    nOHp=Math.max(0,nOHp-PRESSURE_DMG)
+    logs.push({text:`⏰ Судді втрачають терпіння! Обидва -${PRESSURE_DMG} HP`,color:'#e8a020'})
+  }
+  return{newPHp:nPHp,newOHp:nOHp,newPArmor:nPAr,newOArmor:nOAr,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand:null,gyojiChoices:null}
 }
 
 function createAudioContext(){if(typeof window==='undefined')return null;return new(window.AudioContext||window.webkitAudioContext)()}
@@ -418,7 +439,7 @@ const ANIM_STYLES=`
 `
 
 const CARD_TYPES_INFO=[
-  {type:'rikishi',emoji:'⚔️',label:{uk:'Рікіші',en:'Rikishi'},desc:{uk:'Атакує. ATK − DEF = шкода. Б\'є броню першою.',en:'Attacks. ATK − DEF = damage. Hits armor first.'}},
+  {type:'rikishi',emoji:'⚔️',label:{uk:'Рікіші',en:'Rikishi'},desc:{uk:"Атакує. ATK − DEF = шкода. Б\'є броню першою.",en:'Attacks. ATK − DEF = damage. Hits armor first.'}},
   {type:'heal',emoji:'💧',label:{uk:'Хіл',en:'Heal'},desc:{uk:'Вода переможця +5 HP або Сіль Дохьо +10 HP.',en:"Victor's Water +5 HP or Dohyo Salt +10 HP."}},
   {type:'armor',emoji:'🛡',label:{uk:'Броня',en:'Armor'},desc:{uk:'Бойова стійка +5 🛡 або Маваші +10 🛡.',en:'Battle Stance +5 🛡 or Mawashi +10 🛡.'}},
   {type:'strike',emoji:'⚡',label:{uk:'Удар',en:'Strike'},desc:{uk:'Тачіай -5 HP або Харітете -10 HP. Ігнорує броню!',en:'Tachiai -5 HP or Harite -10 HP. Ignores armor!'}},
@@ -585,6 +606,102 @@ function HenkaSwirl(){return(<div style={{position:'absolute',inset:0,pointerEve
 function ChaosEffect(){return(<div style={{position:'absolute',inset:0,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center'}}>{[0,1,2,3].map(i=>(<div key={i} style={{position:'absolute',fontSize:`${1.5+i*0.6}rem`,animation:`chaosEffect 0.8s ease-out ${i*0.08}s both`,opacity:0}}>💥</div>))}</div>)}
 function LightningEffect(){return(<div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden'}}><div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',width:3,height:'100%',background:'linear-gradient(180deg,transparent,#f39c12,#e74c3c,transparent)',animation:'lightning 0.4s ease both',filter:'blur(2px)',boxShadow:'0 0 10px #f39c12, 0 0 20px #e74c3c'}}/></div>)}
 function FloatingNumber({value,color,onDone}){useEffect(()=>{const id=setTimeout(onDone,900);return()=>clearTimeout(id)},[]);return(<div style={{position:'absolute',top:'10%',left:'50%',transform:'translateX(-50%)',fontFamily:'var(--jp)',fontSize:'1.4rem',fontWeight:900,color,textShadow:`0 0 10px ${color}`,animation:'floatUp 0.9s ease both',pointerEvents:'none',zIndex:10,whiteSpace:'nowrap'}}>{value}</div>)}
+function GyojiChooseScreen({choices,onChoose,lang}){
+  const t=(uk,en)=>lang==='en'?en:uk
+  const [chosen,setChosen]=useState(null)
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:1600,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',backdropFilter:'blur(8px)',animation:'fadeIn 0.25s ease'}}>
+      <div style={{background:'linear-gradient(175deg,#2a0a0a,#1a0808,#0e0505)',border:'1px solid rgba(232,197,71,0.5)',borderRadius:12,padding:'1.5rem',maxWidth:560,width:'92%',boxShadow:'0 0 0 1px rgba(0,0,0,0.8),0 24px 60px rgba(0,0,0,0.95),0 0 40px rgba(122,28,28,0.3)',animation:'pop 0.35s cubic-bezier(0.34,1.56,0.64,1)'}}>
+        <div style={{height:3,background:'linear-gradient(90deg,transparent,#e8c547,transparent)',marginBottom:'1.25rem'}}/>
+        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
+          <div style={{fontSize:'2.2rem',marginBottom:'0.4rem',filter:'drop-shadow(0 0 12px rgba(232,197,71,0.6))'}}>⚖️</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:900,color:'#e8c547',textShadow:'0 0 20px rgba(232,197,71,0.5)',marginBottom:'0.25rem'}}>{t('Ґьоджі — Рішення Судді',"Gyoji — Judge's Ruling")}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,220,150,0.5)',letterSpacing:'0.08em'}}>{t('Оберіть зіграну карту для повторної активації','Choose a played card to activate again')}</div>
+        </div>
+        <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap',marginBottom:'1.25rem'}}>
+          {choices.map((card,i)=>(
+            <div key={card.id} onClick={()=>setChosen(card)}
+              style={{position:'relative',cursor:'pointer',
+                transform:chosen?.id===card.id?'translateY(-8px) scale(1.06)':'none',
+                transition:'transform 0.15s',
+                filter:chosen?.id===card.id?'drop-shadow(0 8px 24px rgba(232,197,71,0.7))':'none',
+                animation:`pop 0.3s ease ${i*0.08}s both`}}>
+              <GameCard card={card} selected={chosen?.id===card.id} lang={lang}/>
+              {chosen?.id===card.id&&(
+                <div style={{position:'absolute',top:-10,left:'50%',transform:'translateX(-50%)',background:'#e8c547',borderRadius:8,padding:'2px 10px',fontFamily:'var(--jp)',fontSize:'0.5rem',fontWeight:900,color:'#1a1000',whiteSpace:'nowrap',boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>⚖️ {t('Активувати','Activate')}</div>
+              )}
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>chosen&&onChoose(chosen)} disabled={!chosen}
+          style={{width:'100%',padding:'1rem',background:chosen?'linear-gradient(180deg,#8a6a00,#4a3800)':'rgba(255,255,255,0.04)',border:`1px solid ${chosen?'#e8c547':'rgba(255,255,255,0.08)'}`,borderRadius:8,color:chosen?'#fff8d0':'rgba(255,255,255,0.2)',fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:900,cursor:chosen?'pointer':'default',letterSpacing:'0.1em',transition:'all 0.15s',textShadow:chosen?'0 1px 4px rgba(0,0,0,0.6)':'none'}}>
+          {chosen?`⚖️ ${t('Судді вирішили','The judge has ruled')} — ${chosen.label||chosen.id}`:t('Оберіть карту','Select a card')}
+        </button>
+        <div style={{height:2,background:'linear-gradient(90deg,transparent,rgba(232,197,71,0.3),transparent)',marginTop:'1.25rem'}}/>
+      </div>
+    </div>
+  )
+}
+
+function DrawOfferScreen({cards,hand,onChoose,onSkip,lang}){
+  const t=(uk,en)=>lang==='en'?en:uk
+  const [chosen,setChosen]=useState(null)
+  const [hovered,setHovered]=useState(null)
+  return(
+    <div style={{position:'fixed',inset:0,zIndex:1500,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.75)',backdropFilter:'blur(6px)',animation:'fadeIn 0.25s ease'}}>
+      <div style={{background:'linear-gradient(175deg,#1e1810,#130e08)',border:'1px solid rgba(184,134,11,0.45)',borderRadius:12,padding:'1.5rem',maxWidth:420,width:'90%',boxShadow:'0 0 0 1px rgba(0,0,0,0.8), 0 24px 60px rgba(0,0,0,0.95)',animation:'pop 0.3s cubic-bezier(0.34,1.56,0.64,1)'}}>
+        <div style={{height:3,background:'linear-gradient(90deg,transparent,#b8860b,transparent)',borderRadius:2,marginBottom:'1.25rem'}}/>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.5)',textTransform:'uppercase',letterSpacing:'0.15em',textAlign:'center',marginBottom:'0.4rem'}}>
+          {t('Оберіть карту для руки','Choose a card for your hand')}
+        </div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,color:'#f0c060',textAlign:'center',marginBottom:'1.25rem',textShadow:'0 0 20px rgba(240,192,96,0.5)'}}>
+          📥 {t('Нова карта','New card')}
+        </div>
+        <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:'1rem'}}>
+          {cards.map((card,i)=>{
+            const blocked=!canAddToHand(hand,card)
+            const isChosen=chosen?.id===card.id
+            const isHov=hovered===card.id
+            return(
+              <div key={card.id} onClick={()=>!blocked&&setChosen(card)}
+                onMouseEnter={()=>!blocked&&setHovered(card.id)}
+                onMouseLeave={()=>setHovered(null)}
+                style={{position:'relative',cursor:blocked?'not-allowed':'pointer',
+                  transform:isChosen?'translateY(-8px) scale(1.06)':isHov&&!blocked?'translateY(-4px) scale(1.03)':'none',
+                  transition:'transform 0.15s',
+                  filter:blocked?'grayscale(0.8) brightness(0.5)':isChosen?`drop-shadow(0 8px 20px rgba(184,134,11,0.7))`:isHov?`drop-shadow(0 4px 12px rgba(184,134,11,0.4))`:'none',
+                  animation:`pop 0.3s ease ${i*0.1}s both`,
+                }}>
+                <GameCard card={card} selected={isChosen} lang={lang}/>
+                {blocked&&(
+                  <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:4,borderRadius:8}}>
+                    <span style={{fontSize:'1.2rem'}}>🚫</span>
+                    <span style={{fontFamily:'var(--jp)',fontSize:'0.45rem',color:'#e74c3c',background:'rgba(0,0,0,0.8)',padding:'2px 6px',borderRadius:3,textAlign:'center',lineHeight:1.4}}>{t('Ліміт типу','Type limit')}</span>
+                  </div>
+                )}
+                {isChosen&&<div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',background:'#b8860b',borderRadius:8,padding:'2px 8px',fontFamily:'var(--jp)',fontSize:'0.5rem',fontWeight:700,color:'#1a1200',whiteSpace:'nowrap'}}>✓ {t('Обрано','Selected')}</div>}
+              </div>
+            )
+          })}
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button onClick={()=>chosen&&onChoose(chosen)} disabled={!chosen}
+            style={{flex:2,padding:'0.875rem',background:chosen?'linear-gradient(180deg,#c49a1a,#8b6010)':'rgba(255,255,255,0.05)',border:`1px solid ${chosen?'#f0c060':'rgba(255,255,255,0.08)'}`,borderRadius:8,color:chosen?'#fff8e0':'rgba(255,255,255,0.25)',fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,cursor:chosen?'pointer':'default',letterSpacing:'0.1em',transition:'all 0.15s',textShadow:chosen?'0 1px 4px rgba(0,0,0,0.6)':'none'}}>
+            {chosen?t('Взяти карту ›','Take card ›'):t('Оберіть карту','Select a card')}
+          </button>
+          <button onClick={onSkip}
+            style={{flex:1,padding:'0.875rem',background:'transparent',border:'1px solid rgba(255,220,150,0.12)',borderRadius:8,color:'rgba(255,220,150,0.4)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',transition:'all 0.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.35)';e.currentTarget.style.color='rgba(255,220,150,0.7)'}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.12)';e.currentTarget.style.color='rgba(255,220,150,0.4)'}}>
+            {t('Пропустити','Skip')}
+          </button>
+        </div>
+        <div style={{height:2,background:'linear-gradient(90deg,transparent,rgba(184,134,11,0.3),transparent)',borderRadius:2,marginTop:'1.25rem'}}/>
+      </div>
+    </div>
+  )
+}
+
 function RoundBanner({roundNum,lang}){const t=(uk,en)=>lang==='en'?en:uk;return(<div style={{position:'fixed',inset:0,pointerEvents:'none',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2500}}><div style={{textAlign:'center',animation:'roundBanner 1.8s ease both'}}><div style={{fontFamily:'var(--jp)',fontSize:'clamp(1.5rem,6vw,3rem)',fontWeight:900,color:'#b8860b',textShadow:'0 0 30px rgba(184,134,11,0.8), 0 4px 8px rgba(0,0,0,0.8)',letterSpacing:'0.2em',textTransform:'uppercase'}}>{t('Раунд','Round')} {roundNum}</div><div style={{fontFamily:'var(--jp)',fontSize:'clamp(0.8rem,3vw,1.2rem)',color:'rgba(255,255,255,0.7)',letterSpacing:'0.3em',marginTop:4}}>— {t('БІЙ','FIGHT')} —</div></div></div>)}
 
 function HPBar({hp,armor=0,flash=null}){
@@ -617,9 +734,21 @@ function GameCard({card,selected,onClick,disabled,small,tiny,showBack,lang='uk',
   const canHover=!disabled&&!selected
   const w=tiny?52:small?'clamp(70px,16vw,92px)':170
   const h=tiny?78:small?'clamp(105px,24vw,138px)':255
+  // Визначаємо буст — карта вже має підвищені атрибути якщо applyBoostToCard застосував
+  const hasBoost=card.type==='rikishi'&&card._atkBoost||card._defBoost
   return(
-    <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',flexShrink:0,border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'translateZ(0)',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a',willChange:'transform'}}>
-      <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',transform:'translateZ(0)',willChange:'transform'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+    <div style={{position:'relative',width:w,flexShrink:0,display:'inline-block'}}>
+      <div onClick={disabled?undefined:onClick} onMouseEnter={()=>canHover&&setHovered(true)} onMouseLeave={()=>setHovered(false)} style={{width:w,height:h,borderRadius:8,overflow:'hidden',cursor:disabled?'default':'pointer',border:`2px solid ${selected?'#b8860b':hovered?hoverColor:'transparent'}`,boxShadow:selected?'0 0 18px rgba(184,134,11,0.8)':hovered&&!disabled?`0 6px 16px rgba(0,0,0,0.25), 0 0 8px ${hoverColor}77`:'0 2px 8px rgba(0,0,0,0.18)',transition:'all 0.15s',opacity:disabled?0.75:1,transform:selected?'translateY(-4px) scale(1.04)':hovered&&!disabled?'translateY(-3px) scale(1.02)':'translateZ(0)',animation:isNew?'cardFlip 0.35s ease both':undefined,background:'#1a1a1a',willChange:'transform'}}>
+        <img src={`/cards/${getCardSkinId(card.id)}_${lang}.webp`} alt={card.id} style={{width:'100%',height:'100%',objectFit:'cover',imageRendering:'high-quality',display:'block',transform:'translateZ(0)',willChange:'transform'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+      </div>
+      {/* Boost badge — показується якщо карта має _atkBoost або _defBoost */}
+      {(card._atkBoost||card._defBoost)&&!tiny&&(
+        <div style={{position:'absolute',top:-7,right:-7,background:'linear-gradient(135deg,#b8860b,#f0c060)',border:'1px solid rgba(255,220,80,0.7)',borderRadius:8,padding:'2px 6px',fontFamily:'var(--jp)',fontSize:small?'0.45rem':'0.55rem',fontWeight:900,color:'#1a1200',boxShadow:'0 2px 8px rgba(0,0,0,0.8)',whiteSpace:'nowrap',zIndex:5,pointerEvents:'none',lineHeight:1.3}}>
+          {card._atkBoost?`⚔+${card._atkBoost}`:''}
+          {card._atkBoost&&card._defBoost?' ':''}
+          {card._defBoost?`🛡+${card._defBoost}`:''}
+        </div>
+      )}
     </div>
   )
 }
@@ -731,6 +860,26 @@ function AudioControls({sfxOn,musicOn,currentTheme,onToggleSfx,onToggleMusic,onT
   </div>)
 }
 
+function CardGuideInline({lang}){
+  const t=(uk,en)=>lang==='en'?en:uk
+  const [open,setOpen]=useState(false)
+  return(
+    <div style={{position:'relative'}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{...BTN_BASE,...BTN.dark,fontSize:'0.62rem',padding:'4px 10px',gap:4}}>
+        {open?'▲':'▼'} {t('Типи карт','Card types')}
+      </button>
+      {open&&(
+        <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:'calc(100% + 6px)',left:0,background:'linear-gradient(180deg,#2a2420,#1c1812)',border:'1px solid #3a3020',borderRadius:6,padding:'0.6rem 0.75rem',zIndex:200,minWidth:320,maxWidth:480,boxShadow:'0 8px 32px rgba(0,0,0,0.9)',animation:'slideIn 0.15s ease',display:'flex',flexDirection:'column',gap:5}}>
+          {CARD_TYPES_INFO.map(ct=>(<div key={ct.type} style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+            <span style={{fontSize:'0.85rem',flexShrink:0,width:18}}>{ct.emoji}</span>
+            <div><span style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:700,color:'#e0d0a0',marginRight:6}}>{lang==='en'?ct.label.en:ct.label.uk}</span><span style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.55)'}}>{lang==='en'?ct.desc.en:ct.desc.uk}</span></div>
+          </div>))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CardGuide({lang}){
   const [open,setOpen]=useState(false)
   const t=(uk,en)=>lang==='en'?en:uk
@@ -838,27 +987,41 @@ function PlayerBadge({ label, side = 'left' }) {
   )
 }
 
-function PremiumHPBar({ hp, armor = 0, flash = null }) {
+function PremiumHPBar({ hp, armor = 0, flash = null, side = 'left' }) {
   const pct   = Math.max(0, Math.min(100, (hp / MAX_HP) * 100))
   const isLow = pct <= 30
   const isMid = pct > 30 && pct <= 60
-  const fill  = isLow?'linear-gradient(90deg,#5a0000,#a01818,#e74c3c)':isMid?'linear-gradient(90deg,#4a2e00,#8a5a00,#c8900a)':'linear-gradient(90deg,#053020,#0d5038,#1abc9c)'
+  const isRight = side === 'right'
+  // Ліва сторона — гравець (зелено/жовто/червоний), права — суперник (синьо/жовто/червоний)
+  // Однакові кольори для обох сторін — зелений/жовтий/червоний
+  const fillBase = isLow?'#e74c3c':isMid?'#c8900a':'#1abc9c'
+  const fillL = isLow?'linear-gradient(90deg,#5a0000,#a01818,#e74c3c)':isMid?'linear-gradient(90deg,#4a2e00,#8a5a00,#c8900a)':'linear-gradient(90deg,#053020,#0d5038,#1abc9c)'
+  const fillR = isLow?'linear-gradient(270deg,#5a0000,#a01818,#e74c3c)':isMid?'linear-gradient(270deg,#4a2e00,#8a5a00,#c8900a)':'linear-gradient(270deg,#053020,#0d5038,#1abc9c)'
+  const fill  = isRight ? fillR : fillL
   const glow  = isLow ? '#e74c3c' : isMid ? '#f0c060' : '#1abc9c'
   const flashA = flash==='damage'?'flashRed 0.4s ease':flash==='heal'?'flashGreen 0.4s ease':flash==='armor'?'flashBlue 0.4s ease':undefined
+  const armorBadge = armor > 0 && (
+    <div style={{display:'flex',alignItems:'center',gap:3,background:'linear-gradient(180deg,#122038,#091428)',border:'1px solid rgba(100,180,255,0.4)',borderRadius:4,padding:'2px 7px',boxShadow:'0 0 8px rgba(80,150,255,0.2)'}}>
+      <img src="/images/upgrades/upgrade-def.webp" alt="def" style={{height:18,width:'auto',imageRendering:'high-quality',filter:'drop-shadow(0 0 4px rgba(100,180,255,0.6))'}} onError={e=>{e.currentTarget.style.display='none'}}/>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:900,color:'#7ec8f0',textShadow:'0 0 8px rgba(100,180,255,0.6)'}}>{armor}</span>
+    </div>
+  )
+  const hpNumber = (
+    <div style={{display:'flex',alignItems:'baseline',gap:3}}>
+      <span style={{fontFamily:'var(--jp)',fontSize:'1.45rem',fontWeight:900,color:glow,textShadow:`0 0 14px ${glow}99`,animation:isLow?'lowHpPulse 1s ease infinite':undefined,lineHeight:1}}>{hp}</span>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,255,255,0.28)'}}>/{MAX_HP}</span>
+    </div>
+  )
   return (
-    <div style={{animation:flashA}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
-        <div style={{display:'flex',alignItems:'baseline',gap:3}}>
-          <span style={{fontFamily:'var(--jp)',fontSize:'1.45rem',fontWeight:900,color:glow,textShadow:`0 0 14px ${glow}99`,animation:isLow?'lowHpPulse 1s ease infinite':undefined,lineHeight:1}}>{hp}</span>
-          <span style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,255,255,0.28)'}}>/{MAX_HP}</span>
-        </div>
-        {armor > 0 && (<div style={{display:'flex',alignItems:'center',gap:3,background:'linear-gradient(180deg,#122038,#091428)',border:'1px solid rgba(100,180,255,0.4)',borderRadius:4,padding:'2px 7px',boxShadow:'0 0 8px rgba(80,150,255,0.2)'}}>
-          <img src="/images/upgrades/upgrade-def.webp" alt="def" style={{height:18,width:'auto',imageRendering:'high-quality',filter:'drop-shadow(0 0 4px rgba(100,180,255,0.6))'}} onError={e=>{e.currentTarget.style.display='none'}}/>
-          <span style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:900,color:'#7ec8f0',textShadow:'0 0 8px rgba(100,180,255,0.6)'}}>{armor}</span>
-        </div>)}
+    <div style={{animation:flashA,width:'100%'}}>
+      <div style={{display:'flex',justifyContent:isRight?'flex-end':'flex-start',alignItems:'baseline',gap:6,marginBottom:5}}>
+        {isRight&&armorBadge}
+        {hpNumber}
+        {!isRight&&armorBadge}
       </div>
       <div style={{position:'relative',height:13,background:'linear-gradient(180deg,#0c0906,#181210)',borderRadius:7,border:'1px solid rgba(255,255,255,0.06)',overflow:'hidden',boxShadow:'inset 0 2px 5px rgba(0,0,0,0.85)'}}>
-        <div style={{position:'absolute',top:1,bottom:1,left:1,width:`calc(${pct}% - 2px)`,background:fill,borderRadius:5,transition:'width 0.5s cubic-bezier(.4,0,.2,1)',boxShadow:`0 0 10px ${glow}44`}}>
+        {/* Права сторона — бар іде справа наліво */}
+        <div style={{position:'absolute',top:1,bottom:1,[isRight?'right':'left']:1,width:`calc(${pct}% - 2px)`,background:fill,borderRadius:5,transition:'width 0.5s cubic-bezier(.4,0,.2,1)',boxShadow:`0 0 10px ${glow}44`}}>
           <div style={{position:'absolute',top:0,left:0,right:0,height:'45%',background:'linear-gradient(180deg,rgba(255,255,255,0.16),transparent)',borderRadius:'5px 5px 0 0'}}/>
         </div>
         {[25,50,75].map(m=>(<div key={m} style={{position:'absolute',top:0,bottom:0,left:`${m}%`,width:1,background:'rgba(0,0,0,0.4)',zIndex:2}}/>))}
@@ -896,10 +1059,37 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
   const myFloatColor=myHpDelta>0?'#1a6b5c':myHpDelta<0?'#e74c3c':'#1f618d'
   const oppFloatColor=oppHpDelta>0?'#1a6b5c':oppHpDelta<0?'#e74c3c':'#1f618d'
   const doShake=myHpDelta<0||oppHpDelta<0
+  // Колір рядка лога для кращої читабельності
+  function logColor(text, rawColor) {
+    if(rawColor==='#e74c3c'||rawColor==='#c0392b') return '#ff7070' // шкода суперника → яскравіший червоний
+    if(rawColor==='#1a6b5c'||rawColor==='#2471a3') return '#50e0c0' // хіл → бірюзовий
+    if(rawColor==='#e67e22') return '#ffaa44'  // удар → помаранчевий
+    if(rawColor==='#8e44ad') return '#cc88ff'  // хенка → фіолет
+    if(rawColor==='#7f8c8d'||rawColor==='#bdc3c7') return '#aabbcc' // сіль → сіро-блакитний
+    if(rawColor==='#9b59b6') return '#ee88ff'  // хаос → яскраво-фіолет
+    if(rawColor==='#e8c547') return '#ffe066'  // ґьоджі → жовтий
+    if(rawColor==='#1f618d'||rawColor==='#2980b9') return '#88ccff' // броня → блакитний
+    if(rawColor==='#95a5a6') return '#8899aa'  // пропуск
+    return rawColor || 'rgba(255,235,190,0.85)'
+  }
+  // Іконка для рядка лога
+  function logIcon(text) {
+    if(text.includes('dmg')||text.includes('HP')&&text.includes('-')) return '⚔'
+    if(text.includes('+')&&text.includes('HP')) return '💧'
+    if(text.includes('armor')||text.includes('🛡')) return '🛡'
+    if(text.includes('Henka')||text.includes('🌀')) return '🌀'
+    if(text.includes('Salt')||text.includes('🧂')) return '🧂'
+    if(text.includes('⚡')) return '⚡'
+    if(text.includes('💥')) return '💥'
+    if(text.includes('⚖️')) return '⚖️'
+    if(text.includes('skipped')||text.includes('пропуск')) return '⏩'
+    return '▸'
+  }
   return(<div style={{animation:doShake&&step>=2?'shake 0.4s ease':undefined}}>
+    {/* Картки VS */}
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:0,marginBottom:'0.75rem',opacity:step>=1?1:0,transition:'opacity 0.3s',position:'relative',minHeight:160}}>
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,flexShrink:0}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,220,150,0.8)'}}>{myLabel}</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',fontWeight:700,color:'#50e0c0',letterSpacing:'0.06em',textTransform:'uppercase',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{myLabel}</div>
         <div style={{animation:step>=1?'clash 0.5s ease 0.2s both':'none',position:'relative'}}>
           <GameCard card={myCard} disabled lang={lang}/>
           {showSalt&&myCard?.type==='salt'&&<SaltParticles/>}
@@ -911,7 +1101,7 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
       </div>
       <div style={{fontFamily:'var(--jp)',fontSize:'2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 20px rgba(240,192,96,0.9), 0 2px 6px rgba(0,0,0,1)',letterSpacing:'0.1em',padding:'0 16px',animation:step>=1?'pop 0.4s ease 0.4s both':'none',flexShrink:0}}>VS</div>
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,flexShrink:0}}>
-        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,180,150,0.8)'}}>{oppLabel}</div>
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',fontWeight:700,color:'#ff9980',letterSpacing:'0.06em',textTransform:'uppercase',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{oppLabel}</div>
         <div style={{animation:step>=1?'clashR 0.5s ease 0.2s both':'none',position:'relative'}}>
           <GameCard card={oppCard} disabled lang={lang}/>
           {showSalt&&oppCard?.type==='salt'&&<SaltParticles/>}
@@ -922,11 +1112,25 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
         </div>
       </div>
     </div>
-    <div style={{background:'var(--bg2)',borderRadius:4,padding:'0.6rem 1rem',marginBottom:'0.75rem',opacity:step>=2?1:0,transform:step>=2?'none':'translateY(8px)',transition:'all 0.3s'}}>
-      {roundLog.length===0?<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.5)'}}>—</div>:roundLog.map((l,i)=><div key={i} style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:l.color,lineHeight:1.7,animation:`fadeIn 0.3s ease ${0.08*i}s both`}}>{l.text}</div>)}
+
+    {/* Лог бою — AAA читабельність */}
+    <div style={{background:'linear-gradient(180deg,rgba(5,3,1,0.92),rgba(15,10,5,0.95))',border:'1px solid rgba(255,200,100,0.12)',borderRadius:8,marginBottom:'0.75rem',overflow:'hidden',opacity:step>=2?1:0,transform:step>=2?'none':'translateY(8px)',transition:'all 0.35s',boxShadow:'0 4px 20px rgba(0,0,0,0.7)'}}>
+      {roundLog.length===0
+        ? <div style={{padding:'0.6rem 1rem',fontFamily:'var(--jp)',fontSize:'0.68rem',color:'rgba(255,220,150,0.3)',textAlign:'center'}}>—</div>
+        : roundLog.map((l,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'0.42rem 0.875rem',borderBottom:i<roundLog.length-1?'1px solid rgba(255,255,255,0.04)':'none',animation:`fadeIn 0.3s ease ${0.07*i}s both`,background:i%2===0?'rgba(255,255,255,0.015)':'transparent'}}>
+            <span style={{fontSize:'0.75rem',flexShrink:0,width:16,textAlign:'center',lineHeight:1}}>{logIcon(l.text)}</span>
+            <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:600,color:logColor(l.text,l.color),lineHeight:1.5,letterSpacing:'0.02em',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{l.text}</span>
+          </div>
+        ))
+      }
     </div>
-    <button onClick={onNext} style={{width:'100%',padding:'0.75rem',background:'var(--ink)',color:'var(--bg)',border:'none',borderRadius:4,fontFamily:'var(--jp)',fontSize:'0.82rem',letterSpacing:'0.1em',cursor:'pointer',fontWeight:700,opacity:step>=3?1:0,transform:step>=3?'none':'translateY(8px)',transition:'all 0.3s'}}>
-      {roundNum>=MAX_ROUNDS?t('Результат','Results'):t('Наступний раунд ›','Next round ›')}
+
+    {/* Кнопка наступного раунду */}
+    <button onClick={onNext} style={{width:'100%',padding:'0.875rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid rgba(255,220,100,0.25)',borderRadius:8,fontFamily:'var(--jp)',fontSize:'0.88rem',letterSpacing:'0.12em',cursor:'pointer',fontWeight:700,color:'rgba(255,220,150,0.9)',textShadow:'0 1px 4px rgba(0,0,0,0.8)',boxShadow:'0 2px 12px rgba(0,0,0,0.6)',opacity:step>=3?1:0,transform:step>=3?'none':'translateY(8px)',transition:'all 0.3s',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}
+      onMouseEnter={e=>{e.currentTarget.style.background='linear-gradient(180deg,#3a3228,#2a2218)';e.currentTarget.style.borderColor='rgba(255,220,100,0.45)'}}
+      onMouseLeave={e=>{e.currentTarget.style.background='linear-gradient(180deg,#2a2218,#1a1510)';e.currentTarget.style.borderColor='rgba(255,220,100,0.25)'}}>
+      {roundNum>=MAX_ROUNDS?t('⚖ Результат','⚖ Results'):t('Наступний раунд ›','Next round ›')}
     </button>
   </div>)
 }
@@ -952,10 +1156,12 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
   const btnW        = isMobile ? '100%'   : '60%'
   const btnPad      = isMobile ? '1rem'   : '0.8rem 1rem'
   const btnFs       = isMobile ? '0.95rem': '0.85rem'
-  return(<div style={{animation:'slideIn 0.25s ease'}}>
+  return(<><div style={{display:'flex',flexDirection:'column',flex:1,overflowY:'auto',overflowX:'hidden',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',paddingBottom:4}}>
     {showRoundBanner&&<RoundBanner roundNum={roundNum} lang={lang}/>}
     <div style={{textAlign:'center',marginBottom:'0.3rem'}}>
-      <span style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,255,255,0.8)',letterSpacing:'0.1em',background:'rgba(0,0,0,0.6)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'2px 12px'}}>{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}</span>
+      <span style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,color:roundNum>PRESSURE_ROUND?'#e8a020':'rgba(255,255,255,0.8)',letterSpacing:'0.1em',background:roundNum>PRESSURE_ROUND?'rgba(232,160,32,0.15)':'rgba(0,0,0,0.6)',border:`1px solid ${roundNum>PRESSURE_ROUND?'rgba(232,160,32,0.5)':'rgba(255,255,255,0.1)'}`,borderRadius:10,padding:'2px 12px',animation:roundNum>PRESSURE_ROUND?'lowHpPulse 1.5s ease infinite':undefined}}>
+        {roundNum>PRESSURE_ROUND?'⏰ ':''}{t('Раунд','Round')} {roundNum}/{MAX_ROUNDS}
+      </span>
     </div>
     {mySkipped&&<div style={{background:'rgba(127,140,141,0.25)',border:'1px solid #7f8c8d',borderRadius:4,padding:'0.4rem 0.75rem',marginBottom:'0.4rem',fontFamily:'var(--jp)',fontSize:'0.72rem',color:'#bdc3c7',textAlign:'center',animation:'pulse 1s ease 2'}}>🧂 {t('Ви пропускаєте цей хід!','You skip this turn!')}</div>}
     <div style={{display:'grid',gridTemplateColumns:`1fr ${scoreW}px 1fr`,gap:isMobile?5:8,marginBottom:'0.5rem',alignItems:'stretch'}}>
@@ -971,8 +1177,10 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
       </div>
       <div style={{position:'relative',overflow:'visible',background:'rgba(0,0,0,0.65)',padding:hpPadR,borderRadius:6,border:'1px solid rgba(192,57,43,0.4)',minHeight:isMobile?50:62}}>
         <RikishiPortraitFigure side="right" height={portraitH}/>
-        <PlayerBadge label={oppLabel} side="right"/>
-        <PremiumHPBar hp={oppHp} armor={oppArmor} flash={oppFlash}/>
+        <div style={{width:'100%'}}>
+          <PlayerBadge label={oppLabel} side="right"/>
+          <PremiumHPBar hp={oppHp} armor={oppArmor} flash={oppFlash} side="right"/>
+        </div>
       </div>
     </div>
     {!isMobile&&(myPlayed.length>0||oppPlayed.length>0)&&!isRoundResult&&(
@@ -1004,20 +1212,24 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         </div>
         {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',fontWeight:600,color:'#2ecc71',textShadow:'0 1px 4px rgba(0,0,0,0.9)',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
         {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:600,color:'rgba(255,220,150,0.75)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        <div style={{position:'sticky',bottom:0,left:0,right:0,marginTop:isMobile?6:4,padding:isMobile?'6px 0 2px':'4px 0 0',background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 30%)',zIndex:10}}>
-          {((!playerSelected&&!mySkipped)||myReady)?(
-            <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em'}}>
-              {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
-            </GameBtn>
-          ):(
-            <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
-              {mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):t('⚔ Підтвердити','⚔ Confirm')}
-            </GameBtn>
-          )}
-        </div>
       </>
     )}
-  </div>)
+  </div>
+  {/* Кнопка підтвердити — ПОЗА скролом, завжди видима */}
+  {!isRoundResult&&!swapping&&(
+    <div style={{flexShrink:0,padding:isMobile?'6px 0.75rem 6px':'6px 1.25rem 6px',background:'linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,0.7))',borderTop:'1px solid rgba(255,220,100,0.08)'}}>
+      {((!playerSelected&&!mySkipped)||myReady)?(
+        <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em'}}>
+          {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
+        </GameBtn>
+      ):(
+        <GameBtn variant='gold' onClick={()=>{if(sfx)sfx('click');onSubmit()}} style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em',boxShadow:'0 4px 20px rgba(184,134,11,0.6), inset 0 1px 0 rgba(255,220,80,0.4)'}}>
+          {mySkipped?t('⏩ Пропустити хід','⏩ Skip turn'):t('⚔ Підтвердити','⚔ Confirm')}
+        </GameBtn>
+      )}
+    </div>
+  )}
+  </>)
 }
 
 function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppLabel,onBack,lang,sfx}){
@@ -1062,7 +1274,9 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   const [phase,setPhase]=useState('draft')
   const [vsActive,setVsActive]=useState(false)
   const [draftPool,setDraftPool]=useState([])
-  const [draftRound,setDraftRound]=useState(0)
+  const [draftRound,setDraftRound]=useState(0)   // скільки разів вибирав гравець
+  const [draftCpuRound,setDraftCpuRound]=useState(0) // скільки разів вибирав CPU
+  const [draftIsCpuTurn,setDraftIsCpuTurn]=useState(false) // зараз хід CPU?
   const [playerHand,setPlayerHand]=useState([])
   const [cpuHand,setCpuHand]=useState([])
   const [drawPile,setDrawPile]=useState([])
@@ -1087,6 +1301,8 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   const [oppFlash,setOppFlash]=useState(null)
   const [showRoundBanner,setShowRoundBanner]=useState(false)
   const [playedCards,setPlayedCards]=useState([])
+  const [drawOffer,setDrawOffer]=useState(null)
+  const [gyojiChoices,setGyojiChoices]=useState(null)
 
   // refs для відстеження умов досягнень
   const healCountRef=useRef(0)
@@ -1096,23 +1312,72 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   const gyojiWinNextRef=useRef(false)
 
   useEffect(()=>{
-    const shared=shuffle(FULL_DECK)
-    const cpuCards=shared.slice(0,5)
-    setCpuHand(cpuCards)
-    const remaining=shared.slice(5)
+    // Змійка-драфт: спільний пул, гравець і CPU вибирають по черзі
+    const shared=weightedShuffle(FULL_DECK)
+    const pool=shared.slice(0,DRAFT_POOL_SIZE)
+    const remaining=shared.slice(DRAFT_POOL_SIZE)
     setDrawPile(remaining)
-    setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE))
+    setDraftPool(pool)
+    setDraftIsCpuTurn(false) // гравець починає
   },[])
 
-  function pickDraft(card){
-    if(sfx)sfx('click')
-    const newHand=[...playerHand,card]
-    const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
-    if(draftRound<DRAFT_ROUNDS-1){
-      const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE)
-      setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)
-    }else{setPlayerHand(newHand);setDrawPile(newDraw);setVsActive(true)}
+  // ── Змійка-драфт: проста логіка гравець→CPU→гравець→CPU... ──
+  function refreshPool(pool, draw, hand) {
+    // Поповнити пул до 6 карток, гарантуючи хоча б 1 картку яку можна взяти
+    let pool2 = [...pool]; let draw2 = [...draw]
+    // Спочатку поповнити до мінімуму 3
+    while (pool2.length < 3 && draw2.length > 0) {
+      const add = weightedSample(draw2.filter(c => !pool2.find(p => p.id === c.id)), 1)
+      if (!add.length) break
+      pool2 = [...pool2, ...add]; draw2 = draw2.filter(c => c.id !== add[0].id)
+    }
+    // Якщо всі в пулі заблоковані — примусово додати картку дозволеного типу
+    const allBlocked = pool2.every(c => !canAddToHand(hand, c))
+    if (allBlocked && draw2.length > 0) {
+      const unblocked = draw2.filter(c => canAddToHand(hand, c) && !pool2.find(p => p.id === c.id))
+      if (unblocked.length > 0) {
+        const add = weightedSample(unblocked, Math.min(2, unblocked.length))
+        // Замінити заблоковані карти на дозволені
+        pool2 = [...pool2.filter(c => canAddToHand(hand, c)), ...add]
+        draw2 = draw2.filter(c => !add.find(a => a.id === c.id))
+      }
+    }
+    return { pool2, draw2 }
   }
+
+  function cpuSnakePick(pHand, cHand, pool, draw, pRound, cRound) {
+    // CPU вибирає найсильнішу доступну карту
+    const { pool2: refreshed, draw2: refreshedDraw } = refreshPool(pool, draw, cHand)
+    const available = refreshed.filter(c => canAddToHand(cHand, c))
+    const chosen = available.length > 0 ? cpuChooseCard(available, false) : null
+    const newCHand = chosen ? [...cHand, chosen] : cHand
+    const newPool = chosen ? refreshed.filter(c => c.id !== chosen.id) : refreshed
+    const newCRound = cRound + 1
+    // Поповнити пул для гравця
+    const { pool2, draw2 } = refreshPool(newPool, refreshedDraw, pHand)
+    setCpuHand(newCHand); setDraftCpuRound(newCRound); setDraftPool(pool2); setDrawPile(draw2)
+    if (pRound >= DRAFT_ROUNDS && newCRound >= DRAFT_ROUNDS) {
+      setPlayerHand(pHand); setVsActive(true)
+    } else {
+      setDraftIsCpuTurn(false)
+    }
+  }
+
+  function pickDraft(card) {
+    if (sfx) sfx('click')
+    if (!canAddToHand(playerHand, card)) return
+    const newPHand = [...playerHand, card]
+    const newPool = draftPool.filter(c => c.id !== card.id)
+    const newPRound = draftRound + 1
+    setPlayerHand(newPHand); setDraftRound(newPRound)
+    if (newPRound >= DRAFT_ROUNDS && draftCpuRound >= DRAFT_ROUNDS) {
+      setVsActive(true); return
+    }
+    // CPU ходить після гравця — передаємо пул що оновиться в cpuSnakePick
+    setDraftIsCpuTurn(true)
+    setTimeout(() => cpuSnakePick(newPHand, cpuHand, newPool, drawPile, newPRound, draftCpuRound), 600)
+  }
+
   function handleSwapDone(nc){setPlayerHand(prev=>{const idx=prev.findIndex(c=>c.type==='swap');const h=idx>=0?[...prev.slice(0,idx),...prev.slice(idx+1)]:[...prev];return[...h,nc]});setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
 
   function fight(){
@@ -1135,7 +1400,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     if(sfx){const card=pCard||cCard;if(card?.type==='rikishi')sfx('clash');else if(card?.type==='heal')sfx('heal');else if(card?.type==='armor')sfx('armor');else if(card?.type==='strike')sfx('strike');else if(card?.type==='salt')sfx('salt');else if(card?.type==='henka')sfx('henka');else if(card?.type==='chaos')sfx('chaos');else if(card?.type==='gyoji')sfx('gyoji')}
 
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards)// БЕЗ поточного раунду — Ґьоджі шукає попередні картки
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiResult}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum)
 
     const pHpD=newPHp-playerHp;const oHpD=newOHp-cpuHp;const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
     setMyHpDelta(pHpD);setOppHpDelta(oHpD);setMyArmorDelta(pArD);setOppArmorDelta(oArD)
@@ -1145,6 +1410,11 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     if(pHpD<0) noDmgRef.current=false
 
     // Gyoji досягнення — якщо повернула карту і виграла раунд
+    if(gyojiResult&&gyojiResult.length>0){
+      const usedIds2=new Set([pCard?.id,cCard?.id].filter(Boolean))
+      setGyojiChoices({choices:gyojiResult,pendingState:{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,newPH:playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id),newCH:cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand),usedIds:usedIds2}})
+      return
+    }
     if(returnCardToHand&&roundWinner==='p') onAchievementProgress?.({type:'gyoji_win'})
 
     setPlayerHp(newPHp);setCpuHp(newOHp);setPlayerArmor(newPArmor);setCpuArmor(newOArmor);setRoundLog(logs)
@@ -1153,13 +1423,20 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
 
     let usedIds=new Set([pCard?.id,cCard?.id].filter(Boolean))
     let newPH=playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id)
-    // Якщо ґьоджі повернула карту — додати назад
     if(returnCardToHand) newPH=[...newPH,returnCardToHand]
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    if(newDraw.length>0){const drawn=weightedSample(newDraw,1);newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)}
+    // CPU бере карту автоматично
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
-    setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
+    setCpuHand(newCH)
+    // Гравець вибирає з 2 карт (тільки якщо є з чого вибирати і немає gameOver)
+    const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
+    if(offerable.length>0&&newPHp>0&&newOHp>0){
+      setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
+      setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+    } else {
+      setPlayerHand(newPH);setDrawPile(newDraw)
+    }
 
     if(newPHp<=0||newOHp<=0){
       const won=newOHp<=0&&newPHp>0
@@ -1184,15 +1461,65 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',paddingBottom:isMobile?'0.5rem':'0.75rem',position:'relative',zIndex:1,background:'transparent'}}>
+  function handleDrawChoose(card){
+    const newHand=[...drawOffer.hand,card]
+    setPlayerHand(newHand)
+    setDrawOffer(null)
+  }
+  function handleDrawSkip(){
+    // Пропустив — повертаємо карти в drawPile
+    setDrawPile(prev=>[...prev,...(drawOffer?.cards||[])])
+    setDrawOffer(null)
+  }
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative',zIndex:1,background:'transparent'}}>
+    {gyojiChoices&&<GyojiChooseScreen choices={gyojiChoices.choices} lang={lang} onChoose={(card)=>{
+      // Застосовуємо ефект обраної картки вже після основного раунду
+      const ps=gyojiChoices.pendingState
+      let extraLogs=[{text:`⚖️ Ґьоджі активує: "${card.label||card.id}"!`,color:'#e8c547'}]
+      let hp=ps.newPHp,ohp=ps.newOHp,par=ps.newPArmor,oar=ps.newOArmor
+      if(card.type==='heal'){hp=Math.min(MAX_HP,hp+card.heal);extraLogs.push({text:`+${card.heal} HP від ${card.label}`,color:'#50e0c0'})}
+      else if(card.type==='armor'){par+=card.armor;extraLogs.push({text:`+${card.armor} 🛡 від ${card.label}`,color:'#88ccff'})}
+      else if(card.type==='strike'){ohp=Math.max(0,ohp-card.damage);extraLogs.push({text:`⚡ ${card.damage} пряма шкода від ${card.label}`,color:'#ffaa44'})}
+      else if(card.type==='rikishi'){const dmg=Math.max(0,card.atk-(oar>0?Math.min(oar,card.atk):0));ohp=Math.max(0,ohp-dmg);oar=Math.max(0,oar-card.atk);extraLogs.push({text:`⚔ ${dmg} шкода від ${card.label}`,color:'#ffaa44'})}
+      setPlayerHp(hp);setCpuHp(ohp);setPlayerArmor(par);setCpuArmor(oar)
+      setRoundLog([...ps.logs,...extraLogs])
+      if(ps.roundWinner==='p') onAchievementProgress?.({type:'gyoji_win'})
+      setPlayerSkip(ps.pNextSkip);setCpuSkip(ps.oNextSkip)
+      if(ps.roundWinner==='p')setPlayerWins(w=>w+1);else if(ps.roundWinner==='o')setCpuWins(w=>w+1)
+      let newPH=ps.newPH;let newCH=ps.newCH
+      let newDraw=drawPile.filter(c=>![...ps.usedIds].includes(c.id))
+      if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
+      setCpuHand(newCH)
+      const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
+      if(offerable.length>0&&hp>0&&ohp>0){setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)));setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})}
+      else{setPlayerHand(newPH);setDrawPile(newDraw)}
+      setGyojiChoices(null)
+      if(hp<=0||ohp<=0){setPhase('gameOver');return}
+      setPhase('roundResult')
+    }}/>}
+    {drawOffer&&<DrawOfferScreen cards={drawOffer.cards} hand={drawOffer.hand} onChoose={handleDrawChoose} onSkip={handleDrawSkip} lang={lang}/>}
     {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
-    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
-      {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'rgba(255,220,150,0.95)',textShadow:'0 1px 6px rgba(0,0,0,0.95)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
-      {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/{DRAFT_ROUNDS})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
-      <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{draftPool.map((c,i)=><div key={c.id} style={{animation:`pop 0.3s ease ${i*0.08}s both`}}><GameCard card={c} onClick={()=>pickDraft(c)} lang={lang}/></div>)}</div>
+    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',overflowY:'auto'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.5rem'}}>{t('Змійка-драфт','Snake Draft')}</div>
+      {/* Прогрес змійки */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:'1rem',flexWrap:'wrap'}}>
+        {Array.from({length:DRAFT_ROUNDS}).map((_,i)=>(<div key={i} style={{width:24,height:24,borderRadius:'50%',background:i<draftRound?'#1abc9c':i===draftRound&&!draftIsCpuTurn?'#f0c060':'rgba(255,255,255,0.1)',border:`2px solid ${i<draftRound?'#1abc9c':i===draftRound&&!draftIsCpuTurn?'#f0c060':'rgba(255,255,255,0.2)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--jp)',fontSize:'0.45rem',color:i<draftRound?'#fff':i===draftRound&&!draftIsCpuTurn?'#1a1200':'rgba(255,255,255,0.3)',fontWeight:700,transition:'all 0.3s'}}>{i<draftRound?'✓':i+1}</div>))}
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.6)',marginLeft:4}}>{draftRound}/{DRAFT_ROUNDS}</div>
+      </div>
+      {draftIsCpuTurn&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.7)',textAlign:'center',marginBottom:'0.75rem',animation:'pulse 1s ease infinite'}}>🤔 {t('CPU обирає...','CPU is choosing...')}</div>}
+      {!draftIsCpuTurn&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:'#f0c060',textAlign:'center',marginBottom:'0.75rem',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>👆 {t('Ваш вибір','Your pick')}</div>}
+      {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
+      <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+        {draftPool.map((c,i)=>{
+          const blocked=!canAddToHand(playerHand,c)
+          return(<div key={c.id} style={{position:'relative',animation:`pop 0.3s ease ${i*0.08}s both`,opacity:draftIsCpuTurn?0.4:1,transition:'opacity 0.3s'}}>
+            <GameCard card={c} onClick={()=>!draftIsCpuTurn&&pickDraft(c)} disabled={draftIsCpuTurn||blocked} lang={lang}/>
+            {blocked&&!draftIsCpuTurn&&<div style={{position:'absolute',inset:0,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.6)',backdropFilter:'blur(2px)'}}><div style={{textAlign:'center'}}><div style={{fontSize:'1rem'}}>🚫</div><div style={{fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#e74c3c',marginTop:2}}>{t('Ліміт','Limit')}</div></div></div>}
+          </div>)
+        })}
+      </div>
     </div>)}
     {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={oya1} oppLabel={cpu} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards}/>}
     {phase==='gameOver'&&<GameOverScreen myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} myLabel={oya1} oppLabel={cpu} onBack={onBack} lang={lang} sfx={sfx}/>}
@@ -1200,14 +1527,16 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
 }
 
 // ── CampaignBattleWrapper ─────────────────────────────────────
-function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, onBack, lang, sfx, onCardPlayed }) {
+function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, onWin, onLose, onBack, onLevelInfo, lang, sfx, onCardPlayed }) {// boostedCards = масив, boostedCard = застарілий однина
   const t=(uk,en)=>lang==='en'?en:uk
   const isMobile=useIsMobile()
   const SANYAKU=['Yokozuna','Ozeki','Sekiwake','Komusubi']
   const [phase,setPhase]=useState('draft')
   const [vsActive,setVsActive]=useState(false)
   const [draftPool,setDraftPool]=useState([])
-  const [draftRound,setDraftRound]=useState(0)
+  const [draftRound,setDraftRound]=useState(0)   // скільки разів вибирав гравець
+  const [draftCpuRound,setDraftCpuRound]=useState(0) // скільки разів вибирав CPU
+  const [draftIsCpuTurn,setDraftIsCpuTurn]=useState(false) // зараз хід CPU?
   const [playerHand,setPlayerHand]=useState([])
   const [cpuHand,setCpuHand]=useState([])
   const [drawPile,setDrawPile]=useState([])
@@ -1233,23 +1562,53 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   const [showRoundBanner,setShowRoundBanner]=useState(false)
   const [envelopesEarned,setEnvelopesEarned]=useState(0)
   const [playedCards,setPlayedCards]=useState([])
+  const [drawOffer,setDrawOffer]=useState(null)
+  const [gyojiChoices,setGyojiChoices]=useState(null)
 
   useEffect(()=>{
-    const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)))
-    const cpuCards=shared.slice(0,5)
-    setCpuHand(cpuCards)
-    const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id))
-    setDrawPile(remaining);setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE))
+    // Змійка-драфт для кампанії — спільний пул
+    const allCards=weightedShuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)))
+    const pool=allCards.slice(0,DRAFT_POOL_SIZE)
+    const remaining=FULL_DECK.filter(c=>!pool.find(p=>p.id===c.id))
+    setDrawPile(remaining);setDraftPool(pool)
   },[])
 
-  function applyBoostToCard(card){if(!boostedCard||boostedCard.cardId!==card.id)return card;return{...card,atk:card.atk+(boostedCard.atk||0),def:card.def+(boostedCard.def||0)}}
+  function applyBoostToCard(card){
+    // boostedCards — масив [{cardId, atk, def}], сумісний з одиночним boostedCard теж
+    const cards=Array.isArray(boostedCards)?boostedCards:(boostedCard?[boostedCard]:[])
+    const b=cards.find(x=>x.cardId===card.id)
+    if(!b)return card
+    return{...card,atk:card.atk+(b.atk||0),def:card.def+(b.def||0),_atkBoost:b.atk||0,_defBoost:b.def||0}
+  }
+  function refreshDraftPool(pool, draw, hand) {
+    let pool2=[...pool],draw2=[...draw]
+    while(pool2.length<3&&draw2.length>0){
+      const add=weightedSample(draw2.filter(c=>!pool2.find(p=>p.id===c.id)),1)
+      if(!add.length)break
+      pool2=[...pool2,...add];draw2=draw2.filter(c=>c.id!==add[0].id)
+    }
+    // Якщо всі заблоковані — замінити на доступні
+    const allBlocked=pool2.every(c=>!canAddToHand(hand,c))
+    if(allBlocked&&draw2.length>0){
+      const unblocked=draw2.filter(c=>canAddToHand(hand,c)&&!pool2.find(p=>p.id===c.id))
+      if(unblocked.length>0){
+        const add=weightedSample(unblocked,Math.min(2,unblocked.length))
+        pool2=[...pool2.filter(c=>canAddToHand(hand,c)),...add]
+        draw2=draw2.filter(c=>!add.find(a=>a.id===c.id))
+      }
+    }
+    return{pool2,draw2}
+  }
   function pickDraft(card){
     if(sfx)sfx('click')
+    if(!canAddToHand(playerHand,card))return
     const boosted=applyBoostToCard(card)
     const newHand=[...playerHand,boosted]
-    const newDraw=drawPile.filter(c=>!draftPool.find(d=>d.id===c.id))
-    if(draftRound<DRAFT_ROUNDS-1){const nextPool=weightedSample(newDraw,DRAFT_POOL_SIZE);setPlayerHand(newHand);setDrawPile(newDraw);setDraftPool(nextPool);setDraftRound(r=>r+1)}
-    else{setPlayerHand(newHand);setDrawPile(newDraw);setVsActive(true)}
+    const newPool=draftPool.filter(c=>c.id!==card.id)
+    const newPRound=draftRound+1
+    const{pool2,draw2}=refreshDraftPool(newPool,drawPile,newHand)
+    setPlayerHand(newHand);setDraftPool(pool2);setDrawPile(draw2);setDraftRound(newPRound)
+    if(newPRound>=DRAFT_ROUNDS){setDrawPile(draw2);setVsActive(true)}
   }
   function handleSwapDone(nc){setPlayerHand(prev=>{const idx=prev.findIndex(c=>c.type==='swap');const h=idx>=0?[...prev.slice(0,idx),...prev.slice(idx+1)]:[...prev];return[...h,nc]});setDrawPile(prev=>prev.filter(c=>c.id!==nc.id))}
   function checkEnvelope(pCard,cCard,roundWinner){if(roundWinner==='p'&&pCard&&cCard&&SANYAKU.includes(pCard.rank)&&SANYAKU.includes(cCard.rank)){setEnvelopesEarned(e=>e+1)}}
@@ -1266,10 +1625,14 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
     const waterShield=tempBoosts?.water_shield>0&&roundNum===0
     const newPlayedEntry={my:pDisplay,opp:cpuSkip?{type:'skip'}:cCard}
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards)// передаємо playedCards БЕЗ поточного раунду
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiChoices_result}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum)
     const finalPHp=waterShield&&newPHp<playerHp?playerHp:newPHp
     setPlayedCards(currentPlayed)
     checkEnvelope(pCardFinal,cCard,roundWinner)
+    if(gyojiChoices_result&&gyojiChoices_result.length>0){
+      setGyojiChoices({choices:gyojiChoices_result,pendingState:{finalPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip}})
+      return
+    }
     const pHpD=finalPHp-playerHp;const oHpD=newOHp-cpuHp;const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
     setMyHpDelta(pHpD);setOppHpDelta(oHpD);setMyArmorDelta(pArD);setOppArmorDelta(oArD)
     setMyFlash(pHpD<0?'damage':pHpD>0?'heal':pArD>0?'armor':null)
@@ -1282,11 +1645,17 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
     if(returnCardToHand) newPH=[...newPH,returnCardToHand]
     let newCH=cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand)
     let newDraw=drawPile.filter(c=>!usedIds.has(c.id))
-    if(newDraw.length>0){const drawn=weightedSample(newDraw,1);newPH=[...newPH,drawn[0]];newDraw=newDraw.filter(c=>c.id!==drawn[0].id)}
     const cpuFilter=level.cpuDeckFilter||(()=>true)
     const cpuDraw=newDraw.filter(cpuFilter)
     if(cpuDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,cpuDraw.length));newCH=[...newCH,cpuDraw[idx]];newDraw=newDraw.filter(c=>c.id!==cpuDraw[idx].id)}
-    setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
+    setCpuHand(newCH)
+    const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
+    if(offerable.length>0&&finalPHp>0&&newOHp>0){
+      setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
+      setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+    } else {
+      setPlayerHand(newPH);setDrawPile(newDraw)
+    }
     if(finalPHp<=0){onLose();return}
     if(newOHp<=0){onWin(finalPHp,MAX_HP,envelopesEarned);return}
     setPhase('roundResult')
@@ -1300,19 +1669,54 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',paddingBottom:isMobile?'0.5rem':'0.75rem',position:'relative',zIndex:1,background:'transparent'}}>
+  useEffect(()=>{onLevelInfo?.({emoji:level.emoji,name:levelName,isBoss:level.isBoss}); return()=>onLevelInfo?.(null)},[levelName])
+  function handleDrawChoose(card){setPlayerHand([...drawOffer.hand,card]);setDrawOffer(null)}
+  function handleDrawSkip(){setDrawPile(prev=>[...prev,...(drawOffer?.cards||[])]);setDrawOffer(null)}
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative',zIndex:1,background:'transparent'}}>
+    {gyojiChoices&&<GyojiChooseScreen choices={gyojiChoices.choices} lang={lang} onChoose={(card)=>{
+      // Застосовуємо ефект обраної картки вже після основного раунду
+      const ps=gyojiChoices.pendingState
+      let extraLogs=[{text:`⚖️ Ґьоджі активує: "${card.label||card.id}"!`,color:'#e8c547'}]
+      let hp=ps.newPHp,ohp=ps.newOHp,par=ps.newPArmor,oar=ps.newOArmor
+      if(card.type==='heal'){hp=Math.min(MAX_HP,hp+card.heal);extraLogs.push({text:`+${card.heal} HP від ${card.label}`,color:'#50e0c0'})}
+      else if(card.type==='armor'){par+=card.armor;extraLogs.push({text:`+${card.armor} 🛡 від ${card.label}`,color:'#88ccff'})}
+      else if(card.type==='strike'){ohp=Math.max(0,ohp-card.damage);extraLogs.push({text:`⚡ ${card.damage} пряма шкода від ${card.label}`,color:'#ffaa44'})}
+      else if(card.type==='rikishi'){const dmg=Math.max(0,card.atk-(oar>0?Math.min(oar,card.atk):0));ohp=Math.max(0,ohp-dmg);oar=Math.max(0,oar-card.atk);extraLogs.push({text:`⚔ ${dmg} шкода від ${card.label}`,color:'#ffaa44'})}
+      setPlayerHp(hp);setCpuHp(ohp);setPlayerArmor(par);setCpuArmor(oar)
+      setRoundLog([...ps.logs,...extraLogs])
+      if(ps.roundWinner==='p') onAchievementProgress?.({type:'gyoji_win'})
+      setPlayerSkip(ps.pNextSkip);setCpuSkip(ps.oNextSkip)
+      if(ps.roundWinner==='p')setPlayerWins(w=>w+1);else if(ps.roundWinner==='o')setCpuWins(w=>w+1)
+      let newPH=ps.newPH;let newCH=ps.newCH
+      let newDraw=drawPile.filter(c=>![...ps.usedIds].includes(c.id))
+      if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
+      setCpuHand(newCH)
+      const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
+      if(offerable.length>0&&hp>0&&ohp>0){setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)));setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})}
+      else{setPlayerHand(newPH);setDrawPile(newDraw)}
+      setGyojiChoices(null)
+      if(hp<=0||ohp<=0){setPhase('gameOver');return}
+      setPhase('roundResult')
+    }}/>}
+    {drawOffer&&<DrawOfferScreen cards={drawOffer.cards} hand={drawOffer.hand} onChoose={handleDrawChoose} onSkip={handleDrawSkip} lang={lang}/>}
     {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
-    <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:600,color:'rgba(255,220,150,0.9)',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>{level.emoji} {t('Рівень','Level')} {level.id} — {levelName}</div>
-      {level.isBoss&&<div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',background:'#c0392b',color:'#fff',padding:'1px 8px',borderRadius:2}}>БОС</div>}
-    </div>
-    <CardGuide lang={lang}/>
-    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease'}}>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>{t('Оберіть команду','Draft your team')}</div>
-      {draftRound<DRAFT_ROUNDS&&<div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:'rgba(255,220,150,0.95)',textShadow:'0 1px 6px rgba(0,0,0,0.95)',textAlign:'center',marginBottom:'1rem'}}>{t('Рікіші','Rikishi')} {draftRound+1}/{DRAFT_ROUNDS}</div>}
-      {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length}/{DRAFT_ROUNDS})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
-      <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{draftPool.map((c,i)=><div key={c.id} style={{animation:`pop 0.3s ease ${i*0.08}s both`}}><GameCard card={c} onClick={()=>pickDraft(c)} lang={lang}/></div>)}</div>
+    <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.5rem'}}>‹ {t('Назад','Back')}</GameBtn>
+    {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',overflowY:'auto'}}>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.5rem'}}>{t('Змійка-драфт','Snake Draft')}</div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:'1rem',flexWrap:'wrap'}}>
+        {Array.from({length:DRAFT_ROUNDS}).map((_,i)=>(<div key={i} style={{width:24,height:24,borderRadius:'50%',background:i<draftRound?'#1abc9c':i===draftRound?'#f0c060':'rgba(255,255,255,0.1)',border:`2px solid ${i<draftRound?'#1abc9c':i===draftRound?'#f0c060':'rgba(255,255,255,0.2)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--jp)',fontSize:'0.45rem',color:i<=draftRound?'#1a1200':'rgba(255,255,255,0.3)',fontWeight:700}}>{i<draftRound?'✓':i+1}</div>))}
+        <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.6)',marginLeft:4}}>{draftRound}/{DRAFT_ROUNDS}</div>
+      </div>
+      {playerHand.length>0&&<div style={{marginBottom:'1.25rem'}}><div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',fontWeight:600,color:'rgba(255,220,150,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textTransform:'uppercase',marginBottom:8}}>{t('Рука','Hand')} ({playerHand.length})</div><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>{playerHand.map(c=><GameCard key={c.id} card={c} small disabled lang={lang}/>)}</div></div>}
+      <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+        {draftPool.map((c,i)=>{
+          const blocked=!canAddToHand(playerHand,c)
+          return(<div key={c.id} style={{position:'relative',animation:`pop 0.3s ease ${i*0.08}s both`}}>
+            <GameCard card={c} onClick={()=>pickDraft(c)} disabled={blocked} lang={lang}/>
+            {blocked&&<div style={{position:'absolute',inset:0,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.6)',backdropFilter:'blur(2px)'}}><div style={{textAlign:'center'}}><div style={{fontSize:'1rem'}}>🚫</div><div style={{fontFamily:'var(--jp)',fontSize:'0.4rem',color:'#e74c3c',marginTop:2}}>{t('Ліміт','Limit')}</div></div></div>}
+          </div>)
+        })}
+      </div>
     </div>)}
     {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={t('Ояката','Oyakata')} oppLabel={levelName} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards}/>}
   </div>)
@@ -1330,7 +1734,9 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   const [session,setSession]=useState(null)
   const [playerHand,setPlayerHand]=useState([])
   const [draftPool,setDraftPool]=useState([])
-  const [draftRound,setDraftRound]=useState(0)
+  const [draftRound,setDraftRound]=useState(0)   // скільки разів вибирав гравець
+  const [draftCpuRound,setDraftCpuRound]=useState(0) // скільки разів вибирав CPU
+  const [draftIsCpuTurn,setDraftIsCpuTurn]=useState(false) // зараз хід CPU?
   const [playerSelected,setPlayerSelected]=useState(null)
   const [roundNum,setRoundNum]=useState(0)
   const [submitting,setSubmitting]=useState(false)
@@ -1595,6 +2001,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
   const [gameTheme,setGameTheme]=useState('dark')
   const [isFullscreen,setIsFullscreen]=useState(false)
   const gameContainerRef=useRef(null)
+  const [campaignLevelInfo,setCampaignLevelInfo]=useState(null) // {emoji, name, isBoss} для хедера
 
   // ── Система досягнень ────────────────────────────────────────
   const [showAchievements,setShowAchievements]=useState(false)
@@ -1734,7 +2141,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
   const onCardPlayedRef = useRef(handleCardDiscovered)
   onCardPlayedRef.current = handleCardDiscovered
   const GameBattleStable = useRef(
-    (props) => <CampaignBattleWrapper {...props} sfx={sfxRef.current} onCardPlayed={onCardPlayedRef.current}/>
+    (props) => <CampaignBattleWrapper {...props} sfx={sfxRef.current} onCardPlayed={onCardPlayedRef.current} onLevelInfo={setCampaignLevelInfo}/>
   ).current
 
   const DARK_VARS = {'--card':'#1a1814','--bg':'#13110e','--bg2':'rgba(255,255,255,0.06)','--ink':'rgba(255,255,255,0.9)','--mid':'rgba(255,255,255,0.45)','--light':'rgba(255,255,255,0.25)','--border':'rgba(255,255,255,0.1)','--jp':"'Noto Serif JP', serif"}
@@ -1795,7 +2202,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{height:isMobile?26:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
               <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060'}}>DOHYO LEGENDS</span></span>
-              {mode!=='menu'&&!isMobile&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'rgba(255,220,150,0.65)',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?t('Кампанія','Campaign'):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):''}</span>}
+              {mode!=='menu'&&!isMobile&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'rgba(255,220,150,0.65)',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?(campaignLevelInfo?`${t('Кампанія','Campaign')} · ${campaignLevelInfo.emoji} ${campaignLevelInfo.name}`:t('Кампанія','Campaign')):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):mode==='rules'?t('Правила','Rules'):''}</span>}
+              {(mode==='campaign'||mode==='cpu')&&!isMobile&&<CardGuideInline lang={lang}/>}
             </div>
             <div style={{display:'flex',alignItems:'center',gap:isMobile?3:5}}>
               {isMobile ? (
@@ -1848,8 +2256,50 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   </div>
                 ))}
               </div>
+              {/* Кнопка Правила */}
+              <div style={{position:'absolute',bottom:18,left:'50%',transform:'translateX(-50%)',zIndex:10}}>
+                <button onClick={()=>{sfx('click');setMode('rules')}}
+                  style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,220,150,0.55)',letterSpacing:'0.12em',background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,220,150,0.15)',borderRadius:20,padding:'4px 18px',cursor:'pointer',backdropFilter:'blur(4px)',transition:'all 0.15s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.color='rgba(255,220,150,0.9)';e.currentTarget.style.borderColor='rgba(255,220,150,0.4)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,220,150,0.55)';e.currentTarget.style.borderColor='rgba(255,220,150,0.15)'}}>
+                  📜 {t('Правила','Rules')}
+                </button>
+              </div>
               <div style={{position:'absolute',bottom:10,right:14,zIndex:10,pointerEvents:'none',userSelect:'none',textAlign:'right'}}>
                 <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.55)',letterSpacing:'0.1em',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>© 2026 TerraVetera. All rights reserved.</div>
+              </div>
+            </div>
+          )}
+
+          {mode==='rules' && (
+            <div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'1rem':'1.5rem 2rem',position:'relative',zIndex:1}}>
+              <div style={{maxWidth:720,margin:'0 auto',width:'100%'}}>
+                <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:'1.5rem'}}>
+                  <GameBtn variant='dark' onClick={()=>setMode('menu')}>‹ {t('Назад','Back')}</GameBtn>
+                  <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 16px rgba(240,192,96,0.4)'}}>📜 {t('Правила Dohyo Legends','Dohyo Legends Rules')}</div>
+                </div>
+                {[
+                  {icon:'⚔️', title:{uk:'Про гру',en:'About the Game'}, body:{uk:'Dohyo Legends — стратегічна карткова гра в стилі сумо. Два Ояката (тренери) ведуть своїх рікіші до перемоги. Мета — знизити HP суперника до 0, або мати більше HP після 15 раундів.',en:"Dohyo Legends is a strategic sumo-themed card game. Two Oyakata (trainers) lead their rikishi to victory. The goal is to reduce the opponent's HP to 0, or have more HP after 15 rounds."}},
+                  {icon:'🃏', title:{uk:'Драфт (Змійка)',en:'Draft (Snake)'}, body:{uk:'Перед боєм обидва гравці по черзі обирають картки зі спільного пулу — "змійкою" (Ояката 1 → CPU → CPU → Ояката 1...). Ліміт: не більше 2 карт одного типу в руці. Заблоковані карти показують 🚫.',en:'Before battle, players take turns choosing cards from a shared pool in "snake" order (Player 1 → CPU → CPU → Player 1...). Limit: max 2 cards of the same type in hand. Blocked cards show 🚫.'}},
+                  {icon:'🥊', title:{uk:'Механіка бою',en:'Battle Mechanics'}, body:{uk:'Кожен раунд — обидва гравці одночасно обирають одну карту. Після вибору — ефекти застосовуються. Після раунду гравець обирає нову карту з 2 варіантів (не рандом).',en:'Each round — both players simultaneously choose one card. After selection — effects are applied. After the round, the player chooses a new card from 2 options (not random).'}},
+                  {icon:'🂠', title:{uk:'Типи карток',en:'Card Types'}, body:{uk:"⚔️ Рікіші — атакує. Шкода = ATK − DEF суперника. Б'є броню першою.\n💧 Хіл — відновлює HP (+5 або +10).\n🛡 Броня — додає захист (+5 або +10 🛡).\n⚡ Удар — пряма шкода, ігнорує броню (-5 або -10 HP).\n🔄 Заміна — замінює карту з руки на нову з колоди.\n🧂 Сіль — суперник пропускає наступний хід.\n🌀 Хенка — ухилення від рікіші або удару суперника.\n💥 Хаос — обидва втрачають 10 HP, ігнорує броню.\n⚖️ Ґьоджі — оберіть будь-яку раніше зіграну карту для повторної активації.",en:"⚔️ Rikishi — attacks. Damage = ATK − opponent DEF. Hits armor first.\n💧 Heal — restores HP (+5 or +10).\n🛡 Armor — adds defense (+5 or +10 🛡).\n⚡ Strike — direct damage, ignores armor (-5 or -10 HP).\n🔄 Swap — replace a hand card with a new deck card.\n🧂 Salt — opponent skips next turn.\n🌀 Henka — dodge opponent rikishi or strike.\n💥 Chaos — both lose 10 HP, ignores armor.\n⚖️ Gyoji — choose any previously played card to activate again."}},
+                  {icon:'🏯', title:{uk:'Кампанія',en:'Campaign'}, body:{uk:'5 рівнів складності: від Маегашіра до Йокодзуна (БОС). За перемогу отримуєте Йокоіни 🪙 і зірки ⭐ (залежать від залишку HP). Зірки = 3 якщо HP > 66%, 2 якщо 33-66%, 1 якщо < 33%.',en:'5 difficulty levels: from Maegashira to Yokozuna (BOSS). Win to earn Yokoin 🪙 and stars ⭐ (based on remaining HP). Stars: 3 if HP > 66%, 2 if 33-66%, 1 if < 33%.'}},
+                  {icon:'🏪', title:{uk:'Магазин',en:'Shop'}, body:{uk:'Між рівнями — магазин покращень. Постійні: +1 ATK або +1 DEF для обраної картки (на всю кампанію). Тимчасові: Бойовий дух (+2 ATK на 1 бій), Залізна стійка (+5 броні на старті), Водний щит (блокує першу шкоду).',en:'Between levels — upgrade shop. Permanent: +1 ATK or +1 DEF for a chosen card (entire campaign). Temporary: Battle Spirit (+2 ATK for 1 fight), Iron Stance (+5 armor at start), Water Shield (blocks first damage).'}},
+                  {icon:'⏰', title:{uk:'Тиск судді',en:"Judge's Pressure"}, body:{uk:'Якщо бій затягується після 10-го раунду — судді втрачають терпіння. Кожен раунд обидва гравці отримують -2 HP автоматично. Це форсує агресивний фінал.',en:'If the fight drags past round 10 — the judges lose patience. Each round both players automatically lose -2 HP. This forces an aggressive finish.'}},
+                  {icon:'🏆', title:{uk:'Нагороди',en:'Achievements'}, body:{uk:'13 досягнень — від "Перша кров" (виграти перший матч) до таємних нагород. Кожне досягнення дає Йокоіни. Отримати нагороду можна в меню 🏆 Нагороди.',en:'13 achievements — from "First Blood" (win first match) to secret rewards. Each achievement gives Yokoin. Claim rewards in the 🏆 Awards menu.'}},
+                ].map((section,i)=>(
+                  <div key={i} style={{marginBottom:'1rem',background:'rgba(0,0,0,0.35)',border:'1px solid rgba(255,220,150,0.1)',borderRadius:8,overflow:'hidden',animation:`slideIn 0.3s ease ${i*0.06}s both`}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'0.75rem 1rem',background:'rgba(184,134,11,0.1)',borderBottom:'1px solid rgba(255,220,150,0.08)'}}>
+                      <span style={{fontSize:'1.1rem'}}>{section.icon}</span>
+                      <span style={{fontFamily:'var(--jp)',fontSize:'0.8rem',fontWeight:700,color:'#f0c060'}}>{lang==='en'?section.title.en:section.title.uk}</span>
+                    </div>
+                    <div style={{padding:'0.75rem 1rem'}}>
+                      {(lang==='en'?section.body.en:section.body.uk).split('\n').map((line,j)=>(
+                        <div key={j} style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.75)',lineHeight:1.9,marginBottom:line.startsWith('⚔️')||line.startsWith('💧')||line.startsWith('🛡')||line.startsWith('⚡')||line.startsWith('🔄')||line.startsWith('🧂')||line.startsWith('🌀')||line.startsWith('💥')||line.startsWith('⚖️')?2:0}}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1872,7 +2322,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1400:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
                 <SumoClashCampaign
-                  onBack={()=>setMode('menu')}
+                  onBack={()=>{setMode('menu');setCampaignLevelInfo(null)}}
                   lang={lang}
                   discoveredCards={discoveredCards}
                   onCampaignComplete={()=>handleAchievementProgress({type:'campaign_complete'})}
