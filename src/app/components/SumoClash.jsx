@@ -106,6 +106,7 @@ const CHAOS_CARDS = [
 ]
 const GYOJI_CARDS = [
   { id:'Gy1', type:'gyoji', label:'Ґьоджі', labelEn:'Gyoji', effect:'↩ Повернення', color:'#7a1c1c', emoji:'⚖️' },
+  { id:'Gy2', type:'gyoji', label:'Ґьоджі', labelEn:'Gyoji', effect:'↩ Повернення', color:'#7a1c1c', emoji:'⚖️' },
 ]
 
 const FULL_DECK = [...RIKISHI_CARDS,...MAEGASHIRA,...HEAL_CARDS,...ARMOR_CARDS,...STRIKE_CARDS,...SWAP_CARDS,...SALT_CARDS,...HENKA_CARDS,...CHAOS_CARDS,...GYOJI_CARDS]
@@ -216,6 +217,7 @@ const CARD_LORE = {
   Ch1: 'Коли два рікіші зустрічаються з однаковою силою — дохьо тріщить під обома. Хаос не вибирає переможця.',
   Ch2: 'Стихія не має сторони. Вона просто є.',
   Gy1: 'Суддя піднімає ганбай — і час зупиняється. Його слово повертає мить назад.',
+  Gy2: 'Другий суддя виходить з тіні. Навіть боги потребують свідків.',
 }
 
 function getCardLore(card) { return CARD_LORE[card.id] || null }
@@ -243,6 +245,7 @@ const CARD_SKIN_ALIAS = {
   'H2':'H1','H3':'H1','Ar2':'Ar1','Ar4':'Ar3',
   'St2':'St1','St4':'St3','Sw2':'Sw1','Sw3':'Sw1','Sw4':'Sw1',
   'Ch2':'Ch1',
+  'Gy2':'Gy1',
 }
 function getCardSkinId(id) { return CARD_SKIN_ALIAS[id] || id }
 
@@ -1411,7 +1414,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
 
     // Gyoji досягнення — якщо повернула карту і виграла раунд
     if(gyojiResult&&gyojiResult.length>0){
-      const usedIds2=new Set([pCard?.id,cCard?.id].filter(Boolean))
+      const usedIds2=[pCard?.id,cCard?.id].filter(Boolean)
       setGyojiChoices({choices:gyojiResult,pendingState:{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,newPH:playerSkip?playerHand:playerHand.filter(c=>c.id!==playerSelected?.id),newCH:cpuSkip?cpuHand:(cCard?cpuHand.filter(c=>c.id!==cCard.id):cpuHand),usedIds:usedIds2}})
       return
     }
@@ -1487,7 +1490,8 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       setPlayerSkip(ps.pNextSkip);setCpuSkip(ps.oNextSkip)
       if(ps.roundWinner==='p')setPlayerWins(w=>w+1);else if(ps.roundWinner==='o')setCpuWins(w=>w+1)
       let newPH=ps.newPH;let newCH=ps.newCH
-      let newDraw=drawPile.filter(c=>![...ps.usedIds].includes(c.id))
+      const usedSet=new Set(ps.usedIds||[])
+      let newDraw=drawPile.filter(c=>!usedSet.has(c.id))
       if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
       setCpuHand(newCH)
       const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
@@ -1688,7 +1692,8 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
       setPlayerSkip(ps.pNextSkip);setCpuSkip(ps.oNextSkip)
       if(ps.roundWinner==='p')setPlayerWins(w=>w+1);else if(ps.roundWinner==='o')setCpuWins(w=>w+1)
       let newPH=ps.newPH;let newCH=ps.newCH
-      let newDraw=drawPile.filter(c=>![...ps.usedIds].includes(c.id))
+      const usedSet=new Set(ps.usedIds||[])
+      let newDraw=drawPile.filter(c=>!usedSet.has(c.id))
       if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
       setCpuHand(newCH)
       const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
