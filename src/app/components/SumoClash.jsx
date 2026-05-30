@@ -612,35 +612,45 @@ function FloatingNumber({value,color,onDone}){useEffect(()=>{const id=setTimeout
 function GyojiChooseScreen({choices,onChoose,lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [chosen,setChosen]=useState(null)
+  // Enter для підтвердження
+  useEffect(()=>{
+    const handler=(e)=>{if(e.key==='Enter'&&chosen)onChoose(chosen)}
+    window.addEventListener('keydown',handler)
+    return()=>window.removeEventListener('keydown',handler)
+  },[chosen,onChoose])
   return(
-    <div style={{position:'fixed',inset:0,zIndex:1600,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',backdropFilter:'blur(8px)',animation:'fadeIn 0.25s ease'}}>
-      <div style={{background:'linear-gradient(175deg,#2a0a0a,#1a0808,#0e0505)',border:'1px solid rgba(232,197,71,0.5)',borderRadius:12,padding:'1.5rem',maxWidth:560,width:'92%',boxShadow:'0 0 0 1px rgba(0,0,0,0.8),0 24px 60px rgba(0,0,0,0.95),0 0 40px rgba(122,28,28,0.3)',animation:'pop 0.35s cubic-bezier(0.34,1.56,0.64,1)'}}>
-        <div style={{height:3,background:'linear-gradient(90deg,transparent,#e8c547,transparent)',marginBottom:'1.25rem'}}/>
-        <div style={{textAlign:'center',marginBottom:'1.25rem'}}>
-          <div style={{fontSize:'2.2rem',marginBottom:'0.4rem',filter:'drop-shadow(0 0 12px rgba(232,197,71,0.6))'}}>⚖️</div>
-          <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:900,color:'#e8c547',textShadow:'0 0 20px rgba(232,197,71,0.5)',marginBottom:'0.25rem'}}>{t('Ґьоджі — Рішення Судді',"Gyoji — Judge's Ruling")}</div>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,220,150,0.5)',letterSpacing:'0.08em'}}>{t('Оберіть зіграну карту для повторної активації','Choose a played card to activate again')}</div>
+    <div style={{position:'fixed',inset:0,zIndex:1600,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.85)',backdropFilter:'blur(6px)',animation:'fadeIn 0.2s ease',padding:'0.5rem'}}>
+      <div style={{background:'linear-gradient(175deg,#2a0a0a,#1a0808)',border:'1px solid rgba(232,197,71,0.5)',borderRadius:10,width:'100%',maxWidth:680,maxHeight:'92vh',display:'flex',flexDirection:'column',boxShadow:'0 0 0 1px rgba(0,0,0,0.8),0 16px 48px rgba(0,0,0,0.95)',animation:'pop 0.3s cubic-bezier(0.34,1.56,0.64,1)'}}>
+        {/* Заголовок — фіксований */}
+        <div style={{flexShrink:0,padding:'0.75rem 1rem 0.5rem',borderBottom:'1px solid rgba(232,197,71,0.15)',textAlign:'center'}}>
+          <div style={{height:2,background:'linear-gradient(90deg,transparent,#e8c547,transparent)',marginBottom:'0.6rem'}}/>
+          <span style={{fontSize:'1.4rem'}}>⚖️</span>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,color:'#e8c547',marginTop:2}}>{t('Ґьоджі — Рішення Судді',"Gyoji — Judge's Ruling")}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.45)',marginTop:2}}>{t('Оберіть зіграну карту для повторної активації','Choose a played card to activate again')}</div>
         </div>
-        <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap',marginBottom:'1.25rem'}}>
+        {/* Картки — скролабельні */}
+        <div style={{flex:1,overflowY:'auto',padding:'0.75rem',display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',alignContent:'flex-start'}}>
           {choices.map((card,i)=>(
-            <div key={card.id} onClick={()=>setChosen(card)}
-              style={{position:'relative',cursor:'pointer',
-                transform:chosen?.id===card.id?'translateY(-8px) scale(1.06)':'none',
-                transition:'transform 0.15s',
-                filter:chosen?.id===card.id?'drop-shadow(0 8px 24px rgba(232,197,71,0.7))':'none',
-                animation:`pop 0.3s ease ${i*0.08}s both`}}>
-              <GameCard card={card} selected={chosen?.id===card.id} lang={lang}/>
+            <div key={card.id} onClick={()=>setChosen(chosen?.id===card.id?null:card)}
+              style={{position:'relative',cursor:'pointer',flexShrink:0,
+                transform:chosen?.id===card.id?'translateY(-6px) scale(1.05)':'none',
+                transition:'transform 0.12s',
+                filter:chosen?.id===card.id?'drop-shadow(0 6px 18px rgba(232,197,71,0.8))':'none',
+                animation:`pop 0.25s ease ${i*0.06}s both`}}>
+              <GameCard card={card} selected={chosen?.id===card.id} small lang={lang}/>
               {chosen?.id===card.id&&(
-                <div style={{position:'absolute',top:-10,left:'50%',transform:'translateX(-50%)',background:'#e8c547',borderRadius:8,padding:'2px 10px',fontFamily:'var(--jp)',fontSize:'0.5rem',fontWeight:900,color:'#1a1000',whiteSpace:'nowrap',boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>⚖️ {t('Активувати','Activate')}</div>
+                <div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',background:'#e8c547',borderRadius:6,padding:'1px 8px',fontFamily:'var(--jp)',fontSize:'0.45rem',fontWeight:900,color:'#1a1000',whiteSpace:'nowrap'}}>✓</div>
               )}
             </div>
           ))}
         </div>
-        <button onClick={()=>chosen&&onChoose(chosen)} disabled={!chosen}
-          style={{width:'100%',padding:'1rem',background:chosen?'linear-gradient(180deg,#8a6a00,#4a3800)':'rgba(255,255,255,0.04)',border:`1px solid ${chosen?'#e8c547':'rgba(255,255,255,0.08)'}`,borderRadius:8,color:chosen?'#fff8d0':'rgba(255,255,255,0.2)',fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:900,cursor:chosen?'pointer':'default',letterSpacing:'0.1em',transition:'all 0.15s',textShadow:chosen?'0 1px 4px rgba(0,0,0,0.6)':'none'}}>
-          {chosen?`⚖️ ${t('Судді вирішили','The judge has ruled')} — ${chosen.label||chosen.id}`:t('Оберіть карту','Select a card')}
-        </button>
-        <div style={{height:2,background:'linear-gradient(90deg,transparent,rgba(232,197,71,0.3),transparent)',marginTop:'1.25rem'}}/>
+        {/* Кнопка — фіксована знизу */}
+        <div style={{flexShrink:0,padding:'0.6rem 1rem 0.75rem',borderTop:'1px solid rgba(232,197,71,0.1)'}}>
+          <button onClick={()=>chosen&&onChoose(chosen)} disabled={!chosen}
+            style={{width:'100%',padding:'0.8rem',background:chosen?'linear-gradient(180deg,#8a6a00,#4a3800)':'rgba(255,255,255,0.04)',border:`1px solid ${chosen?'#e8c547':'rgba(255,255,255,0.08)'}`,borderRadius:7,color:chosen?'#fff8d0':'rgba(255,255,255,0.2)',fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,cursor:chosen?'pointer':'default',letterSpacing:'0.08em',transition:'all 0.12s'}}>
+            {chosen?`⚖️ ${chosen.label||chosen.id} — ${t('Підтвердити (Enter)','Confirm (Enter)')}`:t('Оберіть карту','Select a card')}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -1305,6 +1315,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   const [showRoundBanner,setShowRoundBanner]=useState(false)
   const [playedCards,setPlayedCards]=useState([])
   const [drawOffer,setDrawOffer]=useState(null)
+  const [pendingDrawOffer,setPendingDrawOffer]=useState(null)
   const [gyojiChoices,setGyojiChoices]=useState(null)
 
   // refs для відстеження умов досягнень
@@ -1326,25 +1337,19 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
 
   // ── Змійка-драфт: проста логіка гравець→CPU→гравець→CPU... ──
   function refreshPool(pool, draw, hand) {
-    // Поповнити пул до 6 карток, гарантуючи хоча б 1 картку яку можна взяти
-    let pool2 = [...pool]; let draw2 = [...draw]
-    // Спочатку поповнити до мінімуму 3
-    while (pool2.length < 3 && draw2.length > 0) {
-      const add = weightedSample(draw2.filter(c => !pool2.find(p => p.id === c.id)), 1)
-      if (!add.length) break
-      pool2 = [...pool2, ...add]; draw2 = draw2.filter(c => c.id !== add[0].id)
-    }
-    // Якщо всі в пулі заблоковані — примусово додати картку дозволеного типу
-    const allBlocked = pool2.every(c => !canAddToHand(hand, c))
-    if (allBlocked && draw2.length > 0) {
-      const unblocked = draw2.filter(c => canAddToHand(hand, c) && !pool2.find(p => p.id === c.id))
-      if (unblocked.length > 0) {
-        const add = weightedSample(unblocked, Math.min(2, unblocked.length))
-        // Замінити заблоковані карти на дозволені
-        pool2 = [...pool2.filter(c => canAddToHand(hand, c)), ...add]
-        draw2 = draw2.filter(c => !add.find(a => a.id === c.id))
-      }
-    }
+    // Поповнити пул, гарантуючи хоча б 1 картку яку можна взяти
+    // Спочатку видаляємо всі старі карти що залишились — пул завжди свіжий
+    let draw2 = [...draw, ...pool] // повернути старий пул в колоду
+    draw2 = weightedShuffle(draw2) // перемішати
+    let pool2 = []
+    // Набрати DRAFT_POOL_SIZE карток, гарантуючи різноманіття
+    const available = draw2.filter(c => canAddToHand(hand, c))
+    const blocked = draw2.filter(c => !canAddToHand(hand, c))
+    // Мінімум 1 доступна карта
+    const take = weightedSample(available, Math.min(DRAFT_POOL_SIZE - 1, available.length))
+    const fill = weightedSample(blocked, Math.max(0, DRAFT_POOL_SIZE - take.length))
+    pool2 = shuffle([...take, ...fill])
+    draw2 = draw2.filter(c => !pool2.find(p => p.id === c.id))
     return { pool2, draw2 }
   }
 
@@ -1432,11 +1437,12 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     // CPU бере карту автоматично
     if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
     setCpuHand(newCH)
-    // Гравець вибирає з 2 карт (тільки якщо є з чого вибирати і немає gameOver)
+    // Гравець вибирає з 2 карт після перегляду результату раунду
     const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
     if(offerable.length>0&&newPHp>0&&newOHp>0){
-      setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
-      setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+      setPlayerHand(newPH)
+      setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
+      setPendingDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
     } else {
       setPlayerHand(newPH);setDrawPile(newDraw)
     }
@@ -1458,6 +1464,14 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       const won=playerHp>cpuHp
       if(won) onAchievementProgress?.({type:'match_end',won:true,noDmg:noDmgRef.current,hp:playerHp,rounds:nr,chaosPlayed:chaosPlayedRef.current,healCount:healCountRef.current,henkaCount:henkaCountRef.current})
       setPhase('gameOver');return
+    }
+    // Показати вибір картки якщо є pending
+    if(pendingDrawOffer){
+      setDrawOffer(pendingDrawOffer)
+      setPendingDrawOffer(null)
+      setShowRoundBanner(true);setTimeout(()=>setShowRoundBanner(false),1900)
+      setPhase('battle')
+      return
     }
     setShowRoundBanner(true);setTimeout(()=>setShowRoundBanner(false),1900)
     setPhase('battle')
@@ -1495,8 +1509,10 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
       setCpuHand(newCH)
       const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
-      if(offerable.length>0&&hp>0&&ohp>0){setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)));setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})}
-      else{setPlayerHand(newPH);setDrawPile(newDraw)}
+      if(offerable.length>0&&hp>0&&ohp>0){
+        setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
+        setPendingDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+      } else {setPlayerHand(newPH);setDrawPile(newDraw)}
       setGyojiChoices(null)
       if(hp<=0||ohp<=0){setPhase('gameOver');return}
       setPhase('roundResult')
@@ -1567,6 +1583,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
   const [envelopesEarned,setEnvelopesEarned]=useState(0)
   const [playedCards,setPlayedCards]=useState([])
   const [drawOffer,setDrawOffer]=useState(null)
+  const [pendingDrawOffer,setPendingDrawOffer]=useState(null)
   const [gyojiChoices,setGyojiChoices]=useState(null)
 
   useEffect(()=>{
@@ -1585,23 +1602,15 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
     return{...card,atk:card.atk+(b.atk||0),def:card.def+(b.def||0),_atkBoost:b.atk||0,_defBoost:b.def||0}
   }
   function refreshDraftPool(pool, draw, hand) {
-    let pool2=[...pool],draw2=[...draw]
-    while(pool2.length<3&&draw2.length>0){
-      const add=weightedSample(draw2.filter(c=>!pool2.find(p=>p.id===c.id)),1)
-      if(!add.length)break
-      pool2=[...pool2,...add];draw2=draw2.filter(c=>c.id!==add[0].id)
-    }
-    // Якщо всі заблоковані — замінити на доступні
-    const allBlocked=pool2.every(c=>!canAddToHand(hand,c))
-    if(allBlocked&&draw2.length>0){
-      const unblocked=draw2.filter(c=>canAddToHand(hand,c)&&!pool2.find(p=>p.id===c.id))
-      if(unblocked.length>0){
-        const add=weightedSample(unblocked,Math.min(2,unblocked.length))
-        pool2=[...pool2.filter(c=>canAddToHand(hand,c)),...add]
-        draw2=draw2.filter(c=>!add.find(a=>a.id===c.id))
-      }
-    }
-    return{pool2,draw2}
+    // Пул повністю оновлюється кожного разу — старі карти повертаються в колоду
+    let draw2=weightedShuffle([...draw,...pool])
+    const available=draw2.filter(c=>canAddToHand(hand,c))
+    const blocked=draw2.filter(c=>!canAddToHand(hand,c))
+    const take=weightedSample(available,Math.min(DRAFT_POOL_SIZE-1,available.length))
+    const fill=weightedSample(blocked,Math.max(0,DRAFT_POOL_SIZE-take.length))
+    const pool2=shuffle([...take,...fill])
+    const draw3=draw2.filter(c=>!pool2.find(p=>p.id===c.id))
+    return{pool2,draw2:draw3}
   }
   function pickDraft(card){
     if(sfx)sfx('click')
@@ -1656,7 +1665,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
     const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
     if(offerable.length>0&&finalPHp>0&&newOHp>0){
       setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
-      setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+      setPendingDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
     } else {
       setPlayerHand(newPH);setDrawPile(newDraw)
     }
@@ -1669,6 +1678,12 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
     const nr=roundNum+1;setRoundNum(nr);setPlayerSelected(null);setRoundLog([])
     setMyFlash(null);setOppFlash(null);setMyHpDelta(0);setOppHpDelta(0);setMyArmorDelta(0);setOppArmorDelta(0)
     if(nr>=MAX_ROUNDS||playerHand.length===0){if(playerHp>cpuHp)onWin(playerHp,MAX_HP,envelopesEarned);else onLose();return}
+    if(pendingDrawOffer){
+      setDrawOffer(pendingDrawOffer)
+      setPendingDrawOffer(null)
+      setShowRoundBanner(true);setTimeout(()=>setShowRoundBanner(false),1900)
+      setPhase('battle');return
+    }
     setShowRoundBanner(true);setTimeout(()=>setShowRoundBanner(false),1900);setPhase('battle')
   }
 
@@ -1678,33 +1693,39 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
   function handleDrawSkip(){setDrawPile(prev=>[...prev,...(drawOffer?.cards||[])]);setDrawOffer(null)}
   return(<div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative',zIndex:1,background:'transparent'}}>
     {gyojiChoices&&<GyojiChooseScreen choices={gyojiChoices.choices} lang={lang} onChoose={(card)=>{
-      // Застосовуємо ефект обраної картки вже після основного раунду
       const ps=gyojiChoices.pendingState
       let extraLogs=[{text:`⚖️ Ґьоджі активує: "${card.label||card.id}"!`,color:'#e8c547'}]
-      let hp=ps.newPHp,ohp=ps.newOHp,par=ps.newPArmor,oar=ps.newOArmor
-      if(card.type==='heal'){hp=Math.min(MAX_HP,hp+card.heal);extraLogs.push({text:`+${card.heal} HP від ${card.label}`,color:'#50e0c0'})}
-      else if(card.type==='armor'){par+=card.armor;extraLogs.push({text:`+${card.armor} 🛡 від ${card.label}`,color:'#88ccff'})}
-      else if(card.type==='strike'){ohp=Math.max(0,ohp-card.damage);extraLogs.push({text:`⚡ ${card.damage} пряма шкода від ${card.label}`,color:'#ffaa44'})}
-      else if(card.type==='rikishi'){const dmg=Math.max(0,card.atk-(oar>0?Math.min(oar,card.atk):0));ohp=Math.max(0,ohp-dmg);oar=Math.max(0,oar-card.atk);extraLogs.push({text:`⚔ ${dmg} шкода від ${card.label}`,color:'#ffaa44'})}
+      let hp=ps.finalPHp,ohp=ps.newOHp,par=ps.newPArmor,oar=ps.newOArmor
+      if(card.type==='heal'){hp=Math.min(MAX_HP,hp+card.heal);extraLogs.push({text:`+${card.heal} HP`,color:'#50e0c0'})}
+      else if(card.type==='armor'){par+=card.armor;extraLogs.push({text:`+${card.armor} 🛡`,color:'#88ccff'})}
+      else if(card.type==='strike'){ohp=Math.max(0,ohp-card.damage);extraLogs.push({text:`⚡ ${card.damage} шкода`,color:'#ffaa44'})}
+      else if(card.type==='rikishi'){const dmg=Math.max(0,card.atk-(oar>0?Math.min(oar,card.atk):0));ohp=Math.max(0,ohp-dmg);oar=Math.max(0,oar-card.atk);extraLogs.push({text:`⚔ ${dmg} шкода`,color:'#ffaa44'})}
       setPlayerHp(hp);setCpuHp(ohp);setPlayerArmor(par);setCpuArmor(oar)
+      setMyHpDelta(hp-playerHp);setOppHpDelta(ohp-cpuHp)
+      setMyFlash(hp<playerHp?'damage':hp>playerHp?'heal':null)
+      setOppFlash(ohp<cpuHp?'damage':'none')
       setRoundLog([...ps.logs,...extraLogs])
-      if(ps.roundWinner==='p') onAchievementProgress?.({type:'gyoji_win'})
+      if(ps.roundWinner==='p'){onAchievementProgress?.({type:'gyoji_win'});setPlayerWins(w=>w+1)}
+      else if(ps.roundWinner==='o') setCpuWins(w=>w+1)
       setPlayerSkip(ps.pNextSkip);setCpuSkip(ps.oNextSkip)
-      if(ps.roundWinner==='p')setPlayerWins(w=>w+1);else if(ps.roundWinner==='o')setCpuWins(w=>w+1)
-      let newPH=ps.newPH;let newCH=ps.newCH
-      const usedSet=new Set(ps.usedIds||[])
-      let newDraw=drawPile.filter(c=>!usedSet.has(c.id))
+      // Оновити руки з поточного стану
+      const newPH=playerHand.filter(c=>c.id!==playerSelected?.id)
+      let newCH=[...cpuHand]
+      let newDraw=[...drawPile]
       if(newDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,newDraw.length));newCH=[...newCH,newDraw[idx]];newDraw=newDraw.filter((_,i)=>i!==idx)}
       setCpuHand(newCH)
       const offerable=weightedSample(newDraw.filter(c=>canAddToHand(newPH,c)),2)
-      if(offerable.length>0&&hp>0&&ohp>0){setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)));setDrawOffer({cards:offerable,hand:newPH,draw:newDraw})}
-      else{setPlayerHand(newPH);setDrawPile(newDraw)}
+      if(offerable.length>0&&hp>0&&ohp>0){
+        setPlayerHand(newPH);setDrawPile(newDraw.filter(c=>!offerable.find(o=>o.id===c.id)))
+        setPendingDrawOffer({cards:offerable,hand:newPH,draw:newDraw})
+      } else {setPlayerHand(newPH);setDrawPile(newDraw)}
       setGyojiChoices(null)
-      if(hp<=0||ohp<=0){setPhase('gameOver');return}
+      if(hp<=0){onLose();return}
+      if(ohp<=0){onWin(hp,MAX_HP,envelopesEarned);return}
       setPhase('roundResult')
     }}/>}
     {drawOffer&&<DrawOfferScreen cards={drawOffer.cards} hand={drawOffer.hand} onChoose={handleDrawChoose} onSkip={handleDrawSkip} lang={lang}/>}
-    {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
+    {vsActive&&<VSScreen playerLabel={t('Ояката','Oyaката')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.5rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',overflowY:'auto'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.5rem'}}>{t('Змійка-драфт','Snake Draft')}</div>
