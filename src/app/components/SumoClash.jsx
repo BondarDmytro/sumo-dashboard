@@ -265,7 +265,7 @@ function cpuChooseCard(hand,oppSkipped){
   return hand[0]
 }
 
-function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,playedCards=[],roundNum=0){
+function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,playedCards=[],roundNum=0,gyojiUsedIds=new Set()){
   let nPHp=pHp,nOHp=oHp,nPAr=pArmor,nOAr=oArmor
   const logs=[]
   const pEff=pSkipped?null:pCard
@@ -289,9 +289,9 @@ function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,played
   if(pEff?.type==='gyoji'){
     const choices=[...new Map(
       playedCards.map(r=>r.my)
-        .filter(c=>c&&!['skip','gyoji','chaos','swap'].includes(c.type))
+        .filter(c=>c&&!['skip','gyoji','chaos','swap'].includes(c.type)&&!gyojiUsedIds.has(c.id))
         .map(c=>[c.id,c])
-    ).values()].slice(-6) // останні 6 унікальних
+    ).values()].slice(-6) // останні 6 унікальних, без вже використаних Ґьоджі
     if(choices.length>0){
       logs.push({text:`⚖️ Ґьоджі! Судді зупиняють бій — оберіть карту для повторної активації!`,color:'#e8c547'})
     } else {
@@ -384,7 +384,7 @@ const MUSIC_THEMES=[
 const ACHIEVEMENTS = [
   { id:'first_win',       icon:'🏅', cat:'progress', name:{uk:'Перша кров',      en:'First Blood'},    desc:{uk:'Виграти перший матч vs CPU',         en:'Win first match vs CPU'},           reward:50  },
   { id:'all_cards',       icon:'📖', cat:'progress', name:{uk:'Майстер Книги',   en:'Card Master'},    desc:{uk:'Розблокувати всі картки в CardBook', en:'Unlock all cards in CardBook'},     reward:500 },
-  { id:'all_campaign',    icon:'🗺️', cat:'progress', name:{uk:'Підкорювач',      en:'Conqueror'},      desc:{uk:'Пройти всю кампанію (5/5)',          en:'Complete full campaign (5/5)'},     reward:300 },
+  { id:'all_campaign',    icon:'🗺️', cat:'progress', name:{uk:'Підкорювач',      en:'Conqueror'},      desc:{uk:"Пройти всі 5 рівнів кампанії (зірки не обов'язкові)",en:'Complete all 5 campaign levels (stars not required)'},     reward:300 },
   { id:'flawless',        icon:'🔥', cat:'battle',   name:{uk:'Бездоганно',      en:'Flawless'},       desc:{uk:'Виграти без втрат HP',               en:'Win without losing HP'},            reward:150 },
   { id:'last_stand',      icon:'💀', cat:'battle',   name:{uk:'Остання стійка',  en:'Last Stand'},     desc:{uk:'Виграти маючи 1-3 HP',               en:'Win with only 1-3 HP left'},        reward:100 },
   { id:'speedrun',        icon:'⚡', cat:'battle',   name:{uk:'Блискавичний',    en:'Speedrun'},       desc:{uk:'Виграти за 5 раундів або менше',     en:'Win in 5 rounds or less'},          reward:120 },
@@ -393,7 +393,7 @@ const ACHIEVEMENTS = [
   { id:'chaos_winner',    icon:'💥', cat:'battle',   name:{uk:'Переможець хаосу',en:'Chaos Victor'},   desc:{uk:'Виграти матч зігравши Хаос',         en:'Win a match after playing Chaos'},  reward:130 },
   { id:'gyoji_trick',     icon:'⚖️', cat:'battle',   name:{uk:'Хитрість судді',  en:'Gyoji Trick'},    desc:{uk:'Повернути карту та виграти раунд',   en:'Return card and win the round'},    reward:110 },
   { id:'thousand_rounds', icon:'🔒', cat:'secret',   name:{uk:'???',             en:'???'},            desc:{uk:'Зіграти 1000 раундів загалом',       en:'Play 1000 rounds total'},           reward:400 },
-  { id:'big_spender',     icon:'🔒', cat:'secret',   name:{uk:'???',             en:'???'},            desc:{uk:'Витратити 5000¥ у магазині',         en:'Spend 5000¥ in the shop'},          reward:300 },
+  { id:'big_spender',     icon:'🔒', cat:'secret',   name:{uk:'???',             en:'???'},            desc:{uk:'Витратити 5000 🪙 у крамниці',         en:'Spend 5000 🪙 in the shop'},          reward:300 },
   { id:'salt_king',       icon:'🔒', cat:'secret',   name:{uk:'???',             en:'???'},            desc:{uk:'Зіграти Сіль 10 разів',             en:'Play Salt 10 times'},               reward:200 },
 ]
 
@@ -430,6 +430,12 @@ const ANIM_STYLES=`
 @keyframes rikishiRedPulse{
   0%,100%{filter:drop-shadow(0 -2px 20px rgba(231,76,60,0.55)) drop-shadow(0 6px 16px rgba(0,0,0,0.95));transform:scale(1)}
   50%{filter:drop-shadow(0 -2px 28px rgba(231,76,60,0.9)) drop-shadow(0 6px 20px rgba(0,0,0,0.95)) brightness(1.1);transform:scale(1.03)}
+}
+@keyframes cpuRewardSlide{
+  0%{opacity:0;transform:translateX(-50%) translateY(-100%)}
+  12%{opacity:1;transform:translateX(-50%) translateY(0)}
+  75%{opacity:1;transform:translateX(-50%) translateY(0)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-100%)}
 }
 @keyframes achievementUnlock{
   0%{opacity:0;transform:translateX(120px) scale(0.8)}
@@ -614,7 +620,10 @@ function GyojiChooseScreen({choices,onChoose,lang}){
   const [chosen,setChosen]=useState(null)
   // Enter для підтвердження
   useEffect(()=>{
-    const handler=(e)=>{if(e.key==='Enter'&&chosen)onChoose(chosen)}
+    const handler=(e)=>{
+      if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return
+      if(e.key==='Enter'){e.preventDefault();if(chosen)onChoose(chosen)}
+    }
     window.addEventListener('keydown',handler)
     return()=>window.removeEventListener('keydown',handler)
   },[chosen,onChoose])
@@ -660,6 +669,15 @@ function DrawOfferScreen({cards,hand,onChoose,onSkip,lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [chosen,setChosen]=useState(null)
   const [hovered,setHovered]=useState(null)
+  useEffect(()=>{
+    function h(e){
+      if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return
+      if(e.key==='Enter'){e.preventDefault();if(chosen)onChoose(chosen)}
+      if(e.key===' '||e.code==='Space'){e.preventDefault();onSkip?.()}
+    }
+    window.addEventListener('keydown',h)
+    return()=>window.removeEventListener('keydown',h)
+  },[chosen,onChoose,onSkip])
   return(
     <div style={{position:'fixed',inset:0,zIndex:1500,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.75)',backdropFilter:'blur(6px)',animation:'fadeIn 0.25s ease'}}>
       <div style={{background:'linear-gradient(175deg,#1e1810,#130e08)',border:'1px solid rgba(184,134,11,0.45)',borderRadius:12,padding:'1.5rem',maxWidth:420,width:'90%',boxShadow:'0 0 0 1px rgba(0,0,0,0.8), 0 24px 60px rgba(0,0,0,0.95)',animation:'pop 0.3s cubic-bezier(0.34,1.56,0.64,1)'}}>
@@ -856,7 +874,7 @@ function GameBtn({variant='dark',children,onClick,title,style={},disabled=false}
   return(<button onClick={disabled?undefined:onClick} title={title} onMouseDown={()=>setPressed(true)} onMouseUp={()=>setPressed(false)} onMouseLeave={()=>setPressed(false)} style={{...BTN_BASE,...v,...style,filter:pressed?'brightness(0.8)':disabled?'brightness(0.5)':'brightness(1)',transform:pressed?'translateY(1px)':'translateY(0)',cursor:disabled?'default':'pointer'}}>{children}</button>)
 }
 
-function AudioControls({sfxOn,musicOn,currentTheme,onToggleSfx,onToggleMusic,onThemeChange,lang}){
+function AudioControls({sfxOn,musicOn,currentTheme,onToggleSfx,onToggleMusic,onThemeChange,ownedMusicThemes=new Set(['dohyo']),lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [showThemes,setShowThemes]=useState(false)
   return(<div style={{position:'relative',display:'flex',gap:5,alignItems:'center'}}>
@@ -865,10 +883,23 @@ function AudioControls({sfxOn,musicOn,currentTheme,onToggleSfx,onToggleMusic,onT
     <GameBtn variant='dark' onClick={()=>setShowThemes(v=>!v)}>🎼</GameBtn>
     {showThemes&&(<div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:'calc(100% + 6px)',right:0,background:'linear-gradient(180deg,#2a2420 0%,#1a1510 100%)',border:'1px solid #4a3e30',borderRadius:6,padding:'0.6rem',zIndex:100,minWidth:170,boxShadow:'0 8px 24px rgba(0,0,0,0.8)'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'#a09070',textTransform:'uppercase',marginBottom:6,letterSpacing:'0.12em'}}>{t('Тема','Theme')}</div>
-      {MUSIC_THEMES.map(th=>(<div key={th.id} onClick={()=>{onThemeChange(th.id);setShowThemes(false)}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'5px 8px',borderRadius:4,cursor:'pointer',marginBottom:2,background:currentTheme===th.id?'rgba(184,134,11,0.25)':'transparent',border:`1px solid ${currentTheme===th.id?'#b8860b':'transparent'}`}}>
-        <div><div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:700,color:currentTheme===th.id?'#f0c060':'#d0c0a0'}}>{lang==='en'?th.label.en:th.label.uk}</div><div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'#7a6a50'}}>{lang==='en'?th.desc.en:th.desc.uk}</div></div>
-        {currentTheme===th.id&&<span style={{color:'#f0c060',fontSize:'0.8rem'}}>✓</span>}
-      </div>))}
+      {MUSIC_THEMES.map(th=>{
+        const owned=ownedMusicThemes.has(th.id)
+        const isActive=currentTheme===th.id
+        return(<div key={th.id}
+          onClick={()=>{if(owned){onThemeChange(th.id);setShowThemes(false)}}}
+          style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,padding:'5px 8px',borderRadius:4,cursor:owned?'pointer':'default',marginBottom:2,
+            background:isActive?'rgba(184,134,11,0.25)':owned?'transparent':'rgba(0,0,0,0.25)',
+            border:`1px solid ${isActive?'#b8860b':owned?'transparent':'rgba(255,255,255,0.04)'}`,
+            opacity:owned?1:0.55}}>
+          <div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:700,color:isActive?'#f0c060':owned?'#d0c0a0':'#6a6050'}}>{lang==='en'?th.label.en:th.label.uk}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:owned?'#7a6a50':'#4a4038'}}>{lang==='en'?th.desc.en:th.desc.uk}</div>
+          </div>
+          {isActive&&<span style={{color:'#f0c060',fontSize:'0.8rem'}}>✓</span>}
+          {!owned&&<span style={{fontSize:'0.75rem',opacity:0.8}}>🔒</span>}
+        </div>)
+      })}
     </div>)}
   </div>)
 }
@@ -907,6 +938,15 @@ function CardGuide({lang}){
 function SwapScreen({hand,drawOptions,onSwap,lang}){
   const t=(uk,en)=>lang==='en'?en:uk
   const [selected,setSelected]=useState(null)
+
+  useEffect(()=>{
+    function onKey(e){
+      if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return
+      if(e.key==='Enter'){e.preventDefault();if(selected)onSwap(selected)}
+    }
+    window.addEventListener('keydown',onKey)
+    return()=>window.removeEventListener('keydown',onKey)
+  },[selected,onSwap])
   return(<div style={{animation:'slideIn 0.25s ease'}}>
     <div style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:700,textAlign:'center',marginBottom:'0.25rem'}}>🔄 {t('Заміна','Swap')}</div>
     <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:600,color:'rgba(255,220,150,0.9)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',textAlign:'center',marginBottom:'1rem'}}>{t('Оберіть карту з колоди','Choose from deck')}</div>
@@ -1148,12 +1188,47 @@ function RoundResult({myCard,oppCard,roundLog,myLabel,oppLabel,onNext,roundNum,l
   </div>)
 }
 
-function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLabel,oppLabel,myHand,oppHand,playerSelected,onSelect,myReady,oppReady,onSubmit,roundLog,phase,onNext,lang,myCard,oppCard,drawPile,onSwapDone,mySkipped,sfx,myHpDelta,oppHpDelta,myArmorDelta,oppArmorDelta,myFlash,oppFlash,showRoundBanner,playedCards=[]}){
+function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLabel,oppLabel,myHand,oppHand,playerSelected,onSelect,myReady,oppReady,onSubmit,roundLog,phase,onNext,lang,myCard,oppCard,drawPile,onSwapDone,mySkipped,sfx,myHpDelta,oppHpDelta,myArmorDelta,oppArmorDelta,myFlash,oppFlash,showRoundBanner,playedCards=[],playerAvatar,bazaarItems=[]}){
   const t=(uk,en)=>lang==='en'?en:uk
   const isMobile=useIsMobile()
   const isRoundResult=phase==='roundResult'
   const [swapping,setSwapping]=useState(false)
   const [swapOptions,setSwapOptions]=useState([])
+
+  // Enter = підтвердити, Space = пропустити
+  useEffect(()=>{
+    function onKey(e){
+      // Ігноруємо якщо фокус в текстовому полі
+      if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return
+
+      if(e.key==='Enter'){
+        e.preventDefault()
+        if(isRoundResult){onNext?.();return}
+        // DrawOffer — якщо відкритий, Enter = взяти обрану картку (обробляється там)
+        if(!isRoundResult&&!swapping&&(playerSelected||mySkipped)&&!myReady){
+          if(sfx)sfx('click');onSubmit?.()
+        }
+        return
+      }
+
+      if(e.key===' '||e.code==='Space'){
+        e.preventDefault()
+        // Space = пропустити (salt card, skip turn)
+        const saltCard=myHand?.find(c=>c.type==='salt')
+        if(!isRoundResult&&!swapping&&!mySkipped&&!myReady){
+          // Якщо є сіль — граємо її як "пропуск"
+          if(saltCard){onSelect?.(saltCard);return}
+          // Якщо вже обрана картка — скасувати вибір (пропустити вибір)
+          if(playerSelected){onSelect?.(null);return}
+        }
+        // Space в roundResult — теж наступний раунд (як і Enter)
+        if(isRoundResult){onNext?.();return}
+        return
+      }
+    }
+    window.addEventListener('keydown',onKey)
+    return()=>window.removeEventListener('keydown',onKey)
+  },[isRoundResult,swapping,playerSelected,mySkipped,myReady,myHand,onNext,onSubmit,onSelect,sfx])
   const deduped=arr=>[...new Map(arr.filter(Boolean).map(c=>[c.id,c])).values()]
   function activateSwap(){if(sfx)sfx('swap');const available=drawPile.filter(c=>!myHand.find(h=>h.id===c.id));const pool=weightedSample(available,DRAFT_POOL_SIZE);setSwapOptions(pool);setSwapping(true)}
   function doSwap(card){setSwapping(false);onSwapDone(card)}
@@ -1180,6 +1255,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
     <div style={{display:'grid',gridTemplateColumns:`1fr ${scoreW}px 1fr`,gap:isMobile?5:8,marginBottom:'0.5rem',alignItems:'stretch'}}>
       <div style={{position:'relative',overflow:'visible',background:'rgba(0,0,0,0.65)',padding:hpPadL,borderRadius:6,border:'1px solid rgba(26,107,92,0.4)',minHeight:isMobile?50:62}}>
         <RikishiPortraitFigure side="left" height={portraitH}/>
+
         <PlayerBadge label={myLabel} side="left"/>
         <PremiumHPBar hp={myHp} armor={myArmor} flash={myFlash}/>
       </div>
@@ -1281,7 +1357,7 @@ function GameOverScreen({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,myLabel,oppL
 }
 
 // ── CpuGame ───────────────────────────────────────────────────
-function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
+function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress, onYokoinReward, playerAvatar, bazaarItems=[] }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const isMobile=useIsMobile()
   const [phase,setPhase]=useState('draft')
@@ -1317,6 +1393,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   const [drawOffer,setDrawOffer]=useState(null)
   const [pendingDrawOffer,setPendingDrawOffer]=useState(null)
   const [gyojiChoices,setGyojiChoices]=useState(null)
+  const gyojiUsedIdsRef=useRef(new Set()) // картки вже активовані через Ґьоджі
 
   // refs для відстеження умов досягнень
   const healCountRef=useRef(0)
@@ -1408,7 +1485,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     if(sfx){const card=pCard||cCard;if(card?.type==='rikishi')sfx('clash');else if(card?.type==='heal')sfx('heal');else if(card?.type==='armor')sfx('armor');else if(card?.type==='strike')sfx('strike');else if(card?.type==='salt')sfx('salt');else if(card?.type==='henka')sfx('henka');else if(card?.type==='chaos')sfx('chaos');else if(card?.type==='gyoji')sfx('gyoji')}
 
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiResult}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum)
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiResult}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum,gyojiUsedIdsRef.current)
 
     const pHpD=newPHp-playerHp;const oHpD=newOHp-cpuHp;const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
     setMyHpDelta(pHpD);setOppHpDelta(oHpD);setMyArmorDelta(pArD);setOppArmorDelta(oArD)
@@ -1451,6 +1528,8 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       const won=newOHp<=0&&newPHp>0
       if(won){
         onAchievementProgress?.({type:'match_end',won:true,noDmg:noDmgRef.current,hp:newPHp,rounds:roundNum+1,chaosPlayed:chaosPlayedRef.current,healCount:healCountRef.current,henkaCount:henkaCountRef.current})
+        const reward=Math.round((50+Math.floor(newPHp/MAX_HP*30))/10)*10 // 50–80 округлено до 10
+        onYokoinReward?.(reward)
       }
       setPhase('gameOver');return
     }
@@ -1462,7 +1541,10 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     setMyFlash(null);setOppFlash(null);setMyHpDelta(0);setOppHpDelta(0);setMyArmorDelta(0);setOppArmorDelta(0)
     if(nr>=MAX_ROUNDS||playerHand.length===0){
       const won=playerHp>cpuHp
-      if(won) onAchievementProgress?.({type:'match_end',won:true,noDmg:noDmgRef.current,hp:playerHp,rounds:nr,chaosPlayed:chaosPlayedRef.current,healCount:healCountRef.current,henkaCount:henkaCountRef.current})
+      if(won){
+        onAchievementProgress?.({type:'match_end',won:true,noDmg:noDmgRef.current,hp:playerHp,rounds:nr,chaosPlayed:chaosPlayedRef.current,healCount:healCountRef.current,henkaCount:henkaCountRef.current})
+        onYokoinReward?.(Math.round((40+Math.floor(playerHp/MAX_HP*20))/10)*10)
+      }
       setPhase('gameOver');return
     }
     // Показати вибір картки якщо є pending
@@ -1498,6 +1580,8 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       else if(card.type==='armor'){par+=card.armor;extraLogs.push({text:`+${card.armor} 🛡 від ${card.label}`,color:'#88ccff'})}
       else if(card.type==='strike'){ohp=Math.max(0,ohp-card.damage);extraLogs.push({text:`⚡ ${card.damage} пряма шкода від ${card.label}`,color:'#ffaa44'})}
       else if(card.type==='rikishi'){const dmg=Math.max(0,card.atk-(oar>0?Math.min(oar,card.atk):0));ohp=Math.max(0,ohp-dmg);oar=Math.max(0,oar-card.atk);extraLogs.push({text:`⚔ ${dmg} шкода від ${card.label}`,color:'#ffaa44'})}
+      // Запам'ятовуємо що цю карту вже використали через Ґьоджі
+      gyojiUsedIdsRef.current.add(card.id)
       setPlayerHp(hp);setCpuHp(ohp);setPlayerArmor(par);setCpuArmor(oar)
       setRoundLog([...ps.logs,...extraLogs])
       if(ps.roundWinner==='p') onAchievementProgress?.({type:'gyoji_win'})
@@ -1518,7 +1602,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
       setPhase('roundResult')
     }}/>}
     {drawOffer&&<DrawOfferScreen cards={drawOffer.cards} hand={drawOffer.hand} onChoose={handleDrawChoose} onSkip={handleDrawSkip} lang={lang}/>}
-    {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
+    {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} playerAvatar={playerAvatar} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
     {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',overflowY:'auto'}}>
@@ -1541,7 +1625,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
         })}
       </div>
     </div>)}
-    {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={oya1} oppLabel={cpu} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards}/>}
+    {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={oya1} oppLabel={cpu} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards} playerAvatar={playerAvatar} bazaarItems={bazaarItems}/>}
     {phase==='gameOver'&&<GameOverScreen myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} myLabel={oya1} oppLabel={cpu} onBack={onBack} lang={lang} sfx={sfx}/>}
   </div>)
 }
@@ -1585,6 +1669,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
   const [drawOffer,setDrawOffer]=useState(null)
   const [pendingDrawOffer,setPendingDrawOffer]=useState(null)
   const [gyojiChoices,setGyojiChoices]=useState(null)
+  const gyojiUsedIdsRef=useRef(new Set())
 
   useEffect(()=>{
     // Змійка-драфт для кампанії — спільний пул
@@ -1631,6 +1716,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
     if(!playerSkip&&!playerSelected)return
     if(pCard) onCardPlayed?.(pCard.id)
     const pCardFinal=pCard&&tempBoosts?.battle_spirit>0?{...pCard,atk:(pCard.atk||0)+2}:pCard
+
     const cCard=cpuSkip?null:cpuChooseCard(cpuHand,playerSkip)
     const pDisplay=playerSkip?{type:'skip',label:'Пропуск',labelEn:'Skip',emoji:'⏩',color:'#95a5a6'}:playerSelected
     setLastMyCard(pDisplay);setLastOppCard(cpuSkip?{type:'skip',label:'Пропуск',labelEn:'Skip',emoji:'⏩',color:'#95a5a6'}:cCard)
@@ -1638,7 +1724,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
     const waterShield=tempBoosts?.water_shield>0&&roundNum===0
     const newPlayedEntry={my:pDisplay,opp:cpuSkip?{type:'skip'}:cCard}
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiChoices_result}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum)
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand,gyojiChoices:gyojiChoices_result}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards,roundNum,gyojiUsedIdsRef.current)
     const finalPHp=waterShield&&newPHp<playerHp?playerHp:newPHp
     setPlayedCards(currentPlayed)
     checkEnvelope(pCardFinal,cCard,roundWinner)
@@ -1693,6 +1779,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
   function handleDrawSkip(){setDrawPile(prev=>[...prev,...(drawOffer?.cards||[])]);setDrawOffer(null)}
   return(<div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative',zIndex:1,background:'transparent'}}>
     {gyojiChoices&&<GyojiChooseScreen choices={gyojiChoices.choices} lang={lang} onChoose={(card)=>{
+      gyojiUsedIdsRef.current.add(card.id)
       const ps=gyojiChoices.pendingState
       let extraLogs=[{text:`⚖️ Ґьоджі активує: "${card.label||card.id}"!`,color:'#e8c547'}]
       let hp=ps.finalPHp,ohp=ps.newOHp,par=ps.newPArmor,oar=ps.newOArmor
@@ -1725,7 +1812,7 @@ function CampaignBattleWrapper({ level, boostedCards, boostedCard, tempBoosts, o
       setPhase('roundResult')
     }}/>}
     {drawOffer&&<DrawOfferScreen cards={drawOffer.cards} hand={drawOffer.hand} onChoose={handleDrawChoose} onSkip={handleDrawSkip} lang={lang}/>}
-    {vsActive&&<VSScreen playerLabel={t('Ояката','Oyaката')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
+    {vsActive&&<VSScreen playerLabel={t('Ояката','Oyaката')} opponentLabel={levelName} lang={lang} playerAvatar={activeAvatar} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.5rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {phase==='draft'&&(<div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.25s ease',padding:isMobile?'0.75rem':'1.25rem',overflowY:'auto'}}>
       <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,textAlign:'center',marginBottom:'0.5rem'}}>{t('Змійка-драфт','Snake Draft')}</div>
@@ -1945,17 +2032,67 @@ function MultiGame({ lang, onBack, sfx, onCardPlayed }) {
   return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     {(screen==='battle'||screen==='roundResult')&&<CardGuide lang={lang}/>}
-    {screen==='vs'&&<VSScreen playerLabel={myLabel} opponentLabel={oppLabel} lang={lang} onDone={()=>setScreen('battle')}/>}
+    {screen==='vs'&&<VSScreen playerLabel={myLabel} opponentLabel={oppLabel} lang={lang} playerAvatar={activeAvatar} onDone={()=>setScreen('battle')}/>}
     {screen==='lobby'&&(<div style={{textAlign:'center',animation:'slideIn 0.25s ease',padding:'2rem 1rem'}}>
       <div style={{fontSize:'2.5rem',marginBottom:'0.75rem'}}>🌐</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'1.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>{t('Мультиплеєр','Multiplayer')}</div>
-      <GameBtn variant='gold' onClick={createSession} style={{width:'100%',maxWidth:480,justifyContent:'center',padding:'0.9rem',fontSize:'0.9rem',letterSpacing:'0.1em',marginBottom:'1rem',boxShadow:'0 4px 20px rgba(184,134,11,0.5)'}}>{t('Створити гру (Ояката 1)','Create game (Oyakata 1)')}</GameBtn>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.6)',marginBottom:'0.75rem'}}>{t('або','or')}</div>
-      <div style={{display:'flex',gap:8,marginBottom:'0.5rem',maxWidth:480,margin:'0 auto 0.5rem'}}>
-        <input value={inputCode} onChange={e=>setInputCode(e.target.value.toUpperCase())} placeholder={t('КОД СЕСІЇ...','SESSION CODE...')} maxLength={6} style={{flex:1,padding:'0.75rem 1rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'2px solid #4a3e28',color:'#f0c060',fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700,borderRadius:5,outline:'none',letterSpacing:'0.3em',textTransform:'uppercase',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)'}}/>
-        <GameBtn variant='dark' onClick={joinSession} style={{padding:'0.75rem 1.25rem',fontSize:'0.85rem',fontWeight:700}}>{t('Ояката 2','Oyakata 2')}</GameBtn>
+      <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:800,marginBottom:'0.5rem',color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>{t('Мультиплеєр','Multiplayer')}</div>
+      <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,220,150,0.45)',marginBottom:'1.75rem',letterSpacing:'0.1em'}}>{t('Оберіть режим гри','Choose game mode')}</div>
+
+      {/* ── Два режими ── */}
+      <div style={{display:'flex',gap:12,justifyContent:'center',maxWidth:600,margin:'0 auto 2rem',flexWrap:'wrap'}}>
+
+        {/* Локальна гра — через код */}
+        <div style={{flex:'1 1 220px',maxWidth:260,background:'linear-gradient(175deg,rgba(30,24,16,0.95),rgba(15,12,8,0.98))',border:'1px solid rgba(184,134,11,0.4)',borderRadius:10,padding:'1rem',display:'flex',flexDirection:'column',alignItems:'center',gap:7,transition:'all 0.2s'}}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(184,134,11,0.8)';e.currentTarget.style.transform='translateY(-3px)'}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(184,134,11,0.4)';e.currentTarget.style.transform='none'}}>
+          <div style={{fontSize:'1.8rem',lineHeight:1}}>📱</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.8rem',fontWeight:900,color:'#f0c060',letterSpacing:'0.08em'}}>{t('Локально','Local')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.45)',lineHeight:1.4,textAlign:'center'}}>{t('Два пристрої — один код','Two devices, one code')}</div>
+          {/* Роздільник */}
+          <div style={{width:'100%',height:1,background:'linear-gradient(90deg,transparent,rgba(184,134,11,0.3),transparent)',margin:'2px 0'}}/>
+          {/* Ояката 1 — створити */}
+          <div style={{width:'100%'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.48rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:4}}>{t('Ояката 1','Oyakata 1')}</div>
+            <button onClick={createSession}
+              style={{width:'100%',padding:'0.5rem',background:'linear-gradient(180deg,#8a6010,#4a3008)',border:'1px solid rgba(184,134,11,0.6)',borderRadius:6,color:'#f0c060',fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.06em',transition:'all 0.15s'}}
+              onMouseEnter={e=>e.currentTarget.style.background='linear-gradient(180deg,#aa7820,#6a4810)'}
+              onMouseLeave={e=>e.currentTarget.style.background='linear-gradient(180deg,#8a6010,#4a3008)'}>
+              ⚔ {t('Створити гру','Create game')}
+            </button>
+          </div>
+          {/* Ояката 2 — приєднатись */}
+          <div style={{width:'100%'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.48rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:4}}>{t('Ояката 2','Oyakata 2')}</div>
+            <div style={{display:'flex',gap:5}}>
+              <input value={inputCode} onChange={e=>setInputCode(e.target.value.toUpperCase())} placeholder="XXXXXX" maxLength={6}
+                style={{flex:1,padding:'0.45rem 0.5rem',background:'rgba(0,0,0,0.5)',border:'1px solid #4a3e28',color:'#f0c060',fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,borderRadius:5,outline:'none',letterSpacing:'0.25em',textTransform:'uppercase',textAlign:'center',minWidth:0}}/>
+              <button onClick={joinSession}
+                style={{padding:'0.45rem 0.75rem',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:5,color:'rgba(255,220,150,0.7)',fontFamily:'var(--jp)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',whiteSpace:'nowrap',transition:'all 0.15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.4)';e.currentTarget.style.color='#f0c060'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.15)';e.currentTarget.style.color='rgba(255,220,150,0.7)'}}>
+                {t('Увійти','Join')}
+              </button>
+            </div>
+          </div>
+          {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'#e74c3c',textAlign:'center'}}>{error}</div>}
+        </div>
+
+        {/* Онлайн — пошук гравців (незабаром) */}
+        <div style={{flex:'1 1 240px',maxWidth:280,background:'linear-gradient(175deg,rgba(20,16,12,0.95),rgba(10,8,6,0.98))',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'1.5rem 1.25rem',display:'flex',flexDirection:'column',alignItems:'center',gap:10,opacity:0.65,cursor:'not-allowed',position:'relative',overflow:'hidden'}}>
+          {/* "Скоро" badge */}
+          <div style={{position:'absolute',top:10,right:-20,background:'rgba(184,134,11,0.85)',color:'#000',fontFamily:'var(--jp)',fontSize:'0.48rem',fontWeight:900,padding:'3px 28px',transform:'rotate(40deg)',letterSpacing:'0.08em',zIndex:2}}>{t('СКОРО','SOON')}</div>
+          <div style={{fontSize:'2.5rem',filter:'grayscale(0.5)'}}>🌍</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,color:'rgba(255,220,150,0.5)',letterSpacing:'0.08em'}}>{t('Онлайн','Online')}</div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.35)',lineHeight:1.5,textAlign:'center'}}>{t('Пошук суперника у глобальному рейтингу. Незабаром!','Global matchmaking and ranked play. Coming soon!')}</div>
+          <div style={{display:'flex',gap:8,marginTop:4,opacity:0.5}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.4)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'3px 10px'}}>🏆 {t('Рейтинг','Ranked')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.4)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,padding:'3px 10px'}}>⚡ {t('Швидкий пошук','Quick match')}</div>
+          </div>
+          <div style={{width:'100%',marginTop:6}}>
+            <GameBtn variant='dark' onClick={()=>{}} style={{width:'100%',justifyContent:'center',padding:'0.75rem',fontSize:'0.78rem',opacity:0.4,cursor:'not-allowed'}} disabled>{t('В розробці...','In development...')}</GameBtn>
+          </div>
+        </div>
       </div>
-      {error&&<div style={{fontFamily:'var(--jp)',fontSize:'0.7rem',color:'#e74c3c',marginTop:8}}>{error}</div>}
     </div>)}
     {screen==='waiting'&&(<div style={{textAlign:'center',paddingTop:'3rem',animation:'slideIn 0.25s ease'}}>
       <div style={{fontSize:'3rem',marginBottom:'1rem',animation:'pulse 1.5s ease infinite'}}>⏳</div>
@@ -2012,6 +2149,153 @@ function ReviewModal({onClose,onSubmit,lang}){
   </div>)
 }
 
+
+// ══════════════════════════════════════════════════════════
+// Базар — загальний магазин (аватари, фони, картки)
+// ══════════════════════════════════════════════════════════
+const BAZAAR_CATEGORIES = ['all','avatar','background','music','card']
+
+const BAZAAR_ITEMS = [
+  // Аватари гравця — рікіші з різними ефектами
+  // av_gold — базовий, безкоштовний (золоте сяйво, той що зараз)
+  { id:'av_gold',    cat:'avatar', label:{uk:'Золотий',   en:'Golden'},   desc:{uk:'Золотий рікіші — базовий аватар',  en:'Golden rikishi — default avatar'},  price:0,   emoji:'🔶', preview:'/images/vs/rikishi-player.webp',  glow:'#c8950a', pulse:false },
+  { id:'av_red',     cat:'avatar', label:{uk:'Кривавий',  en:'Blood'},    desc:{uk:'Червоний рікіші вогняний воїн',    en:'Red rikishi blazing warrior'},      price:150, emoji:'🔴', preview:'/images/vs/rikishi-player.webp',  glow:'#c03020', pulse:false },
+  { id:'av_blue',    cat:'avatar', label:{uk:'Крижаний',  en:'Frost'},    desc:{uk:'Синій рікіші — дух льоду',         en:'Blue rikishi — spirit of frost'},   price:150, emoji:'🔵', preview:'/images/vs/rikishi-player.webp',  glow:'#2060c0', pulse:false },
+  { id:'av_green',   cat:'avatar', label:{uk:'Отруйний',  en:'Venom'},    desc:{uk:'Зелений рікіші — майстер отрути',  en:'Green rikishi — poison master'},   price:150, emoji:'🟢', preview:'/images/vs/rikishi-player.webp',  glow:'#1a8040', pulse:false },
+  { id:'av_purple',  cat:'avatar', label:{uk:'Тіньовий',  en:'Shadow'},   desc:{uk:'Пурпурний рікіші — тінь дохьо',   en:'Purple rikishi — shadow of dohyo'}, price:200, emoji:'🟣', preview:'/images/vs/rikishi-player.webp',  glow:'#7020a0', pulse:false },
+  { id:'av_pulse',        cat:'avatar', label:{uk:'Легенда',      en:'Legend'},      desc:{uk:'Золотий рікіші з пульсацією сили',   en:'Pulsing golden rikishi'},   price:500, emoji:'✨', preview:'/images/vs/rikishi-player.webp', glow:'#c8950a', pulse:true },
+  { id:'av_pulse_red',    cat:'avatar', label:{uk:'Демон',        en:'Demon'},       desc:{uk:'Червоний рікіші з пульсацією вогню',  en:'Pulsing red demon rikishi'},price:600, emoji:'🔥', preview:'/images/vs/rikishi-player.webp', glow:'#c03020', pulse:true },
+  { id:'av_pulse_blue',   cat:'avatar', label:{uk:'Буря',         en:'Storm'},       desc:{uk:'Синій рікіші з пульсацією блискавки', en:'Pulsing blue storm rikishi'},price:600, emoji:'⚡', preview:'/images/vs/rikishi-player.webp', glow:'#2060c0', pulse:true },
+  { id:'av_pulse_green',  cat:'avatar', label:{uk:'Отрута',       en:'Poison'},      desc:{uk:'Зелений рікіші з пульсацією отрути',  en:'Pulsing green poison rikishi'},price:600, emoji:'☠️', preview:'/images/vs/rikishi-player.webp', glow:'#1a8040', pulse:true },
+  { id:'av_pulse_purple', cat:'avatar', label:{uk:'Тінь Легенди', en:'Shadow Legend'},desc:{uk:'Фіолетовий рікіші з пульсацією тіні', en:'Pulsing purple shadow'},   price:700, emoji:'👁️', preview:'/images/vs/rikishi-player.webp', glow:'#7020a0', pulse:true },
+  // Фони дохьо
+  { id:'bg_night',     cat:'background', label:{uk:'Нічне дохьо',    en:'Night Dohyo'},  desc:{uk:'Темний фон з місяцем',     en:'Dark background with moon'},      price:400, emoji:'🌙', preview:'/images/bgs/bg_night.webp' },
+  { id:'bg_storm',     cat:'background', label:{uk:'Грозове небо',   en:'Storm Sky'},    desc:{uk:'Фон з блискавками',        en:'Lightning storm background'},     price:450, emoji:'⛈️', preview:'/images/bgs/bg_storm.webp' },
+  { id:'bg_sakura',    cat:'background', label:{uk:'Сакура вдень',   en:'Day Sakura'},   desc:{uk:'Рожевий сад удень',        en:'Pink garden by day'},             price:300, emoji:'🌸', preview:'/images/bgs/bg_sakura.webp' },
+  { id:'bg_shrine',    cat:'background', label:{uk:'Святиня',        en:'Shrine'},       desc:{uk:'Фон храму Тоторі',         en:'Torii shrine background'},        price:250, emoji:'⛩️', preview:'/images/bgs/bg_shrine.webp' },
+  // Музичні теми (dohyo — базова, безкоштовна)
+  { id:'music_dohyo',    cat:'music', label:{uk:'Дохьо',      en:'Dohyo'},     desc:{uk:'Урочиста церемоніальна тема — базова',en:'Ceremonial default theme — free'},         price:0,   emoji:'🎵', theme:'dohyo' },
+  { id:'music_taiko',    cat:'music', label:{uk:'Тайко',      en:'Taiko'},     desc:{uk:'Барабани тайко — ритмічна бойова тема',en:'Taiko drums — rhythmic battle theme'},     price:200, emoji:'🥁', theme:'taiko' },
+  { id:'music_yokozuna', cat:'music', label:{uk:'Йокодзуна',  en:'Yokozuna'},  desc:{uk:'Епічна тема для чемпіонів',en:'Epic theme for champions'},                           price:350, emoji:'🏆', theme:'yokozuna' },
+  { id:'music_shrine',   cat:'music', label:{uk:'Святиня',    en:'Shrine'},    desc:{uk:'Спокійна тема святині',en:'Peaceful shrine theme'},                                  price:150, emoji:'⛩️', theme:'shrine' },
+  // Розблокування карток
+  { id:'unlock_ch1',   cat:'card',       label:{uk:'Розблокувати: Хаос', en:'Unlock: Chaos'},  desc:{uk:'Картка Хаос без гри з нею',en:'Unlock Chaos card without playing'}, price:300, emoji:'💥', preview:'/cards/Ch1_uk.webp', unlockCard:'Ch1' },
+  { id:'unlock_gy1',   cat:'card',       label:{uk:'Розблокувати: Ґьоджі', en:'Unlock: Gyoji'}, desc:{uk:'Картка Ґьоджі без гри з нею',en:'Unlock Gyoji card without playing'}, price:350, emoji:'⚖️', preview:'/cards/Gy1_uk.webp', unlockCard:'Gy1' },
+  { id:'unlock_y1e',   cat:'card',       label:{uk:'Розблокувати: Йокодзуна Схід', en:'Unlock: Yokozuna East'}, desc:{uk:'Легендарний рікіші',en:'Legendary rikishi'}, price:600, emoji:'⚔️', preview:'/cards/Y1e_uk.webp', unlockCard:'Y1e' },
+  { id:'unlock_sa1',   cat:'card',       label:{uk:'Розблокувати: Сіль', en:'Unlock: Salt'}, desc:{uk:'Унікальна тактична карта',en:'Unique tactical card'}, price:250, emoji:'🧂', preview:'/cards/Sa1_uk.webp', unlockCard:'Sa1' },
+]
+
+function BazaarScreen({ lang, onBack, yokoin, onSpend, ownedItems=new Set(), discoveredCards=new Set(), onUnlockCard, activeMusicTheme='dohyo' }) {
+  const t=(uk,en)=>lang==='en'?en:uk
+  const [cat,setCat]=useState('all')
+  const [preview,setPreview]=useState(null)
+  const [msg,setMsg]=useState(null)
+
+  function showMsg(text,color='#2ecc71'){setMsg({text,color});setTimeout(()=>setMsg(null),2500)}
+
+  function handleBuy(item){
+    if(yokoin<item.price){showMsg(t('Недостатньо Йокоінів!','Not enough Yokoin!'),'#e74c3c');return}
+    if(ownedItems.has(item.id)){showMsg(t('Вже придбано','Already owned'),'#888');return}
+    onSpend(item)
+    if(item.unlockCard) onUnlockCard?.(item.unlockCard)
+    showMsg(`${item.emoji} ${lang==='en'?item.label.en:item.label.uk} — ${t('придбано!','purchased!')}`)
+  }
+
+  const items = cat==='all' ? BAZAAR_ITEMS : BAZAAR_ITEMS.filter(i=>i.cat===cat)
+  const catLabels = { all:{uk:'Всі',en:'All'}, avatar:{uk:'Аватари',en:'Avatars'}, background:{uk:'Фони',en:'Backgrounds'}, music:{uk:'Музика',en:'Music'}, card:{uk:'Картки',en:'Cards'} }
+
+  return(
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:'1.25rem',position:'relative',zIndex:1,animation:'slideIn 0.25s ease'}}>
+      {/* Хедер */}
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:'1.25rem',flexShrink:0}}>
+        <button onClick={onBack} style={{background:'rgba(0,0,0,0.5)',border:'1px solid rgba(255,255,255,0.12)',color:'rgba(255,255,255,0.75)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:'5px 12px',borderRadius:4}}>
+          ‹ {t('Назад','Back')}
+        </button>
+        <div style={{fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 16px rgba(240,192,96,0.4)'}}>🏮 {t('Базар','Bazaar')}</div>
+        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6}}>
+          <img src="/images/icon-yokoin.webp" alt="" style={{height:20,width:20,objectFit:'contain',filter:'drop-shadow(0 0 4px rgba(240,160,20,0.6))'}} onError={e=>e.currentTarget.style.display='none'}/>
+          <span style={{fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,color:'#f0c060'}}>{yokoin}</span>
+        </div>
+      </div>
+
+      {/* Повідомлення */}
+      {msg&&<div style={{background:'rgba(0,0,0,0.75)',border:`1px solid ${msg.color}`,borderRadius:6,padding:'8px 16px',marginBottom:'1rem',fontFamily:'var(--jp)',fontSize:'0.75rem',color:msg.color,textAlign:'center',animation:'slideIn 0.2s ease',flexShrink:0}}>{msg.text}</div>}
+
+      {/* Категорії */}
+      <div style={{display:'flex',gap:6,marginBottom:'1.25rem',flexShrink:0,flexWrap:'wrap'}}>
+        {BAZAAR_CATEGORIES.map(c=>(
+          <button key={c} onClick={()=>setCat(c)}
+            style={{padding:'5px 14px',background:cat===c?'rgba(184,134,11,0.35)':'rgba(0,0,0,0.4)',border:`1px solid ${cat===c?'rgba(184,134,11,0.6)':'rgba(255,255,255,0.1)'}`,borderRadius:20,color:cat===c?'#f0c060':'rgba(255,220,150,0.5)',fontFamily:'var(--jp)',fontSize:'0.62rem',cursor:'pointer',fontWeight:cat===c?700:400,transition:'all 0.15s'}}>
+            {lang==='en'?catLabels[c].en:catLabels[c].uk}
+          </button>
+        ))}
+      </div>
+
+      {/* Товари */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+        {items.map((item,i)=>{
+          const owned=ownedItems.has(item.id)
+          const cardUnlocked=item.unlockCard&&discoveredCards.has(item.unlockCard)
+          const unavailable=(owned||cardUnlocked)||(item.id==='music_dohyo') // dohyo завжди "отримана"
+          return(
+            <div key={item.id}
+              style={{background:'linear-gradient(175deg,rgba(30,24,16,0.95),rgba(15,12,8,0.98))',border:`1px solid ${unavailable?'rgba(255,255,255,0.06)':'rgba(184,134,11,0.3)'}`,borderRadius:10,overflow:'hidden',display:'flex',flexDirection:'column',animation:`pop 0.25s ease ${i*0.04}s both`,opacity:unavailable?0.55:1,transition:'transform 0.15s, box-shadow 0.15s'}}
+              onMouseEnter={e=>{if(!unavailable){e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 8px 24px rgba(0,0,0,0.6)'}}}
+              onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}>
+              {/* Превью */}
+              <div style={{height:130,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}>
+                {item.cat==='avatar'?(
+                  // Аватари — показуємо рікіші з кольоровим glow
+                  <div style={{width:'100%',height:'100%',position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:`radial-gradient(circle at center, ${item.glow||'#c8950a'}22 0%, transparent 70%)`}}>
+                    <img src="/images/vs/rikishi-player.webp" alt=""
+                      style={{height:'100%',width:'auto',objectFit:'contain',objectPosition:'center bottom',filter:`drop-shadow(0 0 14px ${item.glow||'#c8950a'}aa)`,animation:item.pulse?'achievementBtnPulse 1.5s ease infinite':undefined}}
+                      onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}
+                    />
+                    <div style={{display:'none',width:'100%',height:'100%',alignItems:'center',justifyContent:'center',fontSize:'3rem'}}>{item.emoji}</div>
+                  </div>
+                ):(
+                  // Фони, картки, музика — звичайне зображення або emoji
+                  <>
+                    <img src={item.preview} alt=""
+                      style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:0.7}}
+                      onError={e=>e.currentTarget.style.display='none'}/>
+                    <span style={{position:'relative',zIndex:1,fontSize:'2.5rem',filter:'drop-shadow(0 2px 8px rgba(0,0,0,0.9))'}}>{item.emoji}</span>
+
+                  </>
+                )}
+                {unavailable&&<div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}><span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#2ecc71',fontWeight:700,background:'rgba(0,0,0,0.8)',padding:'3px 10px',borderRadius:10}}>✓ {t('Отримано','Owned')}</span></div>}
+              </div>
+              {/* Інфо */}
+              <div style={{padding:'0.75rem',flex:1,display:'flex',flexDirection:'column',gap:4}}>
+                <div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',fontWeight:700,color:'#f0c060',lineHeight:1.2}}>{lang==='en'?item.label.en:item.label.uk}</div>
+                <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.55)',lineHeight:1.5,flex:1}}>{lang==='en'?item.desc.en:item.desc.uk}</div>
+                {(()=>{
+                  const isMusicActive=item.cat==='music'&&item.theme===activeMusicTheme
+                  const isOwned=unavailable
+                  const canBuy=!isOwned&&yokoin>=item.price
+                  const btnLabel=isMusicActive?`▶ ${t('Грає','Playing')}`:isOwned?t('Отримано','Owned'):<><img src="/images/icon-yokoin.webp" alt="" style={{height:14,width:14,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>{item.price}</>
+                  // Для dohyo (безкоштовна) — завжди показати "Активна" або "Грає"
+                  const isDohyoFree=item.id==='music_dohyo'
+                  return(
+                    <button onClick={()=>{
+                        if(item.cat==='music'&&isOwned){onSpend(item);return} // активувати куплену тему
+                        if(!isOwned)handleBuy(item)
+                      }}
+                      disabled={isDohyoFree||(!canBuy&&!isOwned)}
+                      style={{marginTop:'auto',padding:'7px 0',background:isMusicActive?'rgba(46,204,113,0.15)':isOwned?'rgba(255,255,255,0.03)':canBuy?'linear-gradient(180deg,#8a6010,#4a3008)':'rgba(255,255,255,0.04)',border:`1px solid ${isMusicActive?'rgba(46,204,113,0.5)':isOwned?'rgba(255,255,255,0.06)':canBuy?'rgba(184,134,11,0.5)':'rgba(255,255,255,0.08)'}`,borderRadius:6,color:isMusicActive?'#2ecc71':isOwned?'rgba(255,220,150,0.4)':canBuy?'#f0c060':'rgba(255,255,255,0.2)',fontFamily:'var(--jp)',fontSize:'0.68rem',fontWeight:700,cursor:(!canBuy&&!isOwned)||isDohyoFree?'default':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:5,transition:'all 0.12s'}}>
+                      {btnLabel}
+                    </button>
+                  )
+                })()}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── SumoClash (головний компонент) ────────────────────────────
 export default function SumoClash({ onClose, lang='uk' }) {
   const [mode, setMode] = useState('menu')
@@ -2027,7 +2311,39 @@ export default function SumoClash({ onClose, lang='uk' }) {
   const [gameTheme,setGameTheme]=useState('dark')
   const [isFullscreen,setIsFullscreen]=useState(false)
   const gameContainerRef=useRef(null)
-  const [campaignLevelInfo,setCampaignLevelInfo]=useState(null) // {emoji, name, isBoss} для хедера
+  const [campaignLevelInfo,setCampaignLevelInfo]=useState(null)
+  const [bazaarOwnedItems,setBazaarOwnedItems]=useState(new Set())
+  const [bazaarYokoin,setBazaarYokoin]=useState(0)
+  const [activeAvatar,setActiveAvatar]=useState(()=>typeof window!=='undefined'?localStorage.getItem('dohyo_avatar')||null:null)
+  const [activeBg,setActiveBg]=useState(()=>typeof window!=='undefined'?localStorage.getItem('dohyo_bg')||null:null)
+  // Завантажити yokoin і bazaarItems при відкритті базару
+  useEffect(()=>{
+    getSumoClashUid().then(async uid=>{
+      if(!uid)return
+      try{
+        const snap=await get(ref(db,`campaignUsers/${uid}`))
+        const val=snap.val()||{}
+        setBazaarYokoin(val.yokoin||0)
+        if(val.bazaarItems){
+          const owned=new Set(Object.keys(val.bazaarItems).filter(k=>val.bazaarItems[k]))
+          setBazaarOwnedItems(owned)
+          // Відновити активний аватар і фон
+          const av=[...owned].find(id=>id.startsWith('av_'))
+          const bg=[...owned].find(id=>id.startsWith('bg_'))
+          if(av)setActiveAvatar(av)
+          if(bg)setActiveBg(bg)
+          // Відновити активну музику (завжди dohyo якщо немає куплених)
+          const musicItems=['music_taiko','music_yokozuna','music_shrine']
+          const ownedMusic=[...owned].filter(id=>musicItems.includes(id))
+          if(ownedMusic.length>0){
+            const last=ownedMusic[ownedMusic.length-1]
+            const theme=last.replace('music_','')
+            setMusicTheme(theme)
+          }
+        }
+      }catch(e){console.warn('Could not load bazaar',e)}
+    })
+  },[]) // {emoji, name, isBoss} для хедера
 
   // ── Система досягнень ────────────────────────────────────────
   const [showAchievements,setShowAchievements]=useState(false)
@@ -2103,6 +2419,28 @@ export default function SumoClash({ onClose, lang='uk' }) {
         })
       }catch(e){console.warn('Could not claim achievement reward',e)}
     }
+  }
+
+  // Нарахування коінів за CPU/PvP перемоги
+  const [cpuRewardToast,setCpuRewardToast]=useState(null)
+  async function handleYokoinReward(amount){
+    // Одразу показуємо тост і оновлюємо локальний стан
+    setCpuRewardToast(amount)
+    setTimeout(()=>setCpuRewardToast(null),3200)
+    setBazaarYokoin(prev=>{
+      const newVal=prev+amount
+      // Зберігаємо в Firebase асинхронно
+      getSumoClashUid().then(uid=>{
+        if(!uid)return
+        get(ref(db,`campaignUsers/${uid}/yokoin`))
+          .then(snap=>{
+            const current=snap.val()||0
+            return update(ref(db,`campaignUsers/${uid}`),{yokoin:current+amount})
+          })
+          .catch(e=>console.warn('Could not save yokoin',e))
+      })
+      return newVal
+    })
   }
 
   function handleAchievementProgress(event){
@@ -2202,6 +2540,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
       {/* Тост досягнення */}
       {achievementToast&&<AchievementToast achievement={achievementToast} lang={lang} onDone={()=>setAchievementToast(null)}/>}
 
+
       {/* Модальне вікно досягнень */}
       {showAchievements&&<AchievementsModal unlockedSet={unlockedAchievements} claimedSet={claimedAchievements} lang={lang} onClose={()=>setShowAchievements(false)} onClaim={handleClaimAchievement}/>}
 
@@ -2221,15 +2560,41 @@ export default function SumoClash({ onClose, lang='uk' }) {
       )}
 
       <div onClick={()=>setConfirmExit(true)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:isFullscreen?0:isMobile?0:'0.75rem',backdropFilter:'blur(4px)'}}>
-        <div ref={gameContainerRef} onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isFullscreen||isMobile?'none':'1px solid var(--border)',borderRadius:isFullscreen||isMobile?0:6,maxWidth:isFullscreen?'100vw':1100,width:'100%',maxHeight:isFullscreen?'100vh':isMobile?'100dvh':'96vh',height:isFullscreen||isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease'}}>
+        <div ref={gameContainerRef} onClick={e=>e.stopPropagation()} style={{...themeVars,background:'var(--card)',border:isFullscreen||isMobile?'none':'1px solid var(--border)',borderRadius:isFullscreen||isMobile?0:6,maxWidth:isFullscreen?'100vw':1100,width:'100%',maxHeight:isFullscreen?'100vh':isMobile?'100dvh':'96vh',height:isFullscreen||isMobile?'100dvh':'auto',minHeight:'min(600px,90vh)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.3s ease',position:'relative'}}>
 
+
+          {/* Тост нагороди — position:absolute відносно gameContainer */}
+          {cpuRewardToast&&(
+            <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',zIndex:5000,animation:'cpuRewardSlide 3s ease both',background:'linear-gradient(180deg,#082008,#0a2a0a)',border:'1px solid #2ecc71',borderBottomLeftRadius:10,borderBottomRightRadius:10,padding:'0.45rem 1.4rem 0.6rem',boxShadow:'0 6px 24px rgba(0,0,0,0.9)',pointerEvents:'none',display:'flex',alignItems:'center',gap:8,whiteSpace:'nowrap'}}>
+              <img src="/images/icon-yokoin.webp" alt="" style={{height:20,width:20,objectFit:'contain',filter:'drop-shadow(0 0 5px rgba(46,204,113,0.7))'}} onError={e=>e.currentTarget.style.display='none'}/>
+              <span style={{fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,color:'#2ecc71',textShadow:'0 0 8px rgba(46,204,113,0.6)'}}>+{cpuRewardToast}</span>
+              <span style={{fontFamily:'var(--jp)',fontSize:'0.5rem',color:'rgba(100,220,130,0.65)',letterSpacing:'0.1em'}}>{t('Нагорода','Reward')}</span>
+            </div>
+          )}
           {/* Header */}
           <div style={{background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',borderBottom:'1px solid #3a2e20',padding:isMobile?'0.45rem 0.75rem':'0.6rem 1rem',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.6)'}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <img src="/images/dohyo-legends-logo.webp" alt="DOHYO LEGENDS" style={{height:isMobile?26:36,width:'auto',filter:'drop-shadow(0 0 8px rgba(240,160,20,0.6))'}} onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
               <span style={{display:'none',alignItems:'center',gap:6}}><span style={{fontSize:'1.1rem'}}>⚔️</span><span style={{fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:900,letterSpacing:'0.18em',textTransform:'uppercase',color:'#f0c060'}}>DOHYO LEGENDS</span></span>
-              {mode!=='menu'&&!isMobile&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'rgba(255,220,150,0.65)',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?(campaignLevelInfo?`${t('Кампанія','Campaign')} · ${campaignLevelInfo.emoji} ${campaignLevelInfo.name}`:t('Кампанія','Campaign')):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):mode==='rules'?t('Правила','Rules'):''}</span>}
+              {mode!=='menu'&&!isMobile&&<span style={{fontFamily:'var(--jp)',fontSize:'0.68rem',color:'rgba(255,220,150,0.65)',fontWeight:400}}>· {mode==='cpu'?'vs CPU':mode==='campaign'?(campaignLevelInfo?`${t('Кампанія','Campaign')} · ${campaignLevelInfo.emoji} ${campaignLevelInfo.name}`:t('Кампанія','Campaign')):mode==='multi'?t('Мультиплеєр','Multiplayer'):mode==='cardbook'?t('Картки','Cards'):mode==='rules'?t('Правила','Rules'):mode==='bazaar'?t('Базар','Bazaar'):''}</span>}
               {(mode==='campaign'||mode==='cpu')&&!isMobile&&<CardGuideInline lang={lang}/>}
+              {/* Базар і Правила в хедері — тільки в режимі меню або завжди */}
+              {!isMobile&&mode!=='rules'&&mode!=='bazaar'&&(
+                <>
+                  <button onClick={()=>{if(sfx)sfx('click');setMode('rules')}}
+                    style={{fontFamily:'var(--jp)',fontSize:'0.58rem',fontWeight:600,color:'rgba(255,220,150,0.5)',background:'transparent',border:'1px solid rgba(255,220,150,0.12)',borderRadius:12,padding:'3px 10px',cursor:'pointer',transition:'all 0.15s',letterSpacing:'0.06em'}}
+                    onMouseEnter={e=>{e.currentTarget.style.color='rgba(255,220,150,0.85)';e.currentTarget.style.borderColor='rgba(255,220,150,0.35)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,220,150,0.5)';e.currentTarget.style.borderColor='rgba(255,220,150,0.12)'}}>
+                    📜 {t('Правила','Rules')}
+                  </button>
+                  <button onClick={()=>{if(sfx)sfx('click');setMode('bazaar')}}
+                    style={{fontFamily:'var(--jp)',fontSize:'0.58rem',fontWeight:600,color:'rgba(255,220,150,0.5)',background:'transparent',border:'1px solid rgba(255,220,150,0.12)',borderRadius:12,padding:'3px 10px',cursor:'pointer',transition:'all 0.15s',letterSpacing:'0.06em'}}
+                    onMouseEnter={e=>{e.currentTarget.style.color='rgba(255,220,150,0.85)';e.currentTarget.style.borderColor='rgba(255,220,150,0.35)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,220,150,0.5)';e.currentTarget.style.borderColor='rgba(255,220,150,0.12)'}}>
+                    🏮 {t('Базар','Bazaar')}
+                  </button>
+                </>
+              )}
             </div>
             <div style={{display:'flex',alignItems:'center',gap:isMobile?3:5}}>
               {isMobile ? (
@@ -2237,7 +2602,11 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   <GameBtn variant={sfxOn?'gold':'dark'} onClick={toggleSfx} style={{fontSize:'0.75rem',padding:'4px 8px'}}>{sfxOn?'🔊':'🔇'}</GameBtn>
                   <GameBtn variant={musicOn?'gold':'dark'} onClick={toggleMusic} style={{fontSize:'0.75rem',padding:'4px 8px'}}>🎵</GameBtn>
                   {/* Кнопка досягнень — мобільна */}
-                  <button onClick={handleOpenAchievements} style={{position:'relative',background:hasNewAchievement?'rgba(184,134,11,0.25)':'transparent',border:`1px solid ${hasNewAchievement?'rgba(184,134,11,0.6)':'rgba(255,255,255,0.15)'}`,color:'#f0c060',width:30,height:30,borderRadius:5,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'0.85rem',animation:hasNewAchievement?'achievementBtnPulse 1.5s ease infinite':undefined}}>
+                  <div style={{display:'flex',alignItems:'center',gap:3,background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.28)',borderRadius:5,padding:'3px 8px'}}>
+                    <img src="/images/icon-yokoin.webp" alt="" style={{height:14,width:14,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>
+                    <span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',fontWeight:900,color:'#f0c060'}}>{bazaarYokoin}</span>
+                  </div>
+                                    <button onClick={handleOpenAchievements} style={{position:'relative',background:hasNewAchievement?'rgba(184,134,11,0.25)':'transparent',border:`1px solid ${hasNewAchievement?'rgba(184,134,11,0.6)':'rgba(255,255,255,0.15)'}`,color:'#f0c060',width:30,height:30,borderRadius:5,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'0.85rem',animation:hasNewAchievement?'achievementBtnPulse 1.5s ease infinite':undefined}}>
                     🏆
                     {hasNewAchievement&&<div style={{position:'absolute',top:-3,right:-3,width:7,height:7,borderRadius:'50%',background:'#e74c3c',boxShadow:'0 0 4px #e74c3c'}}/>}
                   </button>
@@ -2245,7 +2614,26 @@ export default function SumoClash({ onClose, lang='uk' }) {
                 </>
               ) : (
                 <>
-                  <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} lang={lang}/>
+                  <AudioControls sfxOn={sfxOn} musicOn={musicOn} currentTheme={musicTheme} onToggleSfx={toggleSfx} onToggleMusic={toggleMusic} onThemeChange={changeTheme} ownedMusicThemes={new Set(['dohyo',...Array.from(bazaarOwnedItems).filter(id=>id.startsWith('music_')).map(id=>id.replace('music_',''))])} lang={lang}/>
+                  {/* Аватар гравця з базару */}
+                  {activeAvatar&&(()=>{
+                    const avItem=BAZAAR_ITEMS.find(i=>i.id===activeAvatar)
+                    const glowColor=avItem?.glow||'#c8950a'
+                    const isPulse=avItem?.pulse
+                    return(
+                      <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,0,0,0.5)',border:`1px solid ${glowColor}`,flexShrink:0,overflow:'hidden',boxShadow:`0 0 6px ${glowColor}80`,animation:isPulse?'achievementBtnPulse 1.5s ease infinite':undefined}}>
+                        <img src="/images/vs/rikishi-player.webp" alt=""
+                          style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',filter:`drop-shadow(0 0 4px ${glowColor})`}}
+                          onError={e=>{e.currentTarget.parentElement.style.background=glowColor+'40';e.currentTarget.style.display='none'}}
+                        />
+                      </div>
+                    )
+                  })()}
+                  {/* Баланс коінів */}
+                  <div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.28)',borderRadius:5,padding:'4px 10px'}}>
+                    <img src="/images/icon-yokoin.webp" alt="" style={{height:16,width:16,objectFit:'contain',filter:'drop-shadow(0 0 4px rgba(240,160,20,0.6))'}} onError={e=>e.currentTarget.style.display='none'}/>
+                    <span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:900,color:'#f0c060'}}>{bazaarYokoin}</span>
+                  </div>
                   {/* Кнопка досягнень — десктоп */}
                   <button onClick={handleOpenAchievements} style={{position:'relative',...BTN_BASE,...(hasNewAchievement?BTN.gold:BTN.dark),fontSize:'0.7rem',padding:'5px 12px',animation:hasNewAchievement?'achievementBtnPulse 1.5s ease infinite':undefined}}>
                     🏆 {t('Нагороди','Awards')}
@@ -2283,14 +2671,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
                 ))}
               </div>
               {/* Кнопка Правила */}
-              <div style={{position:'absolute',bottom:18,left:'50%',transform:'translateX(-50%)',zIndex:10}}>
-                <button onClick={()=>{sfx('click');setMode('rules')}}
-                  style={{fontFamily:'var(--jp)',fontSize:'0.62rem',fontWeight:600,color:'rgba(255,220,150,0.55)',letterSpacing:'0.12em',background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,220,150,0.15)',borderRadius:20,padding:'4px 18px',cursor:'pointer',backdropFilter:'blur(4px)',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.color='rgba(255,220,150,0.9)';e.currentTarget.style.borderColor='rgba(255,220,150,0.4)'}}
-                  onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,220,150,0.55)';e.currentTarget.style.borderColor='rgba(255,220,150,0.15)'}}>
-                  📜 {t('Правила','Rules')}
-                </button>
-              </div>
+
               <div style={{position:'absolute',bottom:10,right:14,zIndex:10,pointerEvents:'none',userSelect:'none',textAlign:'right'}}>
                 <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.55)',letterSpacing:'0.1em',textShadow:'0 1px 4px rgba(0,0,0,0.9)'}}>© 2026 TerraVetera. All rights reserved.</div>
               </div>
@@ -2310,7 +2691,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   {icon:'🥊', title:{uk:'Механіка бою',en:'Battle Mechanics'}, body:{uk:'Кожен раунд — обидва гравці одночасно обирають одну карту. Після вибору — ефекти застосовуються. Після раунду гравець обирає нову карту з 2 варіантів (не рандом).',en:'Each round — both players simultaneously choose one card. After selection — effects are applied. After the round, the player chooses a new card from 2 options (not random).'}},
                   {icon:'🂠', title:{uk:'Типи карток',en:'Card Types'}, body:{uk:"⚔️ Рікіші — атакує. Шкода = ATK − DEF суперника. Б'є броню першою.\n💧 Хіл — відновлює HP (+5 або +10).\n🛡 Броня — додає захист (+5 або +10 🛡).\n⚡ Удар — пряма шкода, ігнорує броню (-5 або -10 HP).\n🔄 Заміна — замінює карту з руки на нову з колоди.\n🧂 Сіль — суперник пропускає наступний хід.\n🌀 Хенка — ухилення від рікіші або удару суперника.\n💥 Хаос — обидва втрачають 10 HP, ігнорує броню.\n⚖️ Ґьоджі — оберіть будь-яку раніше зіграну карту для повторної активації.",en:"⚔️ Rikishi — attacks. Damage = ATK − opponent DEF. Hits armor first.\n💧 Heal — restores HP (+5 or +10).\n🛡 Armor — adds defense (+5 or +10 🛡).\n⚡ Strike — direct damage, ignores armor (-5 or -10 HP).\n🔄 Swap — replace a hand card with a new deck card.\n🧂 Salt — opponent skips next turn.\n🌀 Henka — dodge opponent rikishi or strike.\n💥 Chaos — both lose 10 HP, ignores armor.\n⚖️ Gyoji — choose any previously played card to activate again."}},
                   {icon:'🏯', title:{uk:'Кампанія',en:'Campaign'}, body:{uk:'5 рівнів складності: від Маегашіра до Йокодзуна (БОС). За перемогу отримуєте Йокоіни 🪙 і зірки ⭐ (залежать від залишку HP). Зірки = 3 якщо HP > 66%, 2 якщо 33-66%, 1 якщо < 33%.',en:'5 difficulty levels: from Maegashira to Yokozuna (BOSS). Win to earn Yokoin 🪙 and stars ⭐ (based on remaining HP). Stars: 3 if HP > 66%, 2 if 33-66%, 1 if < 33%.'}},
-                  {icon:'🏪', title:{uk:'Магазин',en:'Shop'}, body:{uk:'Між рівнями — магазин покращень. Постійні: +1 ATK або +1 DEF для обраної картки (на всю кампанію). Тимчасові: Бойовий дух (+2 ATK на 1 бій), Залізна стійка (+5 броні на старті), Водний щит (блокує першу шкоду).',en:'Between levels — upgrade shop. Permanent: +1 ATK or +1 DEF for a chosen card (entire campaign). Temporary: Battle Spirit (+2 ATK for 1 fight), Iron Stance (+5 armor at start), Water Shield (blocks first damage).'}},
+                  {icon:'🏪', title:{uk:'Крамниця',en:'Shop'}, body:{uk:'Між рівнями — крамниця покращень. Постійні: +1 ATK або +1 DEF для обраної картки (на всю кампанію). Тимчасові: Бойовий дух (+2 ATK на 1 бій), Залізна стійка (+5 броні на старті), Водний щит (блокує першу шкоду).',en:'Between levels — upgrade shop. Permanent: +1 ATK or +1 DEF for a chosen card (entire campaign). Temporary: Battle Spirit (+2 ATK for 1 fight), Iron Stance (+5 armor at start), Water Shield (blocks first damage).'}},
                   {icon:'⏰', title:{uk:'Тиск судді',en:"Judge's Pressure"}, body:{uk:'Якщо бій затягується після 10-го раунду — судді втрачають терпіння. Кожен раунд обидва гравці отримують -2 HP автоматично. Це форсує агресивний фінал.',en:'If the fight drags past round 10 — the judges lose patience. Each round both players automatically lose -2 HP. This forces an aggressive finish.'}},
                   {icon:'🏆', title:{uk:'Нагороди',en:'Achievements'}, body:{uk:'13 досягнень — від "Перша кров" (виграти перший матч) до таємних нагород. Кожне досягнення дає Йокоіни. Отримати нагороду можна в меню 🏆 Нагороди.',en:'13 achievements — from "First Blood" (win first match) to secret rewards. Each achievement gives Yokoin. Claim rewards in the 🏆 Awards menu.'}},
                 ].map((section,i)=>(
@@ -2330,21 +2711,51 @@ export default function SumoClash({ onClose, lang='uk' }) {
             </div>
           )}
 
+          {mode==='bazaar' && (
+            <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url(/images/${activeBg?'bgs/'+activeBg+'.webp':'bg-campaign.webp'})`,backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.6)',pointerEvents:'none'}}/>
+              <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative'}}>
+                <BazaarScreen lang={lang} onBack={()=>setMode('menu')}
+                  yokoin={bazaarYokoin}
+                  ownedItems={bazaarOwnedItems}
+                  discoveredCards={discoveredCards}
+                  onUnlockCard={handleCardDiscovered}
+                  onSpend={async(item)=>{
+                    setBazaarOwnedItems(prev=>new Set([...prev,item.id]))
+                    setBazaarYokoin(y=>y-item.price)
+                    // Автоматично активувати куплений аватар/фон
+                    if(item.cat==='avatar'){setActiveAvatar(item.id);localStorage.setItem('dohyo_avatar',item.id)}
+                    if(item.cat==='background'){setActiveBg(item.id);localStorage.setItem('dohyo_bg',item.id)}
+                    if(item.cat==='music'&&item.theme){switchMusicTheme(item.theme)}
+                    const uid=await getSumoClashUid()
+                    if(uid){
+                      try{
+                        const snap=await get(ref(db,`campaignUsers/${uid}/yokoin`))
+                        const cur=snap.val()||0
+                        await update(ref(db,`campaignUsers/${uid}`),{yokoin:cur-item.price,[`bazaarItems/${item.id}`]:true})
+                      }catch(e){console.warn('Bazaar save error',e)}
+                    }
+                  }}/>
+              </div>
+            </div>
+          )}
+
           {mode==='cardbook' && <CardBook lang={lang} onClose={()=>setMode('menu')} discoveredCards={discoveredCards}/>}
 
           {mode==='cpu' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-cpu.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url(/images/${activeBg?'bgs/'+activeBg+'.webp':'bg-cpu.webp'})`,backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1300:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
-                <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx} onCardPlayed={handleCardDiscovered} onAchievementProgress={handleAchievementProgress}/>
+                <CpuGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx} onCardPlayed={handleCardDiscovered} onAchievementProgress={handleAchievementProgress} onYokoinReward={handleYokoinReward} playerAvatar={activeAvatar} bazaarItems={BAZAAR_ITEMS}/>
               </div>
             </div>
           )}
 
           {mode==='campaign' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-campaign.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url(/images/${activeBg?'bgs/'+activeBg+'.webp':'bg-campaign.webp'})`,backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1400:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
                 <SumoClashCampaign
@@ -2353,6 +2764,8 @@ export default function SumoClash({ onClose, lang='uk' }) {
                   discoveredCards={discoveredCards}
                   onCampaignComplete={()=>handleAchievementProgress({type:'campaign_complete'})}
                   GameBattle={GameBattleStable}
+                  playerAvatar={activeAvatar}
+                  bazaarItems={BAZAAR_ITEMS}
                 />
               </div>
             </div>
@@ -2360,7 +2773,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
 
           {mode==='multi' && (
             <div style={{flex:1,display:'flex',flexDirection:'column',position:'relative',overflow:'hidden'}}>
-              <div style={{position:'absolute',inset:0,backgroundImage:'url(/images/bg-multi.webp)',backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url(/images/${activeBg?'bgs/'+activeBg+'.webp':'bg-multi.webp'})`,backgroundSize:'cover',backgroundPosition:'center',pointerEvents:'none'}}/>
               <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.35)',pointerEvents:'none'}}/>
               <div style={{flex:1,display:'flex',flexDirection:'column',maxWidth:isFullscreen?1300:'100%',width:'100%',margin:'0 auto',position:'relative'}}>
                 <MultiGame lang={lang} onBack={()=>setMode('menu')} sfx={sfx} onCardPlayed={handleCardDiscovered}/>

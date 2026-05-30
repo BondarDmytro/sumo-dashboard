@@ -2,446 +2,260 @@
 import { useState, useEffect } from 'react'
 
 const VS_ANIM = `
-@keyframes vsEnterL {
-  from { transform: translateX(-140%) }
-  to   { transform: translateX(0) }
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&display=swap');
+:root { --jp: 'Noto Serif JP', serif; }
+@keyframes vsSlideLeft {
+  0%   { opacity:0; transform: translateX(-180px) scale(0.7); }
+  65%  { opacity:1; transform: translateX(10px) scale(1.05); }
+  100% { opacity:1; transform: translateX(0) scale(1); }
 }
-@keyframes vsEnterR {
-  from { transform: translateX(140%) }
-  to   { transform: translateX(0) }
+@keyframes vsSlideRight {
+  0%   { opacity:0; transform: translateX(180px) scale(0.7); }
+  65%  { opacity:1; transform: translateX(-10px) scale(1.05); }
+  100% { opacity:1; transform: translateX(0) scale(1); }
 }
-@keyframes vsTextPop {
-  0%   { transform: scale(0.2) rotate(-12deg); opacity: 0 }
-  55%  { transform: scale(1.18) rotate(4deg);  opacity: 1 }
-  75%  { transform: scale(0.95) rotate(-2deg) }
-  100% { transform: scale(1)    rotate(0);     opacity: 1 }
+@keyframes vsLogoPop {
+  0%   { opacity:0; transform: scale(0.3) rotate(-8deg); }
+  55%  { opacity:1; transform: scale(1.12) rotate(2deg); }
+  75%  { transform: scale(0.96) rotate(-1deg); }
+  100% { opacity:1; transform: scale(1) rotate(0deg); }
 }
-@keyframes vsChargeL {
-  0%   { transform: translateX(0) }
-  100% { transform: translateX(48%) }
+@keyframes vsRingPulse {
+  0%,100% { opacity:0.18; transform:scale(1); }
+  50%     { opacity:0.32; transform:scale(1.04); }
 }
-@keyframes vsChargeR {
-  0%   { transform: translateX(0) }
-  100% { transform: translateX(-48%) }
+@keyframes vsHeynakke {
+  0%   { opacity:0; letter-spacing:0.5em; }
+  100% { opacity:1; letter-spacing:0.22em; }
 }
-@keyframes vsImpactFlash {
-  0%   { opacity: 0 }
-  15%  { opacity: 1 }
-  100% { opacity: 0 }
-}
-@keyframes vsShockwave {
-  0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 0.9 }
-  100% { transform: translate(-50%,-50%) scale(4.5); opacity: 0 }
-}
-@keyframes vsShockwave2 {
-  0%   { transform: translate(-50%,-50%) scale(0.1); opacity: 0.6 }
-  100% { transform: translate(-50%,-50%) scale(3);   opacity: 0 }
-}
-@keyframes vsSpeedLine {
-  0%   { transform: scaleX(0) translateY(-50%); opacity: 0 }
-  20%  { opacity: 0.55 }
-  100% { transform: scaleX(1) translateY(-50%); opacity: 0 }
-}
-@keyframes vsDust {
-  0%   { transform: translate(0,0) scale(1);     opacity: 0.7 }
-  100% { transform: translate(0,-45px) scale(0); opacity: 0 }
-}
-@keyframes vsGroundLine {
-  0%   { transform: scaleX(0); opacity: 1 }
-  100% { transform: scaleX(1); opacity: 0 }
-}
-@keyframes vsRikishiIdle {
-  0%,100% { transform: translateY(0) }
-  50%     { transform: translateY(-5px) }
-}
-@keyframes vsRikishiCharge {
-  0%,100% { transform: translateY(0) scaleX(1) }
-  30%     { transform: translateY(-8px) scaleX(1.06) }
-  60%     { transform: translateY(3px)  scaleX(0.96) }
-}
-@keyframes vsNameSlide {
-  from { transform: translateY(20px); opacity: 0 }
-  to   { transform: translateY(0);    opacity: 1 }
+@keyframes vsNameIn {
+  0%   { opacity:0; transform: translateY(14px); }
+  100% { opacity:1; transform: translateY(0); }
 }
 @keyframes vsFadeOut {
-  from { opacity: 1 }
-  to   { opacity: 0 }
+  0%  { opacity:1; }
+  75% { opacity:1; }
+  100%{ opacity:0; }
 }
-@keyframes vsScreenIn {
-  from { opacity: 0 }
-  to   { opacity: 1 }
+@keyframes vsFlash {
+  0%  { opacity:0; }
+  8%  { opacity:0.4; }
+  20% { opacity:0; }
+  28% { opacity:0.18; }
+  100%{ opacity:0; }
 }
-@keyframes vsBgPulse {
-  0%,100% { opacity: 0.06 }
-  50%     { opacity: 0.12 }
+@keyframes vsGoldGlow {
+  0%,100% { filter: drop-shadow(0 0 12px rgba(255,200,50,0.5)); }
+  50%     { filter: drop-shadow(0 0 32px rgba(255,200,50,0.95)) brightness(1.1); }
 }
-@keyframes vsKanjiReveal {
-  0%   { opacity: 0; transform: scale(1.4) }
-  100% { opacity: 0.07; transform: scale(1) }
+@keyframes vsRedGlow {
+  0%,100% { filter: drop-shadow(0 0 12px rgba(220,50,30,0.5)); }
+  50%     { filter: drop-shadow(0 0 32px rgba(220,50,30,0.95)) brightness(1.1); }
 }
-@keyframes vsLabelGlow {
-  0%,100% { text-shadow: 0 0 20px rgba(240,192,96,0.4), 0 2px 8px rgba(0,0,0,0.9) }
-  50%     { text-shadow: 0 0 40px rgba(240,192,96,0.8), 0 2px 8px rgba(0,0,0,0.9) }
+@keyframes vsAvatarPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 8px currentColor; }
+  50%     { transform: scale(1.08); box-shadow: 0 0 20px currentColor; }
 }
 `
 
-// ── SVG рікіші — fallback якщо зображення відсутнє ───────────
-function RikishiSilhouette({ color = '#c8a060', size = 180 }) {
-  return (
-    <svg viewBox="0 0 110 140" width={size} height={size * 1.27}
-      style={{ display: 'block', overflow: 'visible' }}>
-      <ellipse cx="62" cy="10" rx="7" ry="5" fill={color} />
-      <circle cx="58" cy="26" r="18" fill={color} />
-      <ellipse cx="50" cy="76" rx="30" ry="34" fill={color} transform="rotate(-12 50 76)" />
-      <ellipse cx="50" cy="92" rx="26" ry="9" fill={color} opacity="0.6" />
-      <ellipse cx="82" cy="62" rx="9" ry="20" fill={color} transform="rotate(-50 82 62)" />
-      <circle cx="92" cy="48" r="9" fill={color} />
-      <ellipse cx="18" cy="70" rx="8" ry="16" fill={color} transform="rotate(25 18 70)" />
-      <ellipse cx="68" cy="118" rx="14" ry="20" fill={color} transform="rotate(-12 68 118)" />
-      <ellipse cx="74" cy="137" rx="13" ry="8" fill={color} />
-      <ellipse cx="30" cy="116" rx="13" ry="18" fill={color} transform="rotate(18 30 116)" />
-      <ellipse cx="22" cy="133" rx="12" ry="7" fill={color} />
-    </svg>
-  )
+// Маппінг avatar id → колір glow
+const AVATAR_GLOW = {
+  av_gold:   '#c8950a',
+  av_red:    '#c03020',
+  av_blue:   '#2060c0',
+  av_green:  '#1a8040',
+  av_purple: '#7020a0',
+  av_pulse:  '#c8950a',
 }
 
-// ── Рікіші з картинкою + SVG fallback ────────────────────────
-// Показує img якщо файл є, інакше SVG силует
-function RikishiImage({ src, svgColor, size = 200 }) {
-  const [failed, setFailed] = useState(false)
-  if (failed) return <RikishiSilhouette color={svgColor} size={size} />
-  return (
-    <img
-      src={src}
-      alt=""
-      style={{ width: size, height: 'auto', display: 'block', imageRendering: 'high-quality' }}
-      onError={() => setFailed(true)}
-    />
-  )
-}
+function RikishiGlow({ glowColor, side }) {
+  const anim = side === 'left'
+    ? 'vsSlideLeft 0.6s cubic-bezier(0.34,1.25,0.64,1) both'
+    : 'vsSlideRight 0.6s cubic-bezier(0.34,1.25,0.64,1) both'
 
-// ── VS логотип з текстовим fallback ──────────────────────────
-function VSLogo() {
-  const [failed, setFailed] = useState(false)
-  if (failed) return (
+  return (
     <div style={{
-      fontFamily: "'Noto Serif JP', serif",
-      fontSize: 'clamp(3.5rem, 9vw, 7rem)',
-      fontWeight: 900,
-      color: '#f0c060',
-      lineHeight: 1,
-      letterSpacing: '0.08em',
-      textShadow: `
-        0 0 40px rgba(240,192,96,0.9),
-        0 0 80px rgba(240,192,96,0.4),
-        0 4px 12px rgba(0,0,0,1)
-      `,
-      animation: 'vsTextPop 0.5s cubic-bezier(.2,0,.2,1) both',
-      position: 'relative', zIndex: 1,
+      flex: '0 0 min(35vw,220px)', height: '100%', zIndex: 6,
+      animation: anim,
+      transformOrigin: 'center bottom',
     }}>
-      VS
-    </div>
-  )
-  return (
-    <img
-      src="/images/vs/vs-logo.webp"
-      alt="VS"
-      style={{
-        width: 'clamp(120px, 18vw, 220px)',
-        height: 'auto',
-        display: 'block',
-        margin: '0 auto',
-        filter: 'drop-shadow(0 0 30px rgba(240,192,96,0.7))',
-        animation: 'vsTextPop 0.5s cubic-bezier(.2,0,.2,1) both',
-        position: 'relative', zIndex: 1,
-      }}
-      onError={() => setFailed(true)}
-    />
-  )
-}
-
-// ── Лінії швидкості ───────────────────────────────────────────
-function SpeedLines({ side, active }) {
-  if (!active) return null
-  const lines = Array.from({ length: 8 }, (_, i) => ({
-    id: i,
-    top: `${15 + i * 9}%`,
-    width: `${55 + Math.random() * 30}%`,
-    delay: `${i * 0.04}s`,
-    opacity: 0.3 + Math.random() * 0.3,
-  }))
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
-      {lines.map(l => (
-        <div key={l.id} style={{
-          position: 'absolute',
-          top: l.top,
-          [side === 'left' ? 'right' : 'left']: 0,
-          width: l.width,
-          height: 2,
-          background: 'linear-gradient(90deg, transparent, rgba(240,192,96,0.5))',
-          transform: side === 'right' ? 'scaleX(-1)' : 'none',
-          transformOrigin: side === 'right' ? 'left center' : 'right center',
-          animation: `vsSpeedLine 0.35s ease ${l.delay} both`,
-          opacity: l.opacity,
-        }} />
-      ))}
+      <div style={{
+        width: '100%', height: '100%',
+        animation: side === 'left'
+          ? 'vsGoldGlow 3s ease-in-out 0.7s infinite'
+          : 'vsRedGlow 3s ease-in-out 0.9s infinite',
+      }}>
+        <img
+          src={side === 'left' ? '/images/vs/rikishi-player.webp' : '/images/vs/rikishi-opponent.webp'}
+          alt=""
+          style={{ width:'100%', height:'100%', objectFit:'contain', objectPosition:'bottom center', display:'block',
+            filter: `drop-shadow(0 0 16px ${glowColor}88)`,
+          }}
+          onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='block' }}
+        />
+        {/* SVG fallback */}
+        {side === 'left' ? (
+          <svg viewBox="0 0 110 150" style={{display:'none',width:'100%',height:'100%'}}>
+            <circle cx="58" cy="20" r="17" fill={glowColor}/>
+            <ellipse cx="50" cy="78" rx="30" ry="36" fill={glowColor} transform="rotate(-8 50 78)"/>
+            <ellipse cx="82" cy="62" rx="9" ry="20" fill={glowColor} transform="rotate(-48 82 62)"/>
+            <ellipse cx="70" cy="120" rx="13" ry="20" fill={glowColor} transform="rotate(-10 70 120)"/>
+            <ellipse cx="32" cy="118" rx="12" ry="17" fill={glowColor} transform="rotate(16 32 118)"/>
+          </svg>
+        ) : (
+          <svg viewBox="0 0 110 150" style={{display:'none',width:'100%',height:'100%'}}>
+            <circle cx="52" cy="20" r="17" fill={glowColor}/>
+            <ellipse cx="60" cy="78" rx="30" ry="36" fill={glowColor} transform="rotate(8 60 78)"/>
+            <ellipse cx="28" cy="62" rx="9" ry="20" fill={glowColor} transform="rotate(48 28 62)"/>
+            <ellipse cx="40" cy="120" rx="13" ry="20" fill={glowColor} transform="rotate(10 40 120)"/>
+            <ellipse cx="78" cy="118" rx="12" ry="17" fill={glowColor} transform="rotate(-16 78 118)"/>
+          </svg>
+        )}
+      </div>
     </div>
   )
 }
 
-function DustParticles({ active }) {
-  if (!active) return null
-  const particles = Array.from({ length: 14 }, (_, i) => ({
-    id: i,
-    x: -40 + Math.random() * 80,
-    y: -10 + Math.random() * 20,
-    size: 6 + Math.random() * 14,
-    delay: `${Math.random() * 0.2}s`,
-    color: Math.random() > 0.5 ? 'rgba(240,192,96,0.5)' : 'rgba(255,255,255,0.25)',
-  }))
-  return (
-    <div style={{ position: 'absolute', top: '50%', left: '50%', pointerEvents: 'none', zIndex: 5 }}>
-      {particles.map(p => (
-        <div key={p.id} style={{
-          position: 'absolute',
-          left: p.x, top: p.y,
-          width: p.size, height: p.size,
-          borderRadius: '50%',
-          background: p.color,
-          animation: `vsDust 0.7s ease ${p.delay} both`,
-        }} />
-      ))}
-    </div>
-  )
-}
-
-function Shockwave({ active }) {
-  if (!active) return null
-  return (
-    <div style={{ position: 'absolute', top: '50%', left: '50%', pointerEvents: 'none', zIndex: 4 }}>
-      <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', border: '4px solid rgba(240,192,96,0.9)', animation: 'vsShockwave 0.7s ease both' }} />
-      <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.5)', animation: 'vsShockwave2 0.5s ease 0.1s both' }} />
-    </div>
-  )
-}
-
-// ── Головний компонент ────────────────────────────────────────
-export default function VSScreen({ playerLabel, opponentLabel, lang, onDone }) {
+export default function VSScreen({ playerLabel, opponentLabel, lang, playerAvatar, onDone }) {
   const [phase, setPhase] = useState(0)
-  const t = (uk, en) => lang === 'en' ? en : uk
+  const playerGlow = AVATAR_GLOW[playerAvatar] || '#c8950a'
+  const opponentGlow = '#a01818' // CPU завжди червоний
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 700),
-      setTimeout(() => setPhase(2), 1400),
-      setTimeout(() => setPhase(3), 2100),
-      setTimeout(() => setPhase(4), 2500),
-      setTimeout(() => onDone(), 2900),
-    ]
-    return () => timers.forEach(clearTimeout)
+    const t1 = setTimeout(() => setPhase(1), 500)
+    const t2 = setTimeout(() => setPhase(2), 950)
+    const t3 = setTimeout(() => setPhase(3), 2800)
+    const t4 = setTimeout(() => onDone?.(), 3450)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
   }, [])
-
-  const isCharging = phase >= 2
-  const isImpact   = phase >= 3
-  const isExit     = phase >= 4
 
   return (
     <>
       <style>{VS_ANIM}</style>
-
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 500,
-        background: '#0a0604',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'radial-gradient(ellipse at 50% 42%, #1e1208 0%, #0a0805 55%, #050302 100%)',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        animation: phase >= 3 ? 'vsFadeOut 0.65s ease forwards' : undefined,
         overflow: 'hidden',
-        animation: isExit ? 'vsFadeOut 0.45s ease both' : 'vsScreenIn 0.3s ease both',
       }}>
 
-        {/* Фонова текстура */}
+        {/* Спалах */}
         <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `
-            radial-gradient(ellipse 80% 40% at 50% 75%, rgba(80,40,10,0.5) 0%, transparent 70%),
-            radial-gradient(ellipse 100% 100% at 50% 50%, rgba(40,20,5,0.8) 0%, transparent 80%)
-          `,
+          position: 'absolute', inset: 0, background: '#fff',
+          animation: 'vsFlash 1.1s ease 0.35s both',
+          pointerEvents: 'none', zIndex: 15,
+        }}/>
+
+        {/* Кільця */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          width: 'min(88vw,540px)', height: 'min(88vw,540px)',
+          marginLeft: 'calc(min(88vw,540px) / -2)',
+          marginTop: 'calc(min(88vw,540px) / -2)',
+          borderRadius: '50%',
+          border: `1.5px solid ${playerGlow}55`,
+          animation: 'vsRingPulse 2.5s ease-in-out infinite',
           pointerEvents: 'none',
-        }} />
+        }}/>
 
-        {/* Кандзі водяний знак */}
+        {/* Арена */}
         <div style={{
-          position: 'absolute',
-          fontSize: 'clamp(200px, 40vw, 380px)',
-          fontFamily: "'Noto Serif JP', serif",
-          fontWeight: 900,
-          color: '#b8860b',
-          userSelect: 'none', pointerEvents: 'none',
-          animation: 'vsKanjiReveal 0.8s ease 0.2s both',
-          lineHeight: 1,
-        }}>対</div>
-
-        {/* Підлога дохьо */}
-        <div style={{
-          position: 'absolute',
-          bottom: '18%', left: '10%', right: '10%',
-          height: 3,
-          background: 'linear-gradient(90deg, transparent, rgba(184,134,11,0.35), transparent)',
-          borderRadius: 2,
-        }} />
-
-        {isImpact && (
-          <div style={{
-            position: 'absolute',
-            bottom: '18%', left: '35%', right: '35%',
-            height: 3,
-            background: 'rgba(240,192,96,0.9)',
-            transformOrigin: 'center',
-            animation: 'vsGroundLine 0.5s ease both',
-            boxShadow: '0 0 12px rgba(240,192,96,0.8)',
-          }} />
-        )}
-
-        {/* ── Лівий рікіші (гравець) ── */}
-        <div style={{
-          position: 'absolute',
-          left: 0, top: 0, bottom: 0, width: '42%',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          animation: isCharging
-            ? 'vsChargeL 0.55s cubic-bezier(.4,0,.2,1) both'
-            : 'vsEnterL 0.5s cubic-bezier(.2,0,.2,1) both',
-          overflow: 'hidden',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          width: '100%', maxWidth: 800, height: 'min(56vw,360px)',
+          position: 'relative', flexShrink: 0,
         }}>
-          <SpeedLines side="left" active={isCharging && !isImpact} />
+          <RikishiGlow glowColor={playerGlow} side="left" />
+
+          {/* VS — центр */}
           <div style={{
-            position: 'relative', zIndex: 2,
-            animation: isCharging ? 'vsRikishiCharge 0.2s ease infinite' : 'vsRikishiIdle 1.8s ease infinite',
-            marginBottom: '1.5rem',
-            filter: 'drop-shadow(0 8px 24px rgba(184,134,11,0.4))',
+            flex: '0 0 min(22vw,140px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            alignSelf: 'center',
+            zIndex: 3,
+            paddingBottom: 'min(4vw,24px)',
           }}>
-            <RikishiImage
-              src="/images/vs/rikishi-player.webp"
-              svgColor="#c8a060"
-              size={200}
-            />
+            {phase >= 1 && (
+              <div style={{ animation: 'vsLogoPop 0.5s cubic-bezier(0.34,1.4,0.64,1) both' }}>
+                <img src="/images/vs/vs-logo.webp" alt="VS"
+                  style={{
+                    width: '100%', height: 'auto', display: 'block',
+                    filter: 'drop-shadow(0 0 28px rgba(200,50,10,0.75)) drop-shadow(0 6px 18px rgba(0,0,0,0.95))',
+                  }}
+                  onError={e => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='block' }}
+                />
+                <div style={{
+                  display:'none', fontFamily:'var(--jp)', fontSize:'min(12vw,80px)', fontWeight:900,
+                  color:'#c83010', textShadow:'0 0 32px rgba(220,60,20,0.85)', lineHeight:1,
+                }}>VS</div>
+              </div>
+            )}
           </div>
-          <div style={{
-            fontFamily: "'Noto Serif JP', serif",
-            fontSize: 'clamp(0.75rem, 2vw, 1rem)',
-            fontWeight: 900, color: '#f0c060',
-            textAlign: 'center', letterSpacing: '0.12em', textTransform: 'uppercase',
-            animation: 'vsNameSlide 0.4s ease 0.3s both, vsLabelGlow 2s ease infinite',
-            padding: '0.4rem 1rem',
-            background: 'rgba(0,0,0,0.5)',
-            border: '1px solid rgba(184,134,11,0.35)',
-            borderRadius: 4, backdropFilter: 'blur(4px)',
-            position: 'relative', zIndex: 2,
-          }}>
-            {playerLabel}
-          </div>
+
+          <RikishiGlow glowColor={opponentGlow} side="right" />
         </div>
 
-        {/* ── Правий рікіші (суперник) ── */}
-        <div style={{
-          position: 'absolute',
-          right: 0, top: 0, bottom: 0, width: '42%',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          animation: isCharging
-            ? 'vsChargeR 0.55s cubic-bezier(.4,0,.2,1) both'
-            : 'vsEnterR 0.5s cubic-bezier(.2,0,.2,1) both',
-          overflow: 'hidden',
-        }}>
-          <SpeedLines side="right" active={isCharging && !isImpact} />
-          {/* Анімація на зовнішньому div, flip — на внутрішньому. Інакше animation переписує transform */}
-          <div style={{
-            position: 'relative', zIndex: 2,
-            animation: isCharging ? 'vsRikishiCharge 0.2s ease infinite' : 'vsRikishiIdle 1.8s ease 0.4s infinite',
-            marginBottom: '1.5rem',
-            filter: 'drop-shadow(0 8px 24px rgba(140,30,30,0.5))',
-          }}>
-            <RikishiImage
-              src="/images/vs/rikishi-opponent.webp"
-              svgColor="#c06050"
-              size={200}
-            />
-          </div>
-          <div style={{
-            fontFamily: "'Noto Serif JP', serif",
-            fontSize: 'clamp(0.75rem, 2vw, 1rem)',
-            fontWeight: 900, color: '#e07060',
-            textAlign: 'center', letterSpacing: '0.12em', textTransform: 'uppercase',
-            animation: 'vsNameSlide 0.4s ease 0.4s both',
-            padding: '0.4rem 1rem',
-            background: 'rgba(0,0,0,0.5)',
-            border: '1px solid rgba(192,60,40,0.35)',
-            borderRadius: 4, backdropFilter: 'blur(4px)',
-            position: 'relative', zIndex: 2,
-          }}>
-            {opponentLabel}
-          </div>
-        </div>
-
-        {/* ── VS по центру ── */}
+        {/* ХЕЙ-НАККЕ */}
         {phase >= 1 && (
           <div style={{
-            position: 'absolute',
-            left: '50%', top: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 10, textAlign: 'center', pointerEvents: 'none',
+            fontFamily: 'var(--jp)', fontWeight: 900,
+            fontSize: 'min(3.8vw,18px)',
+            color: 'rgba(220,185,100,0.78)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            textShadow: '0 0 18px rgba(200,160,60,0.45)',
+            marginTop: '1rem', marginBottom: '1rem',
+            animation: 'vsHeynakke 0.65s ease 0.25s both',
           }}>
-            {/* Підсвічування */}
-            <div style={{
-              position: 'absolute',
-              top: '50%', left: '50%',
-              transform: 'translate(-50%,-50%)',
-              width: 180, height: 180, borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(184,134,11,0.25) 0%, transparent 70%)',
-              animation: 'vsBgPulse 1.5s ease infinite',
-            }} />
+            {lang === 'en' ? 'HEY-NAKKE!' : 'ХЕЙ-НАККЕ!'}
+          </div>
+        )}
 
-            {/* VS — картинка або текстовий fallback */}
-            <VSLogo />
-
-            {/* Підпис */}
+        {/* Імена — однакова відстань через space-around */}
+        {phase >= 2 && (
+          <div style={{
+            display: 'flex', width: '100%', maxWidth: 800,
+            justifyContent: 'space-around',
+            padding: '0 min(2vw,12px)',
+            animation: 'vsNameIn 0.4s ease both',
+            boxSizing: 'border-box',
+          }}>
             <div style={{
-              fontFamily: "'Noto Serif JP', serif",
-              fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
-              fontWeight: 700,
-              color: 'rgba(255,200,80,0.65)',
-              letterSpacing: '0.35em', textTransform: 'uppercase',
-              marginTop: '0.4rem',
-              animation: 'vsNameSlide 0.4s ease 0.5s both',
+              background: 'rgba(20,14,4,0.93)',
+              border: `1px solid ${playerGlow}88`,
+              borderRadius: 6,
+              padding: 'clamp(6px,1.2vw,10px) clamp(14px,3vw,24px)',
+              boxShadow: `0 0 18px ${playerGlow}20, 0 4px 18px rgba(0,0,0,0.8)`,
             }}>
-              {t('Хей-накке!', 'Heiya-nakke!')}
+              <div style={{
+                fontFamily: 'var(--jp)', fontWeight: 900,
+                fontSize: 'clamp(12px,2.8vw,18px)',
+                color: playerGlow,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                textShadow: `0 0 12px ${playerGlow}99`,
+                whiteSpace: 'nowrap',
+              }}>{playerLabel}</div>
+            </div>
+
+            <div style={{
+              background: 'rgba(20,5,5,0.93)',
+              border: `1px solid ${opponentGlow}88`,
+              borderRadius: 6,
+              padding: 'clamp(6px,1.2vw,10px) clamp(14px,3vw,24px)',
+              boxShadow: `0 0 18px ${opponentGlow}20, 0 4px 18px rgba(0,0,0,0.8)`,
+            }}>
+              <div style={{
+                fontFamily: 'var(--jp)', fontWeight: 900,
+                fontSize: 'clamp(12px,2.8vw,18px)',
+                color: '#f08070',
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                textShadow: '0 0 12px rgba(220,80,60,0.6)',
+                whiteSpace: 'nowrap',
+              }}>{opponentLabel}</div>
             </div>
           </div>
         )}
-
-        <Shockwave active={isImpact} />
-        <DustParticles active={isImpact} />
-
-        {isImpact && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'radial-gradient(circle at 50% 45%, rgba(255,240,150,0.95) 0%, rgba(240,160,20,0.4) 40%, transparent 70%)',
-            animation: 'vsImpactFlash 0.45s ease both',
-            pointerEvents: 'none', zIndex: 8,
-          }} />
-        )}
-
-        {/* Декоративна рамка */}
-        {[0, 1].map(side => (
-          <div key={side} style={{
-            position: 'absolute', top: 0, bottom: 0,
-            [side === 0 ? 'left' : 'right']: 0,
-            width: 3,
-            background: 'linear-gradient(180deg, transparent, rgba(184,134,11,0.4), transparent)',
-          }} />
-        ))}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, rgba(184,134,11,0.4), transparent)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, rgba(184,134,11,0.3), transparent)' }} />
-
       </div>
     </>
   )

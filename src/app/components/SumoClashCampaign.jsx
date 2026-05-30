@@ -390,11 +390,11 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
           <div onClick={onOpenShop} style={{cursor:'pointer',transition:'all 0.18s'}}
             onMouseEnter={e=>e.currentTarget.style.filter='drop-shadow(0 0 16px rgba(184,134,11,0.8)) brightness(1.15)'}
             onMouseLeave={e=>e.currentTarget.style.filter='drop-shadow(0 0 8px rgba(184,134,11,0.5))'}>
-            <img src="/images/btn-shop.webp" alt={t('Магазин','Shop')}
+            <img src="/images/btn-shop.webp" alt={t('Крамниця','Shop')}
               style={{height:54,width:'auto',display:'block',filter:'drop-shadow(0 0 8px rgba(184,134,11,0.5))'}}
               onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='flex'}}/>
             <div style={{display:'none',alignItems:'center',gap:8,background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'2px solid rgba(184,134,11,0.6)',color:'#f0c060',borderRadius:6,padding:'10px 20px',fontFamily:'var(--jp)',fontSize:'1rem',fontWeight:700}}>
-              🏪 {t('Магазин','Shop')}
+              🏪 {t('Крамниця','Shop')}
             </div>
           </div>
         </div>
@@ -477,7 +477,7 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
   )
 }
 
-// ── Магазин ───────────────────────────────────────────────────
+// ── Крамниця ───────────────────────────────────────────────────
 const CARD_SKIN_ALIAS = {
   'H2':'H1','H3':'H1','Ar2':'Ar1','Ar4':'Ar3',
   'St2':'St1','St4':'St3','Sw2':'Sw1','Sw3':'Sw1','Sw4':'Sw1',
@@ -516,28 +516,36 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang, discovere
 
   // Лише розблоковані картки рікіші
   const availableCards = RIKISHI_SAMPLE.filter(c => discoveredCards.has(c.id))
+  const CARDS_PER_PAGE = 12
+  const [cardPage, setCardPage] = useState(0)
+  const totalCardPages = Math.ceil(availableCards.length / CARDS_PER_PAGE)
+  const pagedCards = availableCards.slice(cardPage * CARDS_PER_PAGE, (cardPage + 1) * CARDS_PER_PAGE)
 
   if (selectingItem) return (
     <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.85)', zIndex:0 }} />
-      <div style={{ position:'relative', zIndex:1, height:'100%', overflowY:'auto', padding:'1.25rem', animation:'campSlideIn 0.25s ease' }}>
-        <button onClick={() => setSelectingItem(null)} style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.7)', fontFamily:'var(--jp)', fontSize:'0.72rem', cursor:'pointer', marginBottom:'1rem', padding:'4px 10px', borderRadius:4 }}>
-          ‹ {t('Назад', 'Back')}
-        </button>
-        <div style={{ fontFamily:'var(--jp)', fontSize:'0.85rem', fontWeight:700, marginBottom:'0.5rem', color:'#f0c060' }}>
-          {selectingItem.emoji} {t('Оберіть карту для бусту', 'Select card to boost')}
-        </div>
-        <div style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,220,150,0.6)', marginBottom:'1.25rem' }}>
-          {lang === 'en' ? selectingItem.descEn : selectingItem.desc}
+      <div style={{ position:'relative', zIndex:1, height:'100%', display:'flex', flexDirection:'column', padding:'1.25rem', animation:'campSlideIn 0.25s ease' }}>
+        {/* Заголовок */}
+        <div style={{ flexShrink:0 }}>
+          <button onClick={() => setSelectingItem(null)} style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.7)', fontFamily:'var(--jp)', fontSize:'0.72rem', cursor:'pointer', marginBottom:'1rem', padding:'4px 10px', borderRadius:4 }}>
+            ‹ {t('Назад', 'Back')}
+          </button>
+          <div style={{ fontFamily:'var(--jp)', fontSize:'0.85rem', fontWeight:700, marginBottom:'0.5rem', color:'#f0c060' }}>
+            {selectingItem.emoji} {t('Оберіть карту для бусту', 'Select card to boost')}
+          </div>
+          <div style={{ fontFamily:'var(--jp)', fontSize:'0.62rem', color:'rgba(255,220,150,0.6)', marginBottom:'1rem' }}>
+            {lang === 'en' ? selectingItem.descEn : selectingItem.desc}
+          </div>
         </div>
 
         {availableCards.length === 0 ? (
           <div style={{ textAlign:'center', padding:'2rem', fontFamily:'var(--jp)', fontSize:'0.75rem', color:'rgba(255,220,150,0.5)' }}>
             🔒 {t('Зіграйте більше карт, щоб розблокувати', 'Play more cards to unlock')}
           </div>
-        ) : (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:10, justifyContent:'center' }}>
-            {availableCards.map(card => {
+        ) : (<>
+          {/* Картки — фіксована зона */}
+          <div style={{ flex:1, overflow:'hidden', display:'flex', flexWrap:'wrap', gap:10, justifyContent:'center', alignContent:'flex-start' }}>
+            {pagedCards.map(card => {
               const boost = boostedCards?.find(b => b.cardId === card.id)
               const skinId = CARD_SKIN_ALIAS[card.id] || card.id
               const isHovered = hoveredCard === card.id
@@ -589,7 +597,23 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang, discovere
               )
             })}
           </div>
-        )}
+          {/* Пагінація */}
+          {totalCardPages > 1 && (
+            <div style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:'0.75rem 0 0.25rem' }}>
+              <button onClick={() => setCardPage(p => Math.max(0, p-1))} disabled={cardPage === 0}
+                style={{ padding:'6px 18px', background:cardPage===0?'rgba(255,255,255,0.04)':'rgba(184,134,11,0.25)', border:`1px solid ${cardPage===0?'rgba(255,255,255,0.08)':'rgba(184,134,11,0.5)'}`, borderRadius:6, color:cardPage===0?'rgba(255,255,255,0.2)':'#f0c060', fontFamily:'var(--jp)', fontSize:'0.78rem', cursor:cardPage===0?'default':'pointer', fontWeight:700 }}>
+                ‹ {t('Назад','Prev')}
+              </button>
+              <span style={{ fontFamily:'var(--jp)', fontSize:'0.65rem', color:'rgba(255,220,150,0.6)' }}>
+                {cardPage+1} / {totalCardPages}
+              </span>
+              <button onClick={() => setCardPage(p => Math.min(totalCardPages-1, p+1))} disabled={cardPage === totalCardPages-1}
+                style={{ padding:'6px 18px', background:cardPage===totalCardPages-1?'rgba(255,255,255,0.04)':'rgba(184,134,11,0.25)', border:`1px solid ${cardPage===totalCardPages-1?'rgba(255,255,255,0.08)':'rgba(184,134,11,0.5)'}`, borderRadius:6, color:cardPage===totalCardPages-1?'rgba(255,255,255,0.2)':'#f0c060', fontFamily:'var(--jp)', fontSize:'0.78rem', cursor:cardPage===totalCardPages-1?'default':'pointer', fontWeight:700 }}>
+                {t('Далі','Next')} ›
+              </button>
+            </div>
+          )}
+        </>)}
       </div>
     </div>
   )
@@ -668,9 +692,9 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang, discovere
           <button onClick={onBack} style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.14)',color:'rgba(255,255,255,0.85)',fontFamily:'var(--jp)',fontSize:'0.72rem',cursor:'pointer',padding:'5px 12px',borderRadius:4,fontWeight:600}}>
             ‹ {t('Назад','Back')}
           </button>
-          <img src="/images/btn-shop.webp" alt={t('Магазин','Shop')} style={{height:34,width:'auto',filter:'drop-shadow(0 0 8px rgba(184,134,11,0.55))'}}
+          <img src="/images/btn-shop.webp" alt={t('Крамниця','Shop')} style={{height:34,width:'auto',filter:'drop-shadow(0 0 8px rgba(184,134,11,0.55))'}}
             onError={e=>{e.currentTarget.style.display='none';e.currentTarget.nextSibling.style.display='block'}}/>
-          <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:800,color:'#f0c060'}}>🏪 {t('Магазин','Shop')}</div>
+          <div style={{display:'none',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:800,color:'#f0c060'}}>🏪 {t('Крамниця','Shop')}</div>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           {msg&&<div style={{background:`${msg.color}22`,border:`1px solid ${msg.color}`,borderRadius:4,padding:'4px 12px',fontFamily:'var(--jp)',fontSize:'0.68rem',color:msg.color,animation:'campPop 0.3s ease'}}>{msg.text}</div>}
@@ -698,6 +722,18 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
   const t = (uk,en) => lang==='en'?en:uk
   const [step, setStep] = useState(0)
   const [openedEnvelope, setOpenedEnvelope] = useState(null)
+
+  // Enter = Далі/Меню, Space = Retry (якщо програш)
+  useEffect(()=>{
+    function h(e){
+      if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return
+      if(step<3)return
+      if(e.key==='Enter'){e.preventDefault();onContinue(openedEnvelope||0)}
+      if((e.key===' '||e.code==='Space')&&!won){e.preventDefault();onRetry?.()}
+    }
+    window.addEventListener('keydown',h)
+    return()=>window.removeEventListener('keydown',h)
+  },[step,won,openedEnvelope,onContinue,onRetry])
   useEffect(()=>{
     const t1=setTimeout(()=>setStep(1),200)
     const t2=setTimeout(()=>setStep(2),700)
@@ -772,7 +808,7 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
         {/* Програш */}
         {!won&&(
           <div style={{padding:'1rem 2rem',borderBottom:'1px solid rgba(255,255,255,0.05)',textAlign:'center'}}>
-            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'rgba(255,180,150,0.5)',lineHeight:1.8}}>{t('Поверніться до магазину, підсильтесь і спробуйте знову.','Return to the shop, power up and try again.')}</div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'rgba(255,180,150,0.5)',lineHeight:1.8}}>{t('Поверніться до крамниці, підсильтесь і спробуйте знову.','Return to the shop, power up and try again.')}</div>
           </div>
         )}
 
@@ -808,7 +844,7 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
   )
 }
 
-export default function SumoClashCampaign({ onBack, lang, GameBattle, discoveredCards = new Set() }) {
+export default function SumoClashCampaign({ onBack, lang, GameBattle, discoveredCards = new Set(), onCampaignComplete }) {
   const t = (uk,en) => lang==='en'?en:uk
   const [screen, setScreen] = useState('map')
   const [uid, setUid] = useState(null)
@@ -864,6 +900,9 @@ export default function SumoClashCampaign({ onBack, lang, GameBattle, discovered
     setBattleResult({won:true,stars,yokoinEarned,envelopes:envelopesEarned})
     setScreen('result')
     if (uid) await saveUserData(uid, {yokoin:newYokoin,progress:newProgress})
+    // Перевірити чи всі рівні пройдено
+    const completedCount = Object.values(newProgress.levels||{}).filter(l=>l?.completed).length
+    if (completedCount >= CAMPAIGN_LEVELS.length && onCampaignComplete) onCampaignComplete()
   }
 
   async function handleBattleLose() {
