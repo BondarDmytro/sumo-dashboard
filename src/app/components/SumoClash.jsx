@@ -252,7 +252,8 @@ function resolveRound(pCard,oCard,pHp,oHp,pArmor,oArmor,pSkipped,oSkipped,played
 
   // ── Ґьоджі: повертає останню зіграну карту гравця ────────
   if(pEff?.type==='gyoji'){
-    const myPlayed=playedCards.map(r=>r.my).filter(c=>c&&c.type!=='skip'&&c.type!=='gyoji'&&c.type!=='chaos')
+    // playedCards вже НЕ містить поточний раунд — шукаємо справді останню зіграну карту
+    const myPlayed=playedCards.map(r=>r.my).filter(c=>c&&!['skip','gyoji','chaos','swap'].includes(c.type))
     if(myPlayed.length>0){
       returnCardToHand=myPlayed[myPlayed.length-1]
       logs.push({text:`⚖️ Ґьоджі! Повертає "${returnCardToHand.label||returnCardToHand.id}" у руку!`,color:'#e8c547'})
@@ -1079,7 +1080,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
     if(sfx){const card=pCard||cCard;if(card?.type==='rikishi')sfx('clash');else if(card?.type==='heal')sfx('heal');else if(card?.type==='armor')sfx('armor');else if(card?.type==='strike')sfx('strike');else if(card?.type==='salt')sfx('salt');else if(card?.type==='henka')sfx('henka');else if(card?.type==='chaos')sfx('chaos');else if(card?.type==='gyoji')sfx('gyoji')}
 
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,currentPlayed)
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCard,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards)// БЕЗ поточного раунду — Ґьоджі шукає попередні картки
 
     const pHpD=newPHp-playerHp;const oHpD=newOHp-cpuHp;const pArD=newPArmor-playerArmor;const oArD=newOArmor-cpuArmor
     setMyHpDelta(pHpD);setOppHpDelta(oHpD);setMyArmorDelta(pArD);setOppArmorDelta(oArD)
@@ -1211,7 +1212,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
     const waterShield=tempBoosts?.water_shield>0&&roundNum===0
     const newPlayedEntry={my:pDisplay,opp:cpuSkip?{type:'skip'}:cCard}
     const currentPlayed=[...playedCards,newPlayedEntry]
-    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,currentPlayed)
+    const{newPHp,newOHp,newPArmor,newOArmor,logs,roundWinner,pNextSkip,oNextSkip,returnCardToHand}=resolveRound(pCardFinal,cCard,playerHp,cpuHp,playerArmor,cpuArmor,playerSkip,cpuSkip,playedCards)// передаємо playedCards БЕЗ поточного раунду
     const finalPHp=waterShield&&newPHp<playerHp?playerHp:newPHp
     setPlayedCards(currentPlayed)
     checkEnvelope(pCardFinal,cCard,roundWinner)
@@ -1260,35 +1261,105 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
       <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{draftPool.map((c,i)=><div key={c.id} style={{animation:`pop 0.3s ease ${i*0.08}s both`}}><GameCard card={c} onClick={()=>pickDraft(c)} lang={lang}/></div>)}</div>
     </div>)}
     {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={t('Ояката','Oyakata')} oppLabel={levelName} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards}/>}
-    {phase==='gameOver'&&(
-      <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',animation:'slideIn 0.3s ease'}}>
-        <GameOverScreen myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} myLabel={t('Ояката','Oyakata')} oppLabel={levelName} onBack={onBack} lang={lang} sfx={sfx}/>
-        <div style={{display:'flex',gap:10,marginTop:'1.25rem',padding:'0 0.5rem'}}>
-          {gameResult==='lose'&&(
-            <button onClick={()=>{setPhase('draft');setPlayerHp(MAX_HP);setCpuHp(level.cpuHpMax);setPlayerArmor(tempBoosts?.iron_stance?5:0);setCpuArmor(level.bossArmor||0);setPlayerHand([]);setCpuHand([]);setDrawPile([]);setPlayerSelected(null);setRoundNum(0);setPlayerWins(0);setCpuWins(0);setPlayerSkip(false);setCpuSkip(false);setPlayedCards([]);setEnvelopesEarned(0);setGameResult('lose');const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)));const cpuCards=shared.slice(0,5);setCpuHand(cpuCards);const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id));setDrawPile(remaining);setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE));setVsActive(false)}}
-              style={{flex:1,padding:'0.9rem',background:'linear-gradient(180deg,#1a5c2a,#0d3818)',border:'1px solid #2ecc71',borderRadius:6,color:'#2ecc71',fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:700,letterSpacing:'0.1em',cursor:'pointer',boxShadow:'0 4px 16px rgba(46,204,113,0.25)',transition:'all 0.15s'}}
-              onMouseEnter={e=>e.currentTarget.style.background='linear-gradient(180deg,#1f7a36,#0d3818)'}
-              onMouseLeave={e=>e.currentTarget.style.background='linear-gradient(180deg,#1a5c2a,#0d3818)'}>
-              🔄 {t('Знову','Retry')}
+    {phase==='gameOver'&&(()=>{
+      const isWin=gameResult==='win'
+      const accentColor=isWin?'#f0c060':'#e74c3c'
+      const retryFn=()=>{setPhase('draft');setPlayerHp(MAX_HP);setCpuHp(level.cpuHpMax);setPlayerArmor(tempBoosts?.iron_stance?5:0);setCpuArmor(level.bossArmor||0);setPlayerHand([]);setCpuHand([]);setDrawPile([]);setPlayerSelected(null);setRoundNum(0);setPlayerWins(0);setCpuWins(0);setPlayerSkip(false);setCpuSkip(false);setPlayedCards([]);setEnvelopesEarned(0);setGameResult('lose');const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)));const cpuCards=shared.slice(0,5);setCpuHand(cpuCards);const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id));setDrawPile(remaining);setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE));setVsActive(false)}
+      const ties=MAX_ROUNDS-playerWins-cpuWins
+      return(
+      <div style={{position:'fixed',inset:0,zIndex:800,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',background:'rgba(0,0,0,0.82)',backdropFilter:'blur(8px)',animation:'fadeIn 0.35s ease'}}>
+        <div style={{width:'100%',maxWidth:520,background:'linear-gradient(175deg,#1e1810 0%,#130e08 60%,#0e0a05 100%)',border:`1px solid ${accentColor}55`,borderRadius:12,overflow:'hidden',boxShadow:`0 0 0 1px rgba(0,0,0,0.8), 0 32px 80px rgba(0,0,0,0.95), 0 0 60px ${accentColor}18`,animation:'pop 0.35s cubic-bezier(0.34,1.56,0.64,1)'}}>
+
+          {/* Верхня смуга кольору */}
+          <div style={{height:4,background:`linear-gradient(90deg,transparent,${accentColor},transparent)`}}/>
+
+          {/* Заголовок */}
+          <div style={{padding:'2rem 2rem 1.25rem',textAlign:'center',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+            <div style={{fontSize:'3.5rem',marginBottom:'0.5rem',filter:`drop-shadow(0 0 20px ${accentColor}88)`}}>
+              {isWin?'🏆':'💀'}
+            </div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'1.5rem',fontWeight:900,color:accentColor,letterSpacing:'0.08em',textShadow:`0 0 30px ${accentColor}66, 0 2px 8px rgba(0,0,0,1)`,marginBottom:'0.3rem'}}>
+              {isWin?t('Перемога!','Victory!'):t('Поразка','Defeat')}
+            </div>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.5)',letterSpacing:'0.12em'}}>
+              {level.emoji} {t('Рівень','Level')} {level.id} — {levelName}
+            </div>
+          </div>
+
+          {/* HP блок */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:'rgba(0,0,0,0.4)'}}>
+            {[
+              {label:t('Ояката','Oyakata'), hp:playerHp, armor:playerArmor, accent:'#2ecc71', side:'left'},
+              {label:levelName, hp:cpuHp, armor:cpuArmor, accent:'#e74c3c', side:'right'},
+            ].map(p=>{
+              const pct=Math.max(0,(p.hp/MAX_HP)*100)
+              const barColor=pct>60?p.accent:pct>30?'#f0c060':'#c0392b'
+              return(
+                <div key={p.side} style={{padding:'1rem 1.25rem',background:p.side==='left'?'rgba(46,204,113,0.05)':'rgba(231,76,60,0.05)'}}>
+                  <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',fontWeight:700,color:p.accent,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'0.4rem',opacity:0.9}}>{p.label}</div>
+                  <div style={{display:'flex',alignItems:'baseline',gap:4,marginBottom:'0.5rem'}}>
+                    <span style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:p.hp>0?'#fff':'rgba(255,255,255,0.25)',lineHeight:1}}>{p.hp}</span>
+                    <span style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,255,255,0.25)'}}>/ {MAX_HP}</span>
+                    {p.armor>0&&<span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#7ec8f0',background:'rgba(31,97,141,0.4)',border:'1px solid rgba(100,180,255,0.3)',borderRadius:3,padding:'1px 6px',marginLeft:4}}>🛡 {p.armor}</span>}
+                  </div>
+                  <div style={{height:6,background:'rgba(0,0,0,0.6)',borderRadius:3,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
+                    <div style={{height:'100%',width:`${pct}%`,background:barColor,borderRadius:3,transition:'width 0.8s ease',boxShadow:`0 0 8px ${barColor}88`}}/>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Рахунок */}
+          <div style={{padding:'1rem 2rem',background:'rgba(0,0,0,0.3)',borderTop:'1px solid rgba(255,255,255,0.04)',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',justifyContent:'center',gap:'1.5rem'}}>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',marginBottom:4}}>{t('Раунди','Rounds')}</div>
+              <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:900,color:'rgba(255,255,255,0.85)',letterSpacing:'0.08em'}}>
+                <span style={{color:'#2ecc71'}}>{playerWins}</span>
+                <span style={{color:'rgba(255,255,255,0.2)',margin:'0 6px'}}>—</span>
+                <span style={{color:'#e74c3c'}}>{cpuWins}</span>
+                {ties>0&&<><span style={{color:'rgba(255,255,255,0.2)',margin:'0 6px'}}>—</span><span style={{color:'rgba(255,255,255,0.4)'}}>{ties}</span></>}
+              </div>
+            </div>
+            <div style={{width:1,height:32,background:'rgba(255,255,255,0.08)'}}/>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',marginBottom:4}}>{t('Результат','Result')}</div>
+              <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:accentColor}}>
+                {isWin?(playerWins>cpuWins?'勝ち越し Kachi-koshi':'引き分け Hikiwake'):'負け越し Make-koshi'}
+              </div>
+            </div>
+          </div>
+
+          {/* Кнопки */}
+          <div style={{padding:'1.25rem 1.5rem',display:'flex',gap:'0.75rem',flexDirection:'column'}}>
+            {isWin?(
+              <button onClick={()=>onWin(playerHp,MAX_HP,envelopesEarned)}
+                style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#c49a1a 0%,#8b6010 50%,#5a3d08 100%)',border:'1px solid #f0c060',borderRadius:8,color:'#fff8e0',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.14em',cursor:'pointer',boxShadow:'0 4px 24px rgba(184,134,11,0.5), inset 0 1px 0 rgba(255,220,80,0.35)',transition:'filter 0.12s, transform 0.12s',textShadow:'0 1px 4px rgba(0,0,0,0.6)'}}
+                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
+                onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
+                🏆 {t('Далі →','Continue →')}
+              </button>
+            ):(
+              <button onClick={retryFn}
+                style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#1e6b30 0%,#0f4020 50%,#082814 100%)',border:'1px solid #2ecc71',borderRadius:8,color:'#c8ffd8',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.14em',cursor:'pointer',boxShadow:'0 4px 24px rgba(46,204,113,0.3), inset 0 1px 0 rgba(100,255,150,0.2)',transition:'filter 0.12s, transform 0.12s',textShadow:'0 1px 4px rgba(0,0,0,0.6)'}}
+                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
+                onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
+                🔄 {t('Спробувати знову','Try again')}
+              </button>
+            )}
+            <button onClick={onBack}
+              style={{width:'100%',padding:'0.8rem',background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',border:'1px solid rgba(255,220,150,0.18)',borderRadius:8,color:'rgba(255,220,150,0.6)',fontFamily:'var(--jp)',fontSize:'0.8rem',fontWeight:600,letterSpacing:'0.1em',cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.5)',transition:'border-color 0.15s, color 0.15s'}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.45)';e.currentTarget.style.color='rgba(255,220,150,0.9)'}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.18)';e.currentTarget.style.color='rgba(255,220,150,0.6)'}}>
+              ‹ {t('В меню кампанії','Campaign menu')}
             </button>
-          )}
-          {gameResult==='win'&&(
-            <button onClick={()=>onWin(playerHp,MAX_HP,envelopesEarned)}
-              style={{flex:1,padding:'0.9rem',background:'linear-gradient(180deg,#8b6010,#4a3008)',border:'1px solid #f0c060',borderRadius:6,color:'#f0c060',fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:700,letterSpacing:'0.1em',cursor:'pointer',boxShadow:'0 4px 16px rgba(240,192,96,0.3)',transition:'all 0.15s'}}
-              onMouseEnter={e=>e.currentTarget.style.background='linear-gradient(180deg,#b8860b,#4a3008)'}
-              onMouseLeave={e=>e.currentTarget.style.background='linear-gradient(180deg,#8b6010,#4a3008)'}>
-              🏆 {t('Далі','Continue')}
-            </button>
-          )}
-          <button onClick={onBack}
-            style={{flex:gameResult==='win'?1:0.6,padding:'0.9rem',background:'linear-gradient(180deg,#2a2218,#1a1510)',border:'1px solid #4a3e28',borderRadius:6,color:'rgba(255,220,150,0.7)',fontFamily:'var(--jp)',fontSize:'0.85rem',fontWeight:600,letterSpacing:'0.08em',cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.6)',transition:'all 0.15s'}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor='#b8860b'}
-            onMouseLeave={e=>e.currentTarget.style.borderColor='#4a3e28'}>
-            ‹ {t('В меню','Menu')}
-          </button>
+          </div>
+
+          {/* Нижня смуга */}
+          <div style={{height:3,background:`linear-gradient(90deg,transparent,${accentColor}44,transparent)`}}/>
         </div>
       </div>
-    )}
+    )})()}
   </div>)
 }
 
