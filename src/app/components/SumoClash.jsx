@@ -18,6 +18,25 @@ function useIsMobile() {
   return m
 }
 
+// ── YokoinIcon — заміна для 🪙 та ¥ всюди в грі ─────────────
+function YokoinIcon({size=16,style={}}){
+  return(
+    <img src="/images/icon-yokoin.webp" alt="¥"
+      style={{height:size,width:size,objectFit:'contain',verticalAlign:'middle',display:'inline-block',filter:'drop-shadow(0 0 3px rgba(240,160,20,0.5))',...style}}
+      onError={e=>{e.currentTarget.style.display='none';e.currentTarget.insertAdjacentHTML('afterend','<span style="color:#f0c060">¥</span>')}}
+    />
+  )
+}
+function YokoinAmount({amount,size=16,fontSize='inherit',fontWeight=700,color='#f0c060',style={}}){
+  return(
+    <span style={{display:'inline-flex',alignItems:'center',gap:3,...style}}>
+      <YokoinIcon size={size}/>
+      <span style={{fontFamily:'var(--jp)',fontSize,fontWeight,color,textShadow:'0 0 8px rgba(240,192,96,0.4)'}}>{amount}</span>
+    </span>
+  )
+}
+
+
 const MAX_HP = 40
 const MAX_ROUNDS = 15
 const DRAFT_ROUNDS = 5
@@ -435,7 +454,7 @@ function AchievementToast({ achievement, lang, onDone }) {
             {isSecret?'???':(lang==='en'?achievement.name.en:achievement.name.uk)}
           </div>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.65)',marginTop:2}}>
-            +{achievement.reward}¥
+            <YokoinAmount amount={`+${achievement.reward}`} size={14} fontSize='0.58rem'/>
           </div>
         </div>
       </div>
@@ -443,9 +462,10 @@ function AchievementToast({ achievement, lang, onDone }) {
   )
 }
 
-function AchievementsModal({ unlockedSet, lang, onClose }) {
+function AchievementsModal({ unlockedSet, claimedSet, lang, onClose, onClaim }) {
   const t=(uk,en)=>lang==='en'?en:uk
   const [tab,setTab]=useState('all')
+  const [claimAnim,setClaimAnim]=useState(null) // id досягнення що анімується
   const tabs=[
     {key:'all',    label:t('Всі','All')},
     {key:'progress',label:t('Прогрес','Progress')},
@@ -456,6 +476,16 @@ function AchievementsModal({ unlockedSet, lang, onClose }) {
   const total=ACHIEVEMENTS.length
   const unlocked=ACHIEVEMENTS.filter(a=>unlockedSet.has(a.id)).length
   const pct=Math.round((unlocked/total)*100)
+  // Скільки можна отримати зараз
+  const pendingTotal=ACHIEVEMENTS.filter(a=>unlockedSet.has(a.id)&&!claimedSet.has(a.id)).reduce((s,a)=>s+a.reward,0)
+
+  function handleClaim(ach){
+    if(!unlockedSet.has(ach.id)||claimedSet.has(ach.id))return
+    setClaimAnim(ach.id)
+    setTimeout(()=>setClaimAnim(null),600)
+    onClaim(ach)
+  }
+
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:4500,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:'1rem'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:'linear-gradient(180deg,#1e1812,#120e08)',border:'1px solid #b8860b',borderRadius:10,width:'100%',maxWidth:520,maxHeight:'85vh',display:'flex',flexDirection:'column',overflow:'hidden',animation:'pop 0.25s ease',boxShadow:'0 16px 48px rgba(0,0,0,0.95)'}}>
@@ -463,7 +493,15 @@ function AchievementsModal({ unlockedSet, lang, onClose }) {
         <div style={{padding:'0.875rem 1.25rem',borderBottom:'1px solid rgba(184,134,11,0.3)',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
           <div>
             <div style={{fontFamily:'var(--jp)',fontSize:'0.9rem',fontWeight:700,color:'#f0c060'}}>🏆 {t('Нагороди','Awards')}</div>
-            <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.5)',marginTop:2}}>{unlocked}/{total} · {pct}%</div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginTop:3}}>
+              <span style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,220,150,0.5)'}}>{unlocked}/{total} · {pct}%</span>
+              {pendingTotal>0&&(
+                <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',borderRadius:10,padding:'1px 8px',fontFamily:'var(--jp)',fontSize:'0.52rem',color:'#f0c060',animation:'achievementBtnPulse 1.5s ease infinite'}}>
+                  <YokoinIcon size={11}/>
+                  <span>+{pendingTotal} {t('до отримання','to claim')}</span>
+                </span>
+              )}
+            </div>
           </div>
           <button onClick={onClose} style={{background:'transparent',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'1.2rem',cursor:'pointer',padding:0,lineHeight:1}}>✕</button>
         </div>
@@ -485,19 +523,36 @@ function AchievementsModal({ unlockedSet, lang, onClose }) {
         <div style={{flex:1,overflowY:'auto',padding:'0.75rem 1.25rem',display:'flex',flexDirection:'column',gap:6}}>
           {filtered.map(ach=>{
             const isUnlocked=unlockedSet.has(ach.id)
+            const isClaimed=claimedSet.has(ach.id)
             const isSecret=ach.cat==='secret'
+            const canClaim=isUnlocked&&!isClaimed
+            const isAnimating=claimAnim===ach.id
             return(
-              <div key={ach.id} style={{display:'flex',alignItems:'center',gap:12,padding:'0.6rem 0.875rem',background:isUnlocked?'rgba(184,134,11,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${isUnlocked?'rgba(184,134,11,0.35)':'rgba(255,255,255,0.06)'}`,borderRadius:6,animation:'fadeIn 0.2s ease',opacity:isUnlocked?1:0.65}}>
-                <span style={{fontSize:'1.4rem',flexShrink:0}}>{isUnlocked?(isSecret?ach.icon:ach.icon):'🔒'}</span>
+              <div key={ach.id} style={{display:'flex',alignItems:'center',gap:12,padding:'0.6rem 0.875rem',background:isClaimed?'rgba(255,255,255,0.02)':isUnlocked?'rgba(184,134,11,0.12)':'rgba(255,255,255,0.03)',border:`1px solid ${isClaimed?'rgba(255,255,255,0.05)':isUnlocked?'rgba(184,134,11,0.4)':'rgba(255,255,255,0.06)'}`,borderRadius:6,animation:'fadeIn 0.2s ease',opacity:isUnlocked?1:0.55,transition:'all 0.2s'}}>
+                {/* Іконка */}
+                <span style={{fontSize:'1.4rem',flexShrink:0,filter:isClaimed?'grayscale(0.5)':'none'}}>{isUnlocked?ach.icon:'🔒'}</span>
+                {/* Текст */}
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:isUnlocked?'#f0c060':'rgba(255,255,255,0.4)',marginBottom:2}}>
-                    {isUnlocked&&!isSecret?(lang==='en'?ach.name.en:ach.name.uk):isUnlocked&&isSecret?(lang==='en'?ach.name.en:ach.name.uk):'???'}
+                  <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:isClaimed?'rgba(255,220,150,0.4)':isUnlocked?'#f0c060':'rgba(255,255,255,0.4)',marginBottom:2}}>
+                    {isUnlocked?(lang==='en'?ach.name.en:ach.name.uk):'???'}
                   </div>
-                  <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.5)',lineHeight:1.4}}>
+                  <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',color:'rgba(255,220,150,0.45)',lineHeight:1.4}}>
                     {isUnlocked||!isSecret?(lang==='en'?ach.desc.en:ach.desc.uk):'???'}
                   </div>
                 </div>
-                <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',fontWeight:700,color:isUnlocked?'#f0c060':'rgba(255,255,255,0.2)',flexShrink:0}}>+{ach.reward}¥</div>
+                {/* Права частина: нагорода + кнопка */}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5,flexShrink:0}}>
+                  <YokoinAmount amount={`+${ach.reward}`} size={13} fontSize='0.62rem' color={isClaimed?'rgba(255,220,150,0.3)':'#f0c060'}/>
+                  {canClaim&&(
+                    <button onClick={()=>handleClaim(ach)}
+                      style={{padding:'3px 12px',background:isAnimating?'linear-gradient(90deg,#2ecc71,#1a9b5c)':'linear-gradient(180deg,#c49a1a,#8b6010)',border:`1px solid ${isAnimating?'#2ecc71':'#f0c060'}`,borderRadius:4,color:isAnimating?'#fff':'#fff8e0',fontFamily:'var(--jp)',fontSize:'0.55rem',fontWeight:700,cursor:'pointer',letterSpacing:'0.06em',boxShadow:'0 2px 8px rgba(0,0,0,0.4)',transition:'all 0.15s',animation:isAnimating?'pop 0.3s ease':'none',whiteSpace:'nowrap'}}>
+                      {isAnimating?'✓':t('Отримати','Claim')}
+                    </button>
+                  )}
+                  {isClaimed&&(
+                    <span style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(100,180,100,0.6)',letterSpacing:'0.05em'}}>✓ {t('Отримано','Claimed')}</span>
+                  )}
+                </div>
               </div>
             )
           })}
@@ -1177,7 +1232,6 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   const [oppFlash,setOppFlash]=useState(null)
   const [showRoundBanner,setShowRoundBanner]=useState(false)
   const [envelopesEarned,setEnvelopesEarned]=useState(0)
-  const [gameResult,setGameResult]=useState('lose') // 'win' | 'lose'
   const [playedCards,setPlayedCards]=useState([])
 
   useEffect(()=>{
@@ -1233,15 +1287,15 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
     const cpuDraw=newDraw.filter(cpuFilter)
     if(cpuDraw.length>0){const idx=Math.floor(Math.random()*Math.min(3,cpuDraw.length));newCH=[...newCH,cpuDraw[idx]];newDraw=newDraw.filter(c=>c.id!==cpuDraw[idx].id)}
     setPlayerHand(newPH);setCpuHand(newCH);setDrawPile(newDraw)
-    if(finalPHp<=0){setPhase('gameOver');return}
-    if(newOHp<=0){setPhase('gameOver');setGameResult('win');return}
+    if(finalPHp<=0){onLose();return}
+    if(newOHp<=0){onWin(finalPHp,MAX_HP,envelopesEarned);return}
     setPhase('roundResult')
   }
 
   function nextRound(){
     const nr=roundNum+1;setRoundNum(nr);setPlayerSelected(null);setRoundLog([])
     setMyFlash(null);setOppFlash(null);setMyHpDelta(0);setOppHpDelta(0);setMyArmorDelta(0);setOppArmorDelta(0)
-    if(nr>=MAX_ROUNDS||playerHand.length===0){setPhase('gameOver');if(playerHp>cpuHp)setGameResult('win');return}
+    if(nr>=MAX_ROUNDS||playerHand.length===0){if(playerHp>cpuHp)onWin(playerHp,MAX_HP,envelopesEarned);else onLose();return}
     setShowRoundBanner(true);setTimeout(()=>setShowRoundBanner(false),1900);setPhase('battle')
   }
 
@@ -1261,105 +1315,6 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
       <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>{draftPool.map((c,i)=><div key={c.id} style={{animation:`pop 0.3s ease ${i*0.08}s both`}}><GameCard card={c} onClick={()=>pickDraft(c)} lang={lang}/></div>)}</div>
     </div>)}
     {(phase==='battle'||phase==='roundResult')&&<BattleLayout myHp={playerHp} oppHp={cpuHp} myArmor={playerArmor} oppArmor={cpuArmor} myWins={playerWins} oppWins={cpuWins} roundNum={roundNum+1} myLabel={t('Ояката','Oyakata')} oppLabel={levelName} myHand={playerHand} oppHand={cpuHand.length} playerSelected={playerSelected} onSelect={setPlayerSelected} myReady={false} oppReady={false} onSubmit={fight} roundLog={roundLog} phase={phase} onNext={nextRound} myCard={lastMyCard} oppCard={lastOppCard} drawPile={drawPile} onSwapDone={handleSwapDone} mySkipped={playerSkip} lang={lang} sfx={sfx} myHpDelta={myHpDelta} oppHpDelta={oppHpDelta} myArmorDelta={myArmorDelta} oppArmorDelta={oppArmorDelta} myFlash={myFlash} oppFlash={oppFlash} showRoundBanner={showRoundBanner} playedCards={playedCards}/>}
-    {phase==='gameOver'&&(()=>{
-      const isWin=gameResult==='win'
-      const accentColor=isWin?'#f0c060':'#e74c3c'
-      const retryFn=()=>{setPhase('draft');setPlayerHp(MAX_HP);setCpuHp(level.cpuHpMax);setPlayerArmor(tempBoosts?.iron_stance?5:0);setCpuArmor(level.bossArmor||0);setPlayerHand([]);setCpuHand([]);setDrawPile([]);setPlayerSelected(null);setRoundNum(0);setPlayerWins(0);setCpuWins(0);setPlayerSkip(false);setCpuSkip(false);setPlayedCards([]);setEnvelopesEarned(0);setGameResult('lose');const shared=shuffle(FULL_DECK.filter(level.cpuDeckFilter||(()=>true)));const cpuCards=shared.slice(0,5);setCpuHand(cpuCards);const remaining=FULL_DECK.filter(c=>!cpuCards.find(cc=>cc.id===c.id));setDrawPile(remaining);setDraftPool(weightedSample(remaining,DRAFT_POOL_SIZE));setVsActive(false)}
-      const ties=MAX_ROUNDS-playerWins-cpuWins
-      return(
-      <div style={{position:'fixed',inset:0,zIndex:800,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',background:'rgba(0,0,0,0.82)',backdropFilter:'blur(8px)',animation:'fadeIn 0.35s ease'}}>
-        <div style={{width:'100%',maxWidth:520,background:'linear-gradient(175deg,#1e1810 0%,#130e08 60%,#0e0a05 100%)',border:`1px solid ${accentColor}55`,borderRadius:12,overflow:'hidden',boxShadow:`0 0 0 1px rgba(0,0,0,0.8), 0 32px 80px rgba(0,0,0,0.95), 0 0 60px ${accentColor}18`,animation:'pop 0.35s cubic-bezier(0.34,1.56,0.64,1)'}}>
-
-          {/* Верхня смуга кольору */}
-          <div style={{height:4,background:`linear-gradient(90deg,transparent,${accentColor},transparent)`}}/>
-
-          {/* Заголовок */}
-          <div style={{padding:'2rem 2rem 1.25rem',textAlign:'center',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-            <div style={{fontSize:'3.5rem',marginBottom:'0.5rem',filter:`drop-shadow(0 0 20px ${accentColor}88)`}}>
-              {isWin?'🏆':'💀'}
-            </div>
-            <div style={{fontFamily:'var(--jp)',fontSize:'1.5rem',fontWeight:900,color:accentColor,letterSpacing:'0.08em',textShadow:`0 0 30px ${accentColor}66, 0 2px 8px rgba(0,0,0,1)`,marginBottom:'0.3rem'}}>
-              {isWin?t('Перемога!','Victory!'):t('Поразка','Defeat')}
-            </div>
-            <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,220,150,0.5)',letterSpacing:'0.12em'}}>
-              {level.emoji} {t('Рівень','Level')} {level.id} — {levelName}
-            </div>
-          </div>
-
-          {/* HP блок */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:1,background:'rgba(0,0,0,0.4)'}}>
-            {[
-              {label:t('Ояката','Oyakata'), hp:playerHp, armor:playerArmor, accent:'#2ecc71', side:'left'},
-              {label:levelName, hp:cpuHp, armor:cpuArmor, accent:'#e74c3c', side:'right'},
-            ].map(p=>{
-              const pct=Math.max(0,(p.hp/MAX_HP)*100)
-              const barColor=pct>60?p.accent:pct>30?'#f0c060':'#c0392b'
-              return(
-                <div key={p.side} style={{padding:'1rem 1.25rem',background:p.side==='left'?'rgba(46,204,113,0.05)':'rgba(231,76,60,0.05)'}}>
-                  <div style={{fontFamily:'var(--jp)',fontSize:'0.58rem',fontWeight:700,color:p.accent,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'0.4rem',opacity:0.9}}>{p.label}</div>
-                  <div style={{display:'flex',alignItems:'baseline',gap:4,marginBottom:'0.5rem'}}>
-                    <span style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:p.hp>0?'#fff':'rgba(255,255,255,0.25)',lineHeight:1}}>{p.hp}</span>
-                    <span style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,255,255,0.25)'}}>/ {MAX_HP}</span>
-                    {p.armor>0&&<span style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'#7ec8f0',background:'rgba(31,97,141,0.4)',border:'1px solid rgba(100,180,255,0.3)',borderRadius:3,padding:'1px 6px',marginLeft:4}}>🛡 {p.armor}</span>}
-                  </div>
-                  <div style={{height:6,background:'rgba(0,0,0,0.6)',borderRadius:3,overflow:'hidden',border:'1px solid rgba(255,255,255,0.06)'}}>
-                    <div style={{height:'100%',width:`${pct}%`,background:barColor,borderRadius:3,transition:'width 0.8s ease',boxShadow:`0 0 8px ${barColor}88`}}/>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Рахунок */}
-          <div style={{padding:'1rem 2rem',background:'rgba(0,0,0,0.3)',borderTop:'1px solid rgba(255,255,255,0.04)',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',justifyContent:'center',gap:'1.5rem'}}>
-            <div style={{textAlign:'center'}}>
-              <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',marginBottom:4}}>{t('Раунди','Rounds')}</div>
-              <div style={{fontFamily:'var(--jp)',fontSize:'1.1rem',fontWeight:900,color:'rgba(255,255,255,0.85)',letterSpacing:'0.08em'}}>
-                <span style={{color:'#2ecc71'}}>{playerWins}</span>
-                <span style={{color:'rgba(255,255,255,0.2)',margin:'0 6px'}}>—</span>
-                <span style={{color:'#e74c3c'}}>{cpuWins}</span>
-                {ties>0&&<><span style={{color:'rgba(255,255,255,0.2)',margin:'0 6px'}}>—</span><span style={{color:'rgba(255,255,255,0.4)'}}>{ties}</span></>}
-              </div>
-            </div>
-            <div style={{width:1,height:32,background:'rgba(255,255,255,0.08)'}}/>
-            <div style={{textAlign:'center'}}>
-              <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',marginBottom:4}}>{t('Результат','Result')}</div>
-              <div style={{fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:700,color:accentColor}}>
-                {isWin?(playerWins>cpuWins?'勝ち越し Kachi-koshi':'引き分け Hikiwake'):'負け越し Make-koshi'}
-              </div>
-            </div>
-          </div>
-
-          {/* Кнопки */}
-          <div style={{padding:'1.25rem 1.5rem',display:'flex',gap:'0.75rem',flexDirection:'column'}}>
-            {isWin?(
-              <button onClick={()=>onWin(playerHp,MAX_HP,envelopesEarned)}
-                style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#c49a1a 0%,#8b6010 50%,#5a3d08 100%)',border:'1px solid #f0c060',borderRadius:8,color:'#fff8e0',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.14em',cursor:'pointer',boxShadow:'0 4px 24px rgba(184,134,11,0.5), inset 0 1px 0 rgba(255,220,80,0.35)',transition:'filter 0.12s, transform 0.12s',textShadow:'0 1px 4px rgba(0,0,0,0.6)'}}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
-                🏆 {t('Далі →','Continue →')}
-              </button>
-            ):(
-              <button onClick={retryFn}
-                style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#1e6b30 0%,#0f4020 50%,#082814 100%)',border:'1px solid #2ecc71',borderRadius:8,color:'#c8ffd8',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.14em',cursor:'pointer',boxShadow:'0 4px 24px rgba(46,204,113,0.3), inset 0 1px 0 rgba(100,255,150,0.2)',transition:'filter 0.12s, transform 0.12s',textShadow:'0 1px 4px rgba(0,0,0,0.6)'}}
-                onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
-                onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
-                🔄 {t('Спробувати знову','Try again')}
-              </button>
-            )}
-            <button onClick={onBack}
-              style={{width:'100%',padding:'0.8rem',background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',border:'1px solid rgba(255,220,150,0.18)',borderRadius:8,color:'rgba(255,220,150,0.6)',fontFamily:'var(--jp)',fontSize:'0.8rem',fontWeight:600,letterSpacing:'0.1em',cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.5)',transition:'border-color 0.15s, color 0.15s'}}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.45)';e.currentTarget.style.color='rgba(255,220,150,0.9)'}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.18)';e.currentTarget.style.color='rgba(255,220,150,0.6)'}}>
-              ‹ {t('В меню кампанії','Campaign menu')}
-            </button>
-          </div>
-
-          {/* Нижня смуга */}
-          <div style={{height:3,background:`linear-gradient(90deg,transparent,${accentColor}44,transparent)`}}/>
-        </div>
-      </div>
-    )})()}
   </div>)
 }
 
@@ -1644,6 +1599,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
   // ── Система досягнень ────────────────────────────────────────
   const [showAchievements,setShowAchievements]=useState(false)
   const [unlockedAchievements,setUnlockedAchievements]=useState(new Set())
+  const [claimedAchievements,setClaimedAchievements]=useState(new Set())
   const [achievementToast,setAchievementToast]=useState(null)
   const [hasNewAchievement,setHasNewAchievement]=useState(false)
   const achievementUidRef=useRef(null)
@@ -1658,7 +1614,9 @@ export default function SumoClash({ onClose, lang='uk' }) {
           if(val){
             const ids=Object.keys(val).filter(k=>val[k]?.unlocked)
             setUnlockedAchievements(new Set(ids))
-            const hasUnseen=Object.values(val).some(v=>v?.unlocked&&!v?.seen)
+            const claimedIds=Object.keys(val).filter(k=>val[k]?.claimed)
+            setClaimedAchievements(new Set(claimedIds))
+            const hasUnseen=Object.values(val).some(v=>v?.unlocked&&!v?.seen&&!v?.claimed)
             if(hasUnseen)setHasNewAchievement(true)
           }
         }catch(e){console.warn('Could not load achievements',e)}
@@ -1674,7 +1632,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
     next.add(id)
     setUnlockedAchievements(next)
     setAchievementToast(ach)
-    setHasNewAchievement(true)
+    setHasNewAchievement(true)// нова необставлена нагорода
     if(sfxOn){const ctx=ensureCtx();playSound(ctx,'achievement')}
     const uid=achievementUidRef.current
     if(uid){
@@ -1691,6 +1649,26 @@ export default function SumoClash({ onClose, lang='uk' }) {
       unlockedAchievements.forEach(id=>{
         update(ref(db,`campaignUsers/${uid}/achievements/${id}`),{seen:true}).catch(()=>{})
       })
+    }
+  }
+
+  async function handleClaimAchievement(ach){
+    if(claimedAchievements.has(ach.id))return
+    const next=new Set(claimedAchievements)
+    next.add(ach.id)
+    setClaimedAchievements(next)
+    // Нарахувати йокоіни в Firebase кампанії
+    const uid=achievementUidRef.current
+    if(uid){
+      try{
+        const snap=await get(ref(db,`campaignUsers/${uid}/yokoin`))
+        const current=snap.val()||0
+        await update(ref(db,`campaignUsers/${uid}`),{
+          yokoin:current+ach.reward,
+          [`achievements/${ach.id}/claimed`]:true,
+          [`achievements/${ach.id}/claimedAt`]:Date.now(),
+        })
+      }catch(e){console.warn('Could not claim achievement reward',e)}
     }
   }
 
@@ -1792,7 +1770,7 @@ export default function SumoClash({ onClose, lang='uk' }) {
       {achievementToast&&<AchievementToast achievement={achievementToast} lang={lang} onDone={()=>setAchievementToast(null)}/>}
 
       {/* Модальне вікно досягнень */}
-      {showAchievements&&<AchievementsModal unlockedSet={unlockedAchievements} lang={lang} onClose={()=>setShowAchievements(false)}/>}
+      {showAchievements&&<AchievementsModal unlockedSet={unlockedAchievements} claimedSet={claimedAchievements} lang={lang} onClose={()=>setShowAchievements(false)} onClaim={handleClaimAchievement}/>}
 
       {showReview&&<ReviewModal onClose={()=>{setShowReview(false);onClose()}} onSubmit={submitReview} lang={lang}/>}
 

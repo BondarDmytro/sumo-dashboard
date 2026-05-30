@@ -442,7 +442,10 @@ function CampaignMap({ progress, yokoin, onSelectLevel, onOpenShop, onBack, onRe
                   {isUnlocked&&!isCompleted&&<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,pointerEvents:'none'}}><div style={{background:`${frameColor}cc`,borderRadius:20,padding:'6px 16px',border:`1px solid ${frameColor}`,backdropFilter:'blur(4px)'}}><span style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:700,color:'#fff'}}>▶ {t('Грати','Play')}</span></div></div>}
                 </div>
                 <div style={{background:level.isBoss?'linear-gradient(135deg,#2a0505,#130000)':`linear-gradient(135deg,${frameColor}22,#0d0d0d)`,padding:'8px 10px',borderTop:`1px solid ${frameColor}33`,display:'flex',justifyContent:'center',alignItems:'center'}}>
-                  <div style={{fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,210,80,0.8)'}}>🪙{level.reward} + ⭐{level.starReward}</div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4,fontFamily:'var(--jp)',fontSize:'0.55rem',color:'rgba(255,210,80,0.8)'}}>
+                    <img src="/images/icon-yokoin.webp" alt="" style={{height:12,width:12,objectFit:'contain',filter:'drop-shadow(0 0 2px rgba(240,160,20,0.5))'}} onError={e=>e.currentTarget.style.display='none'}/>
+                    {level.reward} + ⭐{level.starReward}
+                  </div>
                 </div>
               </div>
             </div>
@@ -694,7 +697,10 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
         <div style={{opacity:step>=1?1:0,transition:'opacity 0.4s',marginBottom:'1.25rem'}}><StarsDisplay stars={stars} animate={step>=1}/></div>
         <div style={{opacity:step>=2?1:0,transform:step>=2?'none':'translateY(10px)',transition:'all 0.4s',background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:6,padding:'1rem',marginBottom:'1rem'}}>
           <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,255,255,0.4)',marginBottom:6}}>{t('Нагорода','Reward')}</div>
-          <div style={{fontFamily:'var(--jp)',fontSize:'1.8rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>+{yokoinEarned} 🪙</div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,fontFamily:'var(--jp)',fontSize:'1.8rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>
+              +{yokoinEarned}
+              <img src="/images/icon-yokoin.webp" alt="" style={{height:28,width:28,objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(240,160,20,0.7))'}} onError={e=>e.currentTarget.style.display='none'}/>
+            </div>
         </div>
         {envelopes>0&&(
           <div style={{opacity:step>=3?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
@@ -705,7 +711,10 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
               </button>
             ):(
               <div style={{background:'rgba(26,74,122,0.2)',border:'1px solid #1a4a7a',borderRadius:4,padding:'0.75rem',animation:'campPop 0.4s ease'}}>
-                <div style={{fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:800,color:'#2ecc71'}}>+{openedEnvelope} 🪙</div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:800,color:'#2ecc71'}}>
+                +{openedEnvelope}
+                <img src="/images/icon-yokoin.webp" alt="" style={{height:22,width:22,objectFit:'contain',filter:'drop-shadow(0 0 4px rgba(240,160,20,0.6))'}} onError={e=>e.currentTarget.style.display='none'}/>
+              </div>
               </div>
             )}
           </div>
