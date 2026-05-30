@@ -118,15 +118,36 @@ const UPGRADE_IMAGES = {
 
 const ENVELOPE_REWARDS = [50,75,100,125,150]
 
+// Повна колода рікіші — синхронізована з SumoClash.jsx
 const RIKISHI_SAMPLE = [
-  { id:'Y1e', rank:'Yokozuna', rankShort:'Y1e', atk:10, def:7, color:'#b8860b' },
-  { id:'Y1w', rank:'Yokozuna', rankShort:'Y1w', atk:9,  def:8, color:'#b8860b' },
-  { id:'O1e', rank:'Ozeki',    rankShort:'O1e', atk:8,  def:6, color:'#8b1a1a' },
-  { id:'O1w', rank:'Ozeki',    rankShort:'O1w', atk:7,  def:7, color:'#8b1a1a' },
-  { id:'S1e', rank:'Sekiwake', rankShort:'S1e', atk:7,  def:5, color:'#1a4a7a' },
-  { id:'S1w', rank:'Sekiwake', rankShort:'S1w', atk:6,  def:6, color:'#1a4a7a' },
-  { id:'K1e', rank:'Komusubi', rankShort:'K1e', atk:6,  def:4, color:'#1f7a3a' },
-  { id:'K1w', rank:'Komusubi', rankShort:'K1w', atk:5,  def:5, color:'#1f7a3a' },
+  // Yokozuna
+  { id:'Y1e', rank:'Yokozuna', atk:10, def:7, color:'#b8860b' },
+  { id:'Y1w', rank:'Yokozuna', atk:9,  def:8, color:'#b8860b' },
+  // Ozeki
+  { id:'O1e', rank:'Ozeki', atk:8, def:6, color:'#8b1a1a' },
+  { id:'O1w', rank:'Ozeki', atk:7, def:7, color:'#8b1a1a' },
+  { id:'O2e', rank:'Ozeki', atk:7, def:6, color:'#8b1a1a' },
+  { id:'O2w', rank:'Ozeki', atk:8, def:5, color:'#8b1a1a' },
+  // Sekiwake
+  { id:'S1e', rank:'Sekiwake', atk:7, def:5, color:'#1a4a7a' },
+  { id:'S1w', rank:'Sekiwake', atk:6, def:6, color:'#1a4a7a' },
+  { id:'S2e', rank:'Sekiwake', atk:6, def:5, color:'#1a4a7a' },
+  { id:'S2w', rank:'Sekiwake', atk:7, def:4, color:'#1a4a7a' },
+  { id:'S3e', rank:'Sekiwake', atk:5, def:6, color:'#1a4a7a' },
+  { id:'S3w', rank:'Sekiwake', atk:6, def:4, color:'#1a4a7a' },
+  // Komusubi
+  { id:'K1e', rank:'Komusubi', atk:6, def:4, color:'#1f7a3a' },
+  { id:'K1w', rank:'Komusubi', atk:5, def:5, color:'#1f7a3a' },
+  { id:'K2e', rank:'Komusubi', atk:5, def:4, color:'#1f7a3a' },
+  { id:'K2w', rank:'Komusubi', atk:6, def:3, color:'#1f7a3a' },
+  { id:'K3e', rank:'Komusubi', atk:4, def:5, color:'#1f7a3a' },
+  { id:'K3w', rank:'Komusubi', atk:5, def:3, color:'#1f7a3a' },
+  { id:'K4e', rank:'Komusubi', atk:4, def:4, color:'#1f7a3a' },
+  { id:'K4w', rank:'Komusubi', atk:5, def:4, color:'#1f7a3a' },
+  // Maegashira East
+  ...Array.from({length:15},(_,i)=>({ id:`M${i+1}e`, rank:'Maegashira', atk:Math.max(1,4-Math.floor(i/4)), def:Math.max(1,3-Math.floor(i/5)), color:'#6f6f6f' })),
+  // Maegashira West
+  ...Array.from({length:15},(_,i)=>({ id:`M${i+1}w`, rank:'Maegashira', atk:Math.max(1,4-Math.floor(i/4)), def:Math.max(1,3-Math.floor(i/6)), color:'#6f6f6f' })),
 ]
 
 let _authPromise = null
@@ -524,7 +545,7 @@ function Shop({ yokoin, boostedCards, tempBoosts, onBuy, onBack, lang, discovere
               const defVal = card.def + (boost?.def || 0)
               return (
                 <div key={card.id}
-                  onClick={() => { onBuy(selectingItem, card); showMsg(`${card.rankShort} ${t('отримав буст!', 'boosted!')}`); setSelectingItem(null) }}
+                  onClick={() => { onBuy(selectingItem, card); showMsg(`${card.id} ${t('отримав буст!', 'boosted!')}`); setSelectingItem(null) }}
                   onMouseEnter={() => setHoveredCard(card.id)}
                   onMouseLeave={() => setHoveredCard(null)}
                   style={{ position:'relative', cursor:'pointer', borderRadius:8, overflow:'visible',
@@ -683,48 +704,105 @@ function CampaignResult({ won, stars, yokoinEarned, envelopes, level, onContinue
     const t3=setTimeout(()=>setStep(3),1200)
     return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3)}
   },[])
-  const winColor = won ? '#f0c060' : '#e74c3c'
+  const accentColor = won ? '#f0c060' : '#e74c3c'
+  const levelName = lang==='en' ? level.nameEn : level.name
+
   return (
-    <div style={{flex:1,overflowY:'auto',padding:'1.5rem',textAlign:'center',animation:'campSlideIn 0.3s ease',position:'relative',zIndex:1}}>
-      <div style={{fontSize:'3.5rem',animation:'campPop 0.5s ease',marginBottom:'0.75rem'}}>{won?(level.isBoss?'🏆':'✅'):'💪'}</div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'1.6rem',fontWeight:900,color:winColor,marginBottom:'0.4rem',textShadow:`0 0 20px ${winColor}66`}}>
-        {won?t('Перемога!','Victory!'):t('Маке-коші','Make-koshi')}
-      </div>
-      <div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',color:'rgba(255,255,255,0.45)',marginBottom:'1.5rem'}}>
-        {won?t('Рівень пройдено','Level cleared'):t('Суперник переміг','Opponent wins')}
-      </div>
-      {won&&(<>
-        <div style={{opacity:step>=1?1:0,transition:'opacity 0.4s',marginBottom:'1.25rem'}}><StarsDisplay stars={stars} animate={step>=1}/></div>
-        <div style={{opacity:step>=2?1:0,transform:step>=2?'none':'translateY(10px)',transition:'all 0.4s',background:'rgba(184,134,11,0.12)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:6,padding:'1rem',marginBottom:'1rem'}}>
-          <div style={{fontFamily:'var(--jp)',fontSize:'0.6rem',color:'rgba(255,255,255,0.4)',marginBottom:6}}>{t('Нагорода','Reward')}</div>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,fontFamily:'var(--jp)',fontSize:'1.8rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 12px rgba(240,192,96,0.5)'}}>
-              +{yokoinEarned}
-              <img src="/images/icon-yokoin.webp" alt="" style={{height:28,width:28,objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(240,160,20,0.7))'}} onError={e=>e.currentTarget.style.display='none'}/>
-            </div>
+    <div style={{position:'fixed',inset:0,zIndex:800,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',background:'rgba(0,0,0,0.82)',backdropFilter:'blur(8px)',animation:'campSlideIn 0.35s ease'}}>
+      <div style={{width:'100%',maxWidth:460,background:'linear-gradient(175deg,#1e1810 0%,#130e08 60%,#0e0a05 100%)',border:`1px solid ${accentColor}55`,borderRadius:12,overflow:'hidden',boxShadow:`0 0 0 1px rgba(0,0,0,0.8), 0 32px 80px rgba(0,0,0,0.95), 0 0 60px ${accentColor}18`,animation:'campPop 0.4s cubic-bezier(0.34,1.56,0.64,1)'}}>
+
+        {/* Верхня смуга */}
+        <div style={{height:4,background:`linear-gradient(90deg,transparent,${accentColor},transparent)`}}/>
+
+        {/* Заголовок */}
+        <div style={{padding:'1.75rem 2rem 1.25rem',textAlign:'center',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+          <div style={{fontSize:'3rem',marginBottom:'0.5rem',filter:`drop-shadow(0 0 20px ${accentColor}88)`,animation:'campPop 0.5s ease'}}>
+            {won?(level.isBoss?'🏆':'✅'):'💪'}
+          </div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'1.5rem',fontWeight:900,color:accentColor,letterSpacing:'0.06em',textShadow:`0 0 30px ${accentColor}66, 0 2px 8px rgba(0,0,0,1)`,marginBottom:'0.25rem'}}>
+            {won?t('Перемога!','Victory!'):t('Поразка','Defeat')}
+          </div>
+          <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'rgba(255,220,150,0.45)',letterSpacing:'0.1em'}}>
+            {level.emoji} {t('Рівень','Level')} {level.id} — {levelName}
+          </div>
         </div>
-        {envelopes>0&&(
-          <div style={{opacity:step>=3?1:0,transition:'opacity 0.4s',marginBottom:'1rem'}}>
-            <div style={{fontFamily:'var(--jp)',fontSize:'0.62rem',color:'rgba(255,255,255,0.4)',marginBottom:8}}>📨 {t('Конверти','Envelopes')}: {envelopes}</div>
+
+        {/* Зірки */}
+        {won&&(
+          <div style={{padding:'1rem 2rem',borderBottom:'1px solid rgba(255,255,255,0.05)',display:'flex',justifyContent:'center',gap:12,opacity:step>=1?1:0,transition:'opacity 0.5s',background:'rgba(184,134,11,0.04)'}}>
+            {[1,2,3].map(i=>(
+              <span key={i} style={{fontSize:'2rem',filter:i<=stars?'drop-shadow(0 0 8px rgba(240,192,96,0.7))':'grayscale(1) opacity(0.2)',animation:step>=1&&i<=stars?`starPop 0.4s ease ${i*0.15}s both`:undefined}}>⭐</span>
+            ))}
+          </div>
+        )}
+
+        {/* Нагорода */}
+        {won&&(
+          <div style={{padding:'1rem 2rem',borderBottom:envelopes>0?'1px solid rgba(255,255,255,0.05)':'none',opacity:step>=2?1:0,transform:step>=2?'none':'translateY(8px)',transition:'all 0.4s'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',textAlign:'center',marginBottom:'0.6rem'}}>{t('Нагорода','Reward')}</div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+              <span style={{fontFamily:'var(--jp)',fontSize:'2.2rem',fontWeight:900,color:'#f0c060',textShadow:'0 0 16px rgba(240,192,96,0.5)',lineHeight:1}}>+{yokoinEarned}</span>
+              <img src="/images/icon-yokoin.webp" alt="" style={{height:36,width:36,objectFit:'contain',filter:'drop-shadow(0 0 10px rgba(240,160,20,0.8))'}} onError={e=>e.currentTarget.style.display='none'}/>
+            </div>
+          </div>
+        )}
+
+        {/* Конверти */}
+        {won&&envelopes>0&&(
+          <div style={{padding:'0.875rem 2rem',borderBottom:'1px solid rgba(255,255,255,0.05)',opacity:step>=3?1:0,transition:'opacity 0.4s',textAlign:'center'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.52rem',color:'rgba(255,220,150,0.4)',textTransform:'uppercase',letterSpacing:'0.14em',marginBottom:'0.5rem'}}>📨 {t('Конверт','Envelope')}</div>
             {!openedEnvelope?(
-              <button onClick={()=>setOpenedEnvelope(ENVELOPE_REWARDS[Math.floor(Math.random()*ENVELOPE_REWARDS.length)])} style={{background:'rgba(26,74,122,0.3)',color:'#7ec8f0',border:'1px solid #1a4a7a',borderRadius:4,padding:'8px 20px',fontFamily:'var(--jp)',fontSize:'0.75rem',cursor:'pointer',fontWeight:700,animation:'envelopePulse 1s ease infinite'}}>
+              <button onClick={()=>setOpenedEnvelope(ENVELOPE_REWARDS[Math.floor(Math.random()*ENVELOPE_REWARDS.length)])}
+                style={{padding:'8px 28px',background:'linear-gradient(180deg,#1a3a6a,#0d2248)',border:'1px solid #2a5a9a',borderRadius:6,color:'#7ec8f0',fontFamily:'var(--jp)',fontSize:'0.78rem',cursor:'pointer',fontWeight:700,boxShadow:'0 0 16px rgba(60,120,200,0.3)',animation:'envelopePulse 1s ease infinite',transition:'filter 0.12s'}}
+                onMouseEnter={e=>e.currentTarget.style.filter='brightness(1.2)'}
+                onMouseLeave={e=>e.currentTarget.style.filter='brightness(1)'}>
                 📨 {t('Відкрити','Open')}
               </button>
             ):(
-              <div style={{background:'rgba(26,74,122,0.2)',border:'1px solid #1a4a7a',borderRadius:4,padding:'0.75rem',animation:'campPop 0.4s ease'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,fontFamily:'var(--jp)',fontSize:'1.3rem',fontWeight:800,color:'#2ecc71'}}>
-                +{openedEnvelope}
-                <img src="/images/icon-yokoin.webp" alt="" style={{height:22,width:22,objectFit:'contain',filter:'drop-shadow(0 0 4px rgba(240,160,20,0.6))'}} onError={e=>e.currentTarget.style.display='none'}/>
-              </div>
+              <div style={{background:'rgba(26,74,122,0.15)',border:'1px solid rgba(42,90,154,0.5)',borderRadius:6,padding:'0.65rem',animation:'campPop 0.35s ease'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                  <span style={{fontFamily:'var(--jp)',fontSize:'1.4rem',fontWeight:900,color:'#2ecc71',textShadow:'0 0 10px rgba(46,204,113,0.5)'}}>+{openedEnvelope}</span>
+                  <img src="/images/icon-yokoin.webp" alt="" style={{height:22,width:22,objectFit:'contain',filter:'drop-shadow(0 0 4px rgba(240,160,20,0.6))'}} onError={e=>e.currentTarget.style.display='none'}/>
+                </div>
               </div>
             )}
           </div>
         )}
-      </>)}
-      <div style={{display:'flex',gap:10,marginTop:'1.5rem'}}>
-        {!won&&<button onClick={onRetry} style={{flex:1,padding:'0.8rem',background:'rgba(184,134,11,0.2)',color:'#f0c060',border:'1px solid rgba(184,134,11,0.4)',borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>🔄 {t('Знову','Retry')}</button>}
-        <button onClick={()=>onContinue(openedEnvelope||0)} style={{flex:1,padding:'0.8rem',background:won?'rgba(184,134,11,0.2)':'rgba(255,255,255,0.08)',color:won?'#f0c060':'rgba(255,255,255,0.7)',border:`1px solid ${won?'rgba(184,134,11,0.4)':'rgba(255,255,255,0.15)'}`,borderRadius:6,fontFamily:'var(--jp)',fontSize:'0.82rem',cursor:'pointer',fontWeight:700}}>
-          {won?t('Далі ›','Continue ›'):t('В меню','Menu')}
-        </button>
+
+        {/* Програш */}
+        {!won&&(
+          <div style={{padding:'1rem 2rem',borderBottom:'1px solid rgba(255,255,255,0.05)',textAlign:'center'}}>
+            <div style={{fontFamily:'var(--jp)',fontSize:'0.65rem',color:'rgba(255,180,150,0.5)',lineHeight:1.8}}>{t('Поверніться до магазину, підсильтесь і спробуйте знову.','Return to the shop, power up and try again.')}</div>
+          </div>
+        )}
+
+        {/* Кнопки */}
+        <div style={{padding:'1.25rem 1.5rem',display:'flex',gap:'0.75rem',flexDirection:'column'}}>
+          {won?(
+            <button onClick={()=>onContinue(openedEnvelope||0)}
+              style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#c49a1a 0%,#8b6010 50%,#5a3d08 100%)',border:'1px solid #f0c060',borderRadius:8,color:'#fff8e0',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.12em',cursor:'pointer',boxShadow:'0 4px 24px rgba(184,134,11,0.5), inset 0 1px 0 rgba(255,220,80,0.35)',transition:'filter 0.12s, transform 0.12s',textShadow:'0 1px 4px rgba(0,0,0,0.6)'}}
+              onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
+              onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
+              {level.isBoss?'🏆 ':''}{t('Далі →','Continue →')}
+            </button>
+          ):(
+            <button onClick={onRetry}
+              style={{width:'100%',padding:'1rem',background:'linear-gradient(180deg,#1e6b30 0%,#0f4020 50%,#082814 100%)',border:'1px solid #2ecc71',borderRadius:8,color:'#c8ffd8',fontFamily:'var(--jp)',fontSize:'0.95rem',fontWeight:900,letterSpacing:'0.12em',cursor:'pointer',boxShadow:'0 4px 24px rgba(46,204,113,0.3), inset 0 1px 0 rgba(100,255,150,0.2)',transition:'filter 0.12s, transform 0.12s'}}
+              onMouseEnter={e=>{e.currentTarget.style.filter='brightness(1.15)';e.currentTarget.style.transform='translateY(-1px)'}}
+              onMouseLeave={e=>{e.currentTarget.style.filter='brightness(1)';e.currentTarget.style.transform='translateY(0)'}}>
+              🔄 {t('Спробувати знову','Try again')}
+            </button>
+          )}
+          <button onClick={()=>onContinue(openedEnvelope||0)}
+            style={{width:'100%',padding:'0.75rem',background:'linear-gradient(180deg,#2a2218 0%,#1a1510 100%)',border:'1px solid rgba(255,220,150,0.15)',borderRadius:8,color:'rgba(255,220,150,0.55)',fontFamily:'var(--jp)',fontSize:'0.78rem',fontWeight:600,letterSpacing:'0.08em',cursor:'pointer',transition:'border-color 0.15s, color 0.15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.4)';e.currentTarget.style.color='rgba(255,220,150,0.85)'}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,220,150,0.15)';e.currentTarget.style.color='rgba(255,220,150,0.55)'}}>
+            ‹ {won?t('В меню кампанії','Campaign menu'):t('В меню','Menu')}
+          </button>
+        </div>
+
+        {/* Нижня смуга */}
+        <div style={{height:3,background:`linear-gradient(90deg,transparent,${accentColor}44,transparent)`}}/>
       </div>
     </div>
   )

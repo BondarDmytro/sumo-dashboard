@@ -1004,7 +1004,7 @@ function BattleLayout({myHp,oppHp,myArmor,oppArmor,myWins,oppWins,roundNum,myLab
         </div>
         {oppReady&&!myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.75rem',fontWeight:600,color:'#2ecc71',textShadow:'0 1px 4px rgba(0,0,0,0.9)',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>✓ {t('Суперник готовий','Opponent ready')}</div>}
         {myReady&&<div style={{fontFamily:'var(--jp)',fontSize:'0.72rem',fontWeight:600,color:'rgba(255,220,150,0.75)',textShadow:'0 1px 4px rgba(0,0,0,0.9)',marginBottom:'0.4rem',textAlign:'center',animation:'pulse 1.5s ease infinite'}}>⏳ {t('Очікуємо суперника...','Waiting...')}</div>}
-        <div style={{paddingTop:isMobile?6:8,marginTop:4}}>
+        <div style={{position:'sticky',bottom:0,left:0,right:0,marginTop:isMobile?6:4,padding:isMobile?'6px 0 2px':'4px 0 0',background:'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.55) 30%)',zIndex:10}}>
           {((!playerSelected&&!mySkipped)||myReady)?(
             <GameBtn variant='dark' disabled style={{display:'block',margin:'0 auto',width:btnW,minWidth:isMobile?'unset':200,justifyContent:'center',padding:btnPad,fontSize:btnFs,letterSpacing:'0.1em'}}>
               {myReady?t('Підтверджено ✓','Confirmed ✓'):t('Оберіть карту','Select a card')}
@@ -1184,7 +1184,7 @@ function CpuGame({ lang, onBack, sfx, onCardPlayed, onAchievementProgress }) {
   }
 
   const oya1=t('Ояката 1','Oyakata 1');const cpu=t('Ояката 2 (CPU)','Oyakata 2 (CPU)')
-  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',paddingBottom:isMobile?'0.5rem':'0.75rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={oya1} opponentLabel={cpu} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <CardGuide lang={lang}/>
@@ -1300,7 +1300,7 @@ function CampaignBattleWrapper({ level, boostedCard, tempBoosts, onWin, onLose, 
   }
 
   const levelName=lang==='en'?level.nameEn:level.name
-  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',position:'relative',zIndex:1,background:'transparent'}}>
+  return(<div style={{flex:1,display:'flex',flexDirection:'column',overflowY:'auto',padding:isMobile?'0.75rem':'1.25rem',paddingBottom:isMobile?'0.5rem':'0.75rem',position:'relative',zIndex:1,background:'transparent'}}>
     {vsActive&&<VSScreen playerLabel={t('Ояката','Oyakata')} opponentLabel={levelName} lang={lang} onDone={()=>{setVsActive(false);setPhase('battle')}}/>}
     <GameBtn variant='dark' onClick={onBack} style={{marginBottom:'0.75rem'}}>‹ {t('Назад','Back')}</GameBtn>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:4,padding:'4px 10px'}}>
