@@ -49,6 +49,9 @@ function IconBtn({ href, onClick, title, color, children }) {
 }
 
 function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
+  const isLocalhost = typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+
   const games = [
     {
       id: 'quiz',
@@ -69,7 +72,8 @@ function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
       emoji: '⚔️',
       title: lang === 'en' ? 'Sumo Clash' : 'Dohyo Legends',
       desc: lang === 'en' ? 'Strategic card game · Draft · ATK vs DEF · HP battle' : 'Стратегічна карткова гра · Драфт · ATK vs DEF · Битва HP',
-      ready: true,
+      ready: isLocalhost,
+      comingSoon: !isLocalhost,
     },
   ]
 
@@ -123,10 +127,13 @@ function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
                   {!g.ready && (
                     <span style={{
                       fontFamily: 'monospace', fontSize: '0.52rem',
-                      border: '1px solid var(--border)',
-                      color: 'var(--mid)', padding: '1px 6px', borderRadius: 2,
+                      border: `1px solid ${g.comingSoon ? '#b8860b' : 'var(--border)'}`,
+                      color: g.comingSoon ? '#b8860b' : 'var(--mid)',
+                      padding: '1px 6px', borderRadius: 2,
                     }}>
-                      {lang === 'en' ? 'IN DEV' : 'В РОЗРОБЦІ'}
+                      {g.comingSoon
+                        ? (lang === 'en' ? 'COMING SOON' : 'СКОРО')
+                        : (lang === 'en' ? 'IN DEV' : 'В РОЗРОБЦІ')}
                     </span>
                   )}
                 </div>

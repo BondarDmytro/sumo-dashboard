@@ -2301,6 +2301,36 @@ export default function SumoClash({ onClose, lang='uk' }) {
   const [mode, setMode] = useState('menu')
   const t=(uk,en)=>lang==='en'?en:uk
   const isMobile=useIsMobile()
+
+  // ── Тимчасове блокування на production ────────────────────
+  const isLocked = typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+
+  if (isLocked) return (
+    <div onClick={()=>onClose()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',backdropFilter:'blur(4px)'}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:'linear-gradient(180deg,#1a1208,#0d0a06)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:12,padding:'3rem 4rem',maxWidth:440,width:'100%',textAlign:'center',boxShadow:'0 0 60px rgba(184,134,11,0.1)',fontFamily:"'Noto Serif JP',serif",position:'relative'}}>
+        <button onClick={onClose} style={{position:'absolute',top:12,right:12,background:'transparent',border:'none',color:'rgba(255,255,255,0.3)',fontSize:'1.2rem',cursor:'pointer',lineHeight:1,padding:4}}>✕</button>
+        <div style={{fontSize:'3.5rem',marginBottom:'1rem'}}>🥋</div>
+        <h2 style={{color:'#f0c060',fontSize:'1.8rem',fontWeight:900,letterSpacing:'0.15em',textShadow:'0 0 30px rgba(240,192,96,0.5)',margin:'0 0 0.5rem'}}>DOHYO LEGENDS</h2>
+        <div style={{width:50,height:2,background:'linear-gradient(90deg,transparent,#b8860b,transparent)',margin:'0 auto 1.5rem'}}/>
+        <p style={{color:'rgba(255,220,150,0.75)',fontSize:'0.95rem',lineHeight:1.8,margin:'0 0 0.4rem'}}>
+          {t('Гра готується до відкриття','Game is coming soon')}
+        </p>
+        <p style={{color:'rgba(255,255,255,0.25)',fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',margin:'0 0 2rem'}}>
+          Coming Soon
+        </p>
+        <button onClick={onClose} style={{background:'rgba(184,134,11,0.15)',color:'#f0c060',border:'1px solid rgba(184,134,11,0.4)',borderRadius:6,padding:'0.6rem 2rem',fontFamily:"'Noto Serif JP',serif",fontSize:'0.8rem',cursor:'pointer',fontWeight:700,transition:'all 0.15s'}}
+          onMouseEnter={e=>e.currentTarget.style.background='rgba(184,134,11,0.3)'}
+          onMouseLeave={e=>e.currentTarget.style.background='rgba(184,134,11,0.15)'}>
+          {t('Закрити','Close')}
+        </button>
+        <div style={{marginTop:'2rem',fontSize:'0.5rem',color:'rgba(255,220,150,0.2)',letterSpacing:'0.12em'}}>© 2026 TerraVetera</div>
+      </div>
+    </div>
+  )
+  // ──────────────────────────────────────────────────────────
+
   const audioCtxRef=useRef(null)
   const audioRef=useRef(null)
   const [sfxOn,setSfxOn]=useState(true)
