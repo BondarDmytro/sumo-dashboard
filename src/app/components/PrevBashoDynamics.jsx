@@ -21,7 +21,7 @@ export default function PrevBashoDynamics({ bashoId }) {
   const [data, setData] = useState(null)
   const [err, setErr] = useState(null)
   const [day, setDay] = useState(15)
-  const [view, setView] = useState('list')      /* dyn_views_v1: list | groups */
+  const [view, setView] = useState('groups')  /* groups_default_v1 */      /* dyn_views_v1: list | groups */
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
@@ -119,8 +119,8 @@ export default function PrevBashoDynamics({ bashoId }) {
       {/* Перемикач візуалізації */}
       <div style={{ display: 'flex', gap: 6, marginBottom: '1rem' }}>
         {[
-          { id: 'list', label: t3(lang, 'Список', 'List', 'リスト') },
           { id: 'groups', label: t3(lang, 'По перемогах', 'By wins', '勝数別') },
+          { id: 'list', label: t3(lang, 'Список', 'List', 'リスト') },
         ].map(v => (
           <button key={v.id} onClick={() => setView(v.id)} style={{
             padding: '4px 14px', fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase',

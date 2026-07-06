@@ -52,6 +52,21 @@ export function bashoInfo(bashoId) {
   }
 }
 
+export function bashoListOfYear(year, includeUpcomingCurrent = true) {
+  // Басьо року, що вже стартували (мають дані в API) + опційно найближчий upcoming.
+  const now = new Date()
+  const out = []
+  for (const m of BASHO_MONTHS) {
+    const id = String(year) + String(m).padStart(2, '0')
+    const st = bashoStatus(id)
+    if (st === 'finished' || st === 'live') out.push(id)
+    else if (st === 'upcoming' && includeUpcomingCurrent && out.length < 6) {
+      out.push(id); break  // перший upcoming = поточний у хедері, далі не йдемо
+    }
+  }
+  return out
+}
+
 export function prevBashoIdOf(bashoId) {
   const year = parseInt(String(bashoId).slice(0, 4), 10)
   const month = parseInt(String(bashoId).slice(4, 6), 10)

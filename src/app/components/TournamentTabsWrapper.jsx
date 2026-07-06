@@ -7,22 +7,23 @@ import TorikumiView from './TorikumiView'
 import PrizeMoney from './PrizeMoney'
 import { useBios } from './BiosProvider'
 import PrevBashoDynamics from './PrevBashoDynamics' /* prev_dynamics_tab_v1 */
-import { bashoInfo, prevBashoIdOf } from '../lib/bashoCalendar'
+import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_filter_v2 */
 
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
   const [tab, setTab] = useState('standings')
+  const { selBasho } = useBashoFilter()  /* basho_filter_v2 */
+  const isCurrent = selBasho === CURRENT_BASHO
   const { lang } = useLang()
   const bios = useBios()
 
   const tabs = [
     { id: 'standings', label: lang === 'en' ? 'Standings' : 'Таблиця' },
-    ...(!isFinished && currentDay <= 15 ? [{
+    ...(isCurrent && !isFinished && currentDay <= 15 ? [{
       id: 'torikumi',
       label: lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
     }] : []),
-    { id: 'prizes', label: lang === 'en' ? 'Prize money' : 'Призові' },
-    { id: 'prevbasho', label: bashoInfo(prevBashoIdOf('202607')).label[lang === 'en' ? 'en' : 'uk'] },  /* prev_dynamics_tab_v1 */
-  ]
+    ...(isCurrent ? [{ id: 'prizes', label: lang === 'en' ? 'Prize money' : 'Призові' }] : []),
+  ]  /* basho_filter_v1 */
 
   return (
     <>
@@ -41,10 +42,10 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
           </button>
         ))}
       </div>
-      {tab === 'standings' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
-      {tab === 'torikumi' && <TorikumiView currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
-      {tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
-      {tab === 'prevbasho' && <PrevBashoDynamics bashoId={prevBashoIdOf('202607')} />}
+      {isCurrent && tab === 'standings' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
+      {isCurrent && tab === 'torikumi' && <TorikumiView currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
+      {isCurrent && tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
+      {!isCurrent && <PrevBashoDynamics bashoId={selBasho} />}  {/* basho_filter_v1 */}
     </>
   )
 }

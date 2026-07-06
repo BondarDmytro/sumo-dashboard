@@ -3,6 +3,10 @@ import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
 import TournamentTabsWrapper from './components/TournamentTabsWrapper'
+import { BashoFilterProvider } from './components/BashoFilterContext' /* basho_filter_v2 */
+import BashoSelect from './components/BashoSelect'
+import HomeGrids from './components/HomeGrids'
+import CurrentOnly from './components/CurrentOnly' /* basho_filter_v2_fix */
 import RikishiCard from './components/RikishiCard'
 import YushoWinner from './components/YushoWinner'
 
@@ -242,7 +246,9 @@ export default async function Home() {
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
+      <BashoFilterProvider>  {/* basho_filter_v2 */}
       <TournamentHeader
+        bashoSelect={<BashoSelect />}
         champion={!isFinished && prevYusho && bashoStatus('202607') === 'upcoming'
           ? { id: String(prevYusho.id), name: prevYusho.name, wins: 12, losses: 3,
               label: bashoInfo(prevBashoIdOf('202607')).label.uk + ' \u2014 \u044e\u0448\u043e' }
@@ -306,13 +312,15 @@ export default async function Home() {
           specialPrizes={specialPrizes}
           yushoData={yushoData}
         />
-        <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
-        <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />
+        <HomeGrids others={others} kyujo={kyujo} currentDay={currentDay} />
+        <CurrentOnly>  {/* basho_filter_v2_fix: mobile-cards + footer тільки для поточного басьо */}
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
         <TournamentFooter contenders={contenders} h2h={h2h} />
+        </CurrentOnly>
       </div>
+      </BashoFilterProvider>  {/* basho_filter_v2_fix2 */}
     </main>
   )
 }

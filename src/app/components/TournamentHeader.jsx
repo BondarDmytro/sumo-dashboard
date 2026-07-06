@@ -12,7 +12,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607', champion = null }) {  /* header_v3 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607', champion = null, bashoSelect = null }) {  /* basho_filter_v2 */  /* header_v3 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -27,6 +27,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
 
   return (
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
+      {bashoSelect && <div style={{position:'absolute',top:'1rem',right:'1.25rem',zIndex:2}}>{bashoSelect}</div>}  {/* basho_filter_v2 */}
       <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.12,lineHeight:1,pointerEvents:'none',color:'#ff2121'}}>相撲</div>
       <div style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,display:'grid',gridTemplateColumns:champion ? '1fr minmax(300px,420px) 1fr' : '2fr 1fr',gap:'2.5rem',alignItems:'center'}}>  {/* header_v10 */}
         <div style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center',height:300}}>
