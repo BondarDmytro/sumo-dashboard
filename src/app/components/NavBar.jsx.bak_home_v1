@@ -253,9 +253,25 @@ useEffect(() => {
               display: 'flex', alignItems: 'center', gap: 6,
               paddingLeft: 12, flexShrink: 0,
             }}>
-              <a href="https://dohyo-legends.com" title="Dohyo Legends" style={{display:'flex',alignItems:'center',marginRight:6,textDecoration:'none'}}> {/*navbar_home_v1 navbar_social_removed_v1*/}
-                <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
-              </a>
+              <IconBtn href="https://www.youtube.com/@kachikoshiua" title="YouTube" color="#FF0000">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/>
+                </svg>
+              </IconBtn>
+
+              <IconBtn href="https://t.me/kachikoshiua" title="Telegram" color="#29B6F6">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.9 8.2l-2 9.4c-.1.6-.5.8-.9.5l-2.5-1.9-1.2 1.1c-.1.1-.3.2-.6.2l.2-2.6 4.9-4.4c.2-.2 0-.3-.3-.1L6.4 14.6 4 13.9c-.5-.2-.5-.5.1-.7l11.5-4.4c.5-.2.9.1.3.4z"/>
+                </svg>
+              </IconBtn>
+
+              <IconBtn href="https://sumosite-production.up.railway.app/" title="Сайт" color="#f5f0e8">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </IconBtn>
 
               <IconBtn onClick={toggle} title={dark ? 'Світла тема' : 'Темна тема'} color="#b8860b">
                 <ThemeIcon dark={dark} />
