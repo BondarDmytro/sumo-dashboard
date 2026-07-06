@@ -20,6 +20,15 @@ function secondSundayDay(year, month) {
   return firstSunday + 7
 }
 
+const VENUES = {  /* venue_v1: фото поклади в public/images/venues/ */
+  1:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-hatsu.webp' },
+  3:  { name: 'EDION Arena Osaka',      img: '/images/venues/venue-haru.webp' },
+  5:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-natsu.webp' },
+  7:  { name: 'IG Arena',               img: '/images/venues/venue-nagoya.webp' },
+  9:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-aki.webp' },
+  11: { name: 'Fukuoka Kokusai Center', img: '/images/venues/venue-kyushu.webp' },
+}
+
 const START_HOUR_JST = 8   // початок боїв дня 1 (нижні дивізіони), JST
 const START_MIN_JST = 30
 
@@ -39,6 +48,7 @@ export function bashoInfo(bashoId) {
     kanji: m.kanji,
     label:  { uk: m.uk + ' ' + year,  en: m.en + ' ' + year,  ja: m.ja + ' ' + year },
     city:   { uk: m.cityUk, en: m.cityEn, ja: m.cityJa },
+    venue:  VENUES[month],
   }
 }
 

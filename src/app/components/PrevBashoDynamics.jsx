@@ -62,8 +62,10 @@ export default function PrevBashoDynamics({ bashoId }) {
     return list
   }, [rows, day])
 
-  const maxW = dayRows.length ? dayRows[0].w : 0
-  const leaders = dayRows.filter(r => r.w === maxW && r.w > 0)
+  const kyujoNow = dayRows.filter(r => r.res === 'a')  /* dyn_kyujo_v2: absent у обраний день = кюджо */
+  const activeNow = dayRows.filter(r => r.res !== 'a')
+  const maxW = activeNow.length ? activeNow[0].w : 0
+  const leaders = activeNow.filter(r => r.w === maxW && r.w > 0)
 
   // Хроніка лідерів по днях
   const timeline = useMemo(() => {
@@ -135,6 +137,11 @@ export default function PrevBashoDynamics({ bashoId }) {
         </div>
       )}
 
+      {kyujoNow.length > 0 && (
+        <CompactGrid currentDay={day} isKyujo={true}
+          items={kyujoNow.map(r => ({ _id: String(r.id), name: r.name, rank: r.rank, wins: r.w, losses: r.l, record: r.rawRecord.slice(0, day) }))} />
+      )}
+
       {/* Таблиця всіх учасників на день */}
       {view === 'list' && <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'monospace', fontSize: '0.72rem' }}>
@@ -148,7 +155,7 @@ export default function PrevBashoDynamics({ bashoId }) {
             </tr>
           </thead>
           <tbody>
-            {(showAll ? dayRows : dayRows.slice(0, 10)).map((r, i) => {
+            {(showAll ? activeNow : activeNow.slice(0, 10)).map((r, i) => {
               const isLeader = r.w === maxW && r.w > 0
               return (
                 <tr key={r.id} style={{ borderTop: '1px solid var(--border)', background: isLeader ? 'rgba(184,134,11,0.08)' : 'transparent' }}>
@@ -166,30 +173,22 @@ export default function PrevBashoDynamics({ bashoId }) {
             })}
           </tbody>
         </table>
-        {dayRows.length > 10 && (
+        {activeNow.length > 10 && (
           <button onClick={() => setShowAll(v => !v)} style={{
             marginTop: 10, width: '100%', padding: '8px', fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase',
             background: 'var(--bg2)', color: 'var(--mid)', border: '1px solid var(--border)', borderRadius: 2, cursor: 'pointer',
           }}>
-            {showAll ? t3(lang, 'Згорнути до топ-10', 'Collapse to top 10', 'トップ10に戻す') : t3(lang, 'Показати всіх (' + dayRows.length + ')', 'Show all (' + dayRows.length + ')', '全員表示 (' + dayRows.length + ')')}
+            {showAll ? t3(lang, 'Згорнути до топ-10', 'Collapse to top 10', 'トップ10に戻す') : t3(lang, 'Показати всіх (' + activeNow.length + ')', 'Show all (' + activeNow.length + ')', '全員表示 (' + activeNow.length + ')')}
           </button>
         )}
       </div>}
 
       {/* Групування за перемогами (CompactGrid, як основна таблиця) */}
-      {view === 'groups' && (() => {  /* dyn_kyujo_split_v1 */
-        const toItem = r => ({ _id: String(r.id), name: r.name, rank: r.rank, wins: r.w, losses: r.l, record: r.rawRecord.slice(0, day) })
-        const isFullKyujo = r => r.w === 0 && r.l === 0 && r.rawRecord.slice(0, day).some(m => m && m.result === 'absent')
-        const active = dayRows.filter(r => !isFullKyujo(r)).map(toItem)
-        const kyujoItems = dayRows.filter(isFullKyujo).map(toItem)
-        return (
-          <div>
-            <CompactGrid currentDay={day} isKyujo={true} items={kyujoItems} />  {/* dyn_kyujo_top_v1 */}
-            <CompactGrid currentDay={day} isKyujo={false} items={active}
-              title={(lang === 'en' ? 'Standings after day ' : 'Стан після дня ') + day} />
-          </div>
-        )
-      })()}
+      {view === 'groups' && (
+        <CompactGrid currentDay={day} isKyujo={false}
+          items={activeNow.map(r => ({ _id: String(r.id), name: r.name, rank: r.rank, wins: r.w, losses: r.l, record: r.rawRecord.slice(0, day) }))}
+          title={(lang === 'en' ? 'Standings after day ' : 'Стан після дня ') + day} />
+      )}
     </div>
   )
 }
