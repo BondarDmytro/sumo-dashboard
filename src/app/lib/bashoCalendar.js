@@ -42,6 +42,15 @@ export function bashoInfo(bashoId) {
   }
 }
 
+export function prevBashoIdOf(bashoId) {
+  const year = parseInt(String(bashoId).slice(0, 4), 10)
+  const month = parseInt(String(bashoId).slice(4, 6), 10)
+  const idx = BASHO_MONTHS.indexOf(month)
+  const pm = BASHO_MONTHS[(idx + 5) % 6]
+  const py = pm === 11 && month === 1 ? year - 1 : year
+  return String(py) + String(pm).padStart(2, '0')
+}
+
 export function nextBashoId(bashoId) {
   const year = parseInt(String(bashoId).slice(0, 4), 10)
   const month = parseInt(String(bashoId).slice(4, 6), 10)

@@ -6,12 +6,12 @@ import FlagName from './FlagName'
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 
-export default function CompactGrid({ items, isKyujo, currentDay }) {
+export default function CompactGrid({ items, isKyujo, currentDay, title: titleProp }) {  /* grid_title_prop_v1 */
   const { lang } = useLang()
 
-  const title = isKyujo
+  const title = titleProp || (isKyujo
     ? (lang === 'en' ? 'Kyujo — absent' : 'Кюджо — відсутні')
-    : (lang === 'en' ? 'Eliminated from yusho race' : 'Вибули з гонки юшо')
+    : (lang === 'en' ? 'Eliminated from yusho race' : 'Вибули з гонки юшо'))
 
   const winsLabel = w => {
     if (lang === 'en') return `${w} ${w === 1 ? 'win' : 'wins'}`

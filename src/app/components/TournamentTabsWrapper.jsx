@@ -6,6 +6,8 @@ import TournamentTable from './TournamentTable'
 import TorikumiView from './TorikumiView'
 import PrizeMoney from './PrizeMoney'
 import { useBios } from './BiosProvider'
+import PrevBashoDynamics from './PrevBashoDynamics' /* prev_dynamics_tab_v1 */
+import { bashoInfo, prevBashoIdOf } from '../lib/bashoCalendar'
 
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
   const [tab, setTab] = useState('standings')
@@ -19,6 +21,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       label: lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
     }] : []),
     { id: 'prizes', label: lang === 'en' ? 'Prize money' : 'Призові' },
+    { id: 'prevbasho', label: bashoInfo(prevBashoIdOf('202607')).label[lang === 'en' ? 'en' : 'uk'] },  /* prev_dynamics_tab_v1 */
   ]
 
   return (
@@ -41,6 +44,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       {tab === 'standings' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
       {tab === 'torikumi' && <TorikumiView currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
       {tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
+      {tab === 'prevbasho' && <PrevBashoDynamics bashoId={prevBashoIdOf('202607')} />}
     </>
   )
 }
