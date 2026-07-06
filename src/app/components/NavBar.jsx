@@ -4,9 +4,6 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
-import SumoQuiz from './SumoQuiz'
-import YushoGame from './YushoGame'
-import SumoClash from './SumoClash'
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -48,115 +45,11 @@ function IconBtn({ href, onClick, title, color, children }) {
   return null
 }
 
-function GamesMenu({ onClose, onOpenQuiz, onOpenYusho, onOpenClash, lang }) {
-  const isLocalhost = typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-
-  const games = [
-    {
-      id: 'quiz',
-      emoji: '🧠',
-      title: lang === 'en' ? 'Sumo Quiz' : 'Сумо Квіз',
-      desc: lang === 'en' ? '15 questions · Easy → Hard · Kachi-koshi or Make-koshi' : '15 питань · Легкі → Важкі · Качі-коші або Маке-коші',
-      ready: true,
-    },
-    {
-      id: 'snap',
-      emoji: '🃏',
-      title: lang === 'en' ? 'Yusho Card Game' : 'Юшо',
-      desc: lang === 'en' ? 'Card battle · Collect the full deck' : 'Карткова битва · Зберіть повну колоду',
-      ready: true,
-    },
-    {
-      id: 'clash',
-      emoji: '⚔️',
-      title: lang === 'en' ? 'Sumo Clash' : 'Dohyo Legends',
-      desc: lang === 'en' ? 'Strategic card game · Draft · ATK vs DEF · HP battle' : 'Стратегічна карткова гра · Драфт · ATK vs DEF · Битва HP',
-      ready: isLocalhost,
-      comingSoon: !isLocalhost,
-    },
-  ]
-
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.85)',
-      zIndex: 2000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem',
-      backdropFilter: 'blur(4px)',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--card)',
-        border: '1px solid var(--border)',
-        borderRadius: 4,
-        maxWidth: 480, width: '100%',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          borderBottom: '1px solid var(--border)',
-          padding: '0.75rem 1rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--mid)' }}>
-            {lang === 'en' ? '🎮 Games' : '🎮 Ігри'}
-          </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--mid)', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>
-            {'✕'}
-          </button>
-        </div>
-        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {games.map(g => (
-            <div
-              key={g.id}
-              onClick={g.ready ? (g.id === 'quiz' ? onOpenQuiz : g.id === 'snap' ? onOpenYusho : onOpenClash) : undefined}
-              style={{
-                background: 'var(--bg2)',
-                border: '1px solid var(--border)',
-                borderLeft: `3px solid ${g.ready ? '#b8860b' : 'var(--border)'}`,
-                borderRadius: 2, padding: '1rem',
-                cursor: g.ready ? 'pointer' : 'default',
-                opacity: g.ready ? 1 : 0.55,
-                display: 'flex', alignItems: 'center', gap: 14,
-              }}
-            >
-              <span style={{ fontSize: '1.8rem', flexShrink: 0 }}>{g.emoji}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{g.title}</div>
-                  {!g.ready && (
-                    <span style={{
-                      fontFamily: 'monospace', fontSize: '0.52rem',
-                      border: `1px solid ${g.comingSoon ? '#b8860b' : 'var(--border)'}`,
-                      color: g.comingSoon ? '#b8860b' : 'var(--mid)',
-                      padding: '1px 6px', borderRadius: 2,
-                    }}>
-                      {g.comingSoon
-                        ? (lang === 'en' ? 'COMING SOON' : 'СКОРО')
-                        : (lang === 'en' ? 'IN DEV' : 'В РОЗРОБЦІ')}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'var(--mid)' }}>{g.desc}</div>
-              </div>
-              {g.ready && <span style={{ color: 'var(--mid)', fontSize: '1.2rem' }}>{'›'}</span>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function NavBar() {
   const path = usePathname()
   const isStudio = path.startsWith('/studio')
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [gamesOpen, setGamesOpen] = useState(false)
-  const [quizOpen, setQuizOpen] = useState(false)
-  const [yushoOpen, setYushoOpen] = useState(false)
-  const [clashOpen, setClashOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const { lang, setLanguage, t } = useLang()
 
@@ -209,6 +102,9 @@ useEffect(() => {
           maxWidth: 1100, margin: '0 auto',
           padding: '0 0.75rem',
         }}>
+              <a href="https://dohyo-legends.com" title="Dohyo Legends" style={{display:'flex',alignItems:'center',marginRight:6,textDecoration:'none'}}> {/*navbar_home_v1 navbar_social_removed_v1*/}
+                <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
+              </a>  {/* navbar_cleanup_v1 */}
           {tabs.map(tab => (
             <Link key={tab.href} href={tab.href} style={{
               display: 'inline-block',
@@ -235,9 +131,6 @@ useEffect(() => {
               display: 'flex', alignItems: 'center', gap: 6,
               paddingLeft: 12, flexShrink: 0,
             }}>
-              <a href="https://dohyo-legends.com" title="Dohyo Legends" style={{display:'flex',alignItems:'center',marginRight:6,textDecoration:'none'}}> {/*navbar_home_v1 navbar_social_removed_v1*/}
-                <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
-              </a>
 
               <IconBtn onClick={toggle} title={dark ? 'Світла тема' : 'Темна тема'} color="#b8860b">
                 <ThemeIcon dark={dark} />
@@ -284,11 +177,6 @@ useEffect(() => {
       </nav>
 
       
-          onOpenQuiz={() => { setGamesOpen(false); setQuizOpen(true) }}
-          onOpenYusho={() => { setGamesOpen(false); setYushoOpen(true) }}
-      {quizOpen && <SumoQuiz onClose={() => setQuizOpen(false)} />}
-      {yushoOpen && <YushoGame onClose={() => setYushoOpen(false)} lang={lang} />}
-      {clashOpen && <SumoClash onClose={() => setClashOpen(false)} lang={lang} />}
     </>
   )
 }
