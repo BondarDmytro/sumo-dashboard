@@ -35,7 +35,7 @@ function getCountry(shusshin) {
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
 }
-const CURRENT_BASHO = '202605'
+const CURRENT_BASHO = '202607'
 const PREV_BASHOS = ['202603', '202601', '202511']
 
 async function getRikishiMatches(id) {

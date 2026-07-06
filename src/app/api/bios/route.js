@@ -40,7 +40,7 @@ function getCountry(shusshin) {
 export async function GET() {
   try {
     const banzukeRes = await fetch(
-      `${SUMO_API}/basho/202605/banzuke/Makuuchi`,
+      `${SUMO_API}/basho/202607/banzuke/Makuuchi`,
       { next: { revalidate: 86400 } }
     )
     const banzuke = await banzukeRes.json()

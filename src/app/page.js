@@ -8,25 +8,28 @@ import YushoWinner from './components/YushoWinner'
 
 export const revalidate = 60
 
+import { applyBashoRules, prevBashoId } from './lib/bashoRules' /* basho_rules_v1 */
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 async function getBashoData() {
-  const bashoStart = new Date('2026-05-10')
+  const bashoStart = new Date('2026-07-12') /*nagoya_switch_v1*/
   const today = new Date()
   const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
-  const [banzukeRes, torikumiRes, bashoInfoRes] = await Promise.all([
-    fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi', { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/202605/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
-    fetch('https://sumo-api.com/api/basho/202605', { next: { revalidate: 60 } }),
+  const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
+    fetch('https://sumo-api.com/api/basho/202607/banzuke/Makuuchi', { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/202607/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
+    fetch('https://sumo-api.com/api/basho/202607', { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${prevBashoId('202607')}/banzuke/Makuuchi`, { next: { revalidate: 3600 } }),
   ])
 
   const banzuke = await banzukeRes.json()
   const torikumiData = await torikumiRes.json()
   const bashoInfo = await bashoInfoRes.json()
+  const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
   const specialPrizes = bashoInfo.specialPrizes || []
   const yushoData = bashoInfo.yusho || []
   const todayMatches = torikumiData.torikumi || []
@@ -66,15 +69,16 @@ async function getBashoData() {
     }
   })
 
-  const withChances = processed.map(r => {
+  const processedEd = applyBashoRules(processed, prevBanzuke) /* basho_rules_v1 */
+  const withChances = processedEd.map(r => {
     if (r.kyujo) return { ...r, yushoChance: 0, chanceDelta: 0 }
     const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
     const remaining = 15 - played
     const maxWins = r.wins + remaining
 
     if (currentDay >= 15) {
-      const maxW = Math.max(...processed.filter(x => !x.kyujo).map(x => x.wins))
-      const leaders = processed.filter(x => x.wins === maxW && !x.kyujo)
+      const maxW = Math.max(...processedEd.filter(x => !x.kyujo).map(x => x.wins))
+      const leaders = processedEd.filter(x => x.wins === maxW && !x.kyujo)
       const hasPlayoff = leaders.length > 1
       const myMax = r.wins + remaining
       if (myMax < maxW) return { ...r, yushoChance: 0, chanceDelta: 0 }
@@ -166,7 +170,7 @@ async function getBashoData() {
       )
       const playoffData = await playoffRes.json()
       const playoffMatch = playoffData.records?.find(m =>
-        m.bashoId === '202605' && m.day >= 16
+        m.bashoId === '202607' && m.day >= 16
       )
       if (playoffMatch) {
         playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null

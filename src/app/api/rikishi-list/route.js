@@ -1,5 +1,5 @@
 const SUMO_API = 'https://sumo-api.com/api'
-const CURRENT_BASHO = '202605'
+const CURRENT_BASHO = '202607'
 
 const COUNTRY_FLAGS = {
   'Mongolia': { flag: '🇲🇳', name: 'Монголія' },

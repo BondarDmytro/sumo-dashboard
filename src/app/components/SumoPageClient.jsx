@@ -268,7 +268,7 @@ export default function SumoPageClient() {
 
   useEffect(() => {
     Promise.all([
-      fetch('https://sumo-api.com/api/basho/202605/banzuke/Makuuchi').then(r => r.json()),
+      fetch('https://sumo-api.com/api/basho/202607/banzuke/Makuuchi').then(r => r.json()),
       fetch('https://sumo-api.com/api/kimarite?sortField=count&sortOrder=desc').then(r => r.json()),
       fetch('/api/bios').then(r => r.json()),
     ]).then(([b, k, biosData]) => {
