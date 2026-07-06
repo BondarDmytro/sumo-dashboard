@@ -227,7 +227,25 @@ useEffect(() => {
             </Link>
           ))}
 
-          {/*navbar_games_removed_v1: кнопка ігор прибрана, ігри на /game*/}
+          {mounted && (
+            <button
+              onClick={() => setGamesOpen(true)}
+              title={lang === 'en' ? 'Games' : 'Ігри'}
+              style={{
+                marginLeft: 8,
+                background: '#b8860b',
+                border: 'none',
+                color: '#fff',
+                width: 30, height: 30, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                flexShrink: 0,
+              }}
+            >
+              🎮
+            </button>
+          )}
 
           {mounted && (
             <div style={{
@@ -283,7 +301,9 @@ useEffect(() => {
         </div>
       </nav>
 
-      
+      {gamesOpen && (
+        <GamesMenu
+          onClose={() => setGamesOpen(false)}
           onOpenQuiz={() => { setGamesOpen(false); setQuizOpen(true) }}
           onOpenYusho={() => { setGamesOpen(false); setYushoOpen(true) }}
           onOpenClash={() => { setGamesOpen(false); setClashOpen(true) }}
