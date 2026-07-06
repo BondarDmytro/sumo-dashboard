@@ -82,3 +82,12 @@ body {
     flex-direction: column !important;
   }
 }
+/* global_gunbai_cursor_v1: гунбай-курсор, як на лендінгу dohyo-legends */
+@media (hover: hover) and (pointer: fine) {
+  body {
+    cursor: -webkit-image-set(url('/images/cursors/cursor-gunbai.png') 1x, url('/images/cursors/cursor-gunbai@2x.png') 2x) 6 6, auto;
+  }
+  a, button, [role="button"], input[type="range"], select, summary {
+    cursor: pointer;
+  }
+}
