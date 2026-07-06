@@ -2,6 +2,7 @@
 
 import RankForecast from '../components/RankForecast'
 import { useLang } from '../components/LangProvider'
+import { bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v2 */
 
 export default function RanksPage() {
   const { lang } = useLang()
@@ -10,7 +11,7 @@ export default function RanksPage() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {lang === 'en' ? 'Natsu Basho 2026' : 'Натсу Басьо 2026'}
+          {bashoInfo('202607').label[lang === 'en' ? 'en' : 'uk']}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'0.4rem'}}>
           {lang === 'en' ? 'Rank Forecast' : 'Прогноз змін рангу'}

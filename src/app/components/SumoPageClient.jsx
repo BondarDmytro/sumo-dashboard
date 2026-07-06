@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
+import { bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RANK_ORDER = ['Yokozuna', 'Ozeki', 'Sekiwake', 'Komusubi', 'Maegashira']
 const RANK_COLORS = {
@@ -288,7 +289,7 @@ export default function SumoPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {lang === 'en' ? 'Natsu Basho 2026' : 'Натсу Басьо 2026'}
+          {bashoInfo('202607').label[lang === 'en' ? 'en' : 'uk']}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
           {lang === 'en' ? 'About Sumo' : 'Про сумо'}

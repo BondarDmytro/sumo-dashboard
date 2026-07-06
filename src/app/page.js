@@ -9,6 +9,7 @@ import YushoWinner from './components/YushoWinner'
 export const revalidate = 60
 
 import { applyBashoRules, prevBashoId } from './lib/bashoRules' /* basho_rules_v1 */
+import { bashoInfo } from './lib/bashoCalendar' /* basho_labels_v1 */
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
@@ -270,7 +271,7 @@ export default async function Home() {
 
       {isFinished && winner && (
         <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
-          <YushoWinner winner={winner} playoff={playoff} bashoLabel="Натсу Басьо 2026" bashoLabelEn="Natsu Basho 2026" />
+          <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo('202607').label.uk} bashoLabelEn={bashoInfo('202607').label.en} /* basho_labels_v1 */ />
         </div>
       )}
 

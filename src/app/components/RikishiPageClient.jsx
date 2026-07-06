@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
+import { bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -210,7 +211,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        {lang === 'en' ? 'Natsu Basho 2026' : 'Натсу Басьо 2026'} — {r.wins}–{r.losses}
+        {bashoInfo('202607').label[lang === 'en' ? 'en' : 'uk']} — {r.wins}–{r.losses}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {r.record.map(m => {
@@ -222,7 +223,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           const isEmpty = !m.result
           const pinnedKey = `202605-${r.id}-day${m.day}`
           const pinnedUrl = PINNED_VIDEOS[pinnedKey] || NATSU_2026_DAYS[m.day]
-          const ytQuery = encodeURIComponent(`Natsu Basho 2026 Day ${m.day} ${r.name} ${m.opponent || ''}`)
+          const ytQuery = encodeURIComponent(`${bashoInfo('202607').label.en} Day ${m.day} ${r.name} ${m.opponent || ''}`) /* basho_labels_v2 */
           const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
           return (
             <div key={m.day} style={{
@@ -337,7 +338,7 @@ export default function RikishiPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.5rem'}}>
-          {lang === 'en' ? 'Makuuchi rikishi — Natsu Basho 2026' : 'Рікіші макуучі — Натсу Басьо 2026'}
+          {(lang === 'en' ? 'Makuuchi rikishi — ' : 'Рікіші макуучі — ') + bashoInfo('202607').label[lang === 'en' ? 'en' : 'uk']}
         </div>
 
         {loading ? (

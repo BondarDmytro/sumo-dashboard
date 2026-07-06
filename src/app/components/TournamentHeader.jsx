@@ -2,6 +2,8 @@
 import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { bashoInfo, nextBashoId, bashoStatus } from '../lib/bashoCalendar' /* header_calendar_v1 */
+import BashoCountdown from './BashoCountdown'
 
 function t3(lang, uk, en, ja) {
   if (lang === 'en') return en
@@ -9,7 +11,11 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished }) {
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607' }) {
+  const bi = bashoInfo(bashoId)
+  const status = bashoStatus(bashoId)
+  const nextBi = bashoInfo(nextBashoId(bashoId))
+  const cdTarget = status === 'upcoming' ? bi : (status === 'finished' || isFinished ? nextBi : null)
   const { lang } = useLang()
   const router = useRouter()
   useEffect(() => {
@@ -23,7 +29,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
       <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.12,lineHeight:1,pointerEvents:'none',color:'#ff2121'}}>相撲</div>
       <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1}}>
         <div style={{fontFamily:'monospace',fontSize:'0.65rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'#6b6560',marginBottom:'0.3rem'}}>
-          {t3(lang, '夏場所 · Натсу Басьо 2026 · Токіо', '夏場所 · Natsu Basho 2026 · Tokyo', '夏場所 · 夏場所 2026 · 東京')}
+          {bi.kanji + ' · ' + (lang === 'en' ? bi.label.en + ' · ' + bi.city.en : lang === 'ja' ? bi.label.ja + ' · ' + bi.city.ja : bi.label.uk + ' · ' + bi.city.uk)}
         </div>
         <h1 style={{fontSize:'clamp(1.4rem,3vw,2rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>
           {t3(lang, 'Прогноз переможця турніру', 'Yusho Forecast', '優勝予想')}
@@ -59,6 +65,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             </>
           )}
         </div>
+        {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
       </div>
     </header>
   )
