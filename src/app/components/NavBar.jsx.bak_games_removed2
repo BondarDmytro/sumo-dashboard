@@ -286,6 +286,10 @@ useEffect(() => {
       
           onOpenQuiz={() => { setGamesOpen(false); setQuizOpen(true) }}
           onOpenYusho={() => { setGamesOpen(false); setYushoOpen(true) }}
+          onOpenClash={() => { setGamesOpen(false); setClashOpen(true) }}
+          lang={lang}
+        />
+      )}
       {quizOpen && <SumoQuiz onClose={() => setQuizOpen(false)} />}
       {yushoOpen && <YushoGame onClose={() => setYushoOpen(false)} lang={lang} />}
       {clashOpen && <SumoClash onClose={() => setClashOpen(false)} lang={lang} />}
