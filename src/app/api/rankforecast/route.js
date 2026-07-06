@@ -36,7 +36,17 @@ function getCountry(shusshin) {
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
 }
 const CURRENT_BASHO = '202607'
-const PREV_BASHOS = ['202603', '202601', '202511']
+/* forecast_rules_v1: попередні басьо обчислюються, не хардкодяться */
+function prevBashoId(bashoId) {
+  const y = parseInt(String(bashoId).slice(0, 4), 10)
+  const m = parseInt(String(bashoId).slice(4, 6), 10)
+  const pm = m === 1 ? 11 : m - 2
+  const py = m === 1 ? y - 1 : y
+  return String(py) + String(pm).padStart(2, '0')
+}
+const PREV_BASHOS = [prevBashoId(CURRENT_BASHO)]
+PREV_BASHOS.push(prevBashoId(PREV_BASHOS[0]))
+PREV_BASHOS.push(prevBashoId(PREV_BASHOS[1]))
 
 async function getRikishiMatches(id) {
   const res = await fetch(`${SUMO_API}/rikishi/${id}/matches?limit=60`, {
@@ -70,14 +80,14 @@ function getMaegashiraNum(rank) {
   return m ? parseInt(m[1]) : 99
 }
 
-function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoLosses) {
+function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoLosses, prevRank) {
   const rank = rikishi.rank
   const rankType = getRankType(rank)
   const forecasts = []
 
-  const prev1 = matchHistory[PREV_BASHOS[0]] // 202603
+  const prev1 = matchHistory[PREV_BASHOS[0]] // минуле басьо
   const prev2 = matchHistory[PREV_BASHOS[1]] // 202601
-  const prev3 = matchHistory[PREV_BASHOS[2]] // 202511
+  const prev3 = matchHistory[PREV_BASHOS[2]] // 3 басьо тому
 
   if (rankType === 'yokozuna') {
     const makekoshi = currentBashoLosses > currentBashoWins
@@ -94,8 +104,8 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
   if (rankType === 'ozeki') {
     const currentWins = currentBashoWins
     const currentLosses = currentBashoLosses
-    const prevMakekoshi = prev1 && prev1.losses > 7
-    const isKadoban = prevMakekoshi
+    const prevKachikoshi = prev1 && prev1.wins >= 8  /* forecast_rules_v1: кюджо/часткове басьо = теж кадобан */
+    const isKadoban = !prevKachikoshi
 
     // Кюджо на кадо-бані = автоматичний виліт
     const isKyujoThisBasho = currentWins === 0 && currentLosses === 0
@@ -124,9 +134,24 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     } else {
       forecasts.push({ type: 'good', text: '✓ Ранг Озекі збережено' })
     }
+    if (!isKadoban && prev1 && prev1.wins >= 11) {  /* forecast_rules_v1: йокодзуна-ран */
+      forecasts.push({ type: 'info', text: '🏔 Йокодзуна-ран: юшо або еквівалент дає підвищення' })
+    }
   }
 
   if (rankType === 'sekiwake') {
+    if (prevRank && prevRank.includes('Ozeki')) {  /* forecast_rules_v1: екс-озекі, правило 10 перемог */
+      const needed10 = Math.max(0, 10 - currentBashoWins)
+      const played10 = currentBashoWins + currentBashoLosses
+      const max10 = currentBashoWins + (15 - played10)
+      if (currentBashoWins >= 10) {
+        forecasts.push({ type: 'good', text: '✓ 10 перемог — повернення рангу Озекі' })
+      } else if (max10 >= 10) {
+        forecasts.push({ type: 'info', text: `Екс-озекі: ще ${needed10} перемог до повернення рангу (10 всього)` })
+      } else {
+        forecasts.push({ type: 'warning', text: '⚠ Повернення озекі за правилом 10 перемог вже недосяжне' })
+      }
+    }
     const winsThisBasho = currentBashoWins
     const winsPrev1 = prev1?.wins || 0
     const winsPrev2 = prev2?.wins || 0
@@ -193,6 +218,10 @@ export async function GET() {
       { next: { revalidate: 3600 } }
     )
     const banzuke = await banzukeRes.json()
+    const prevBanzukeRes = await fetch(`${SUMO_API}/basho/${PREV_BASHOS[0]}/banzuke/Makuuchi`, { next: { revalidate: 3600 } })  /* forecast_rules_v1 */
+    const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
+    const prevRankById = {}
+    ;[...((prevBanzuke && prevBanzuke.east) || []), ...((prevBanzuke && prevBanzuke.west) || [])].forEach(r => { prevRankById[String(r.rikishiID)] = r.rank })
     const all = [...(banzuke.east || []), ...(banzuke.west || [])]
 
     const sanyaku = all.filter(r => {
@@ -211,7 +240,7 @@ export async function GET() {
           fetch(`${SUMO_API}/rikishi/${r.rikishiID}`, { next: { revalidate: 86400 } })
         ])
         const info = await infoRes.json()
-        const forecasts = calcRankForecast(r, history, wins, losses)
+        const forecasts = calcRankForecast(r, history, wins, losses, prevRankById[String(r.rikishiID)])
 
         const birthDate = info.birthDate ? new Date(info.birthDate) : null
         const age = birthDate ? Math.floor((new Date() - birthDate) / (1000 * 60 * 60 * 24 * 365.25)) : null

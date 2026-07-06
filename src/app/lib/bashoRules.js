@@ -57,7 +57,7 @@ export function applyBashoRules(rikishiList, prevBanzuke) {
     }
 
     // Йокодзуна-ран (евристика): озекі зараз, >=12 перемог минулого басьо
-    if (isOzeki(r.rankFull) && isOzeki(prev.rank) && p.wins >= 12) {
+    if (isOzeki(r.rankFull) && isOzeki(prev.rank) && p.wins >= 11) {  /* run_threshold_11 */
       badges.push('yokozunaRun')
       note = { uk: 'Йокодзуна-ран: юшо-результат дає підвищення', en: 'Yokozuna run: yusho-level result earns promotion' }
     }
