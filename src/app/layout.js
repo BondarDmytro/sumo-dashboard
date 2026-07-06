@@ -35,6 +35,8 @@ export const metadata = {
   },
 };
 
+import GlobalSalt from './components/GlobalSalt' /* global_salt_v1 */
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -45,7 +47,7 @@ export default function RootLayout({ children }) {
         <LangProvider>
           <BiosProvider>
             <NavBar />
-            {children}
+            {children}<GlobalSalt />
           </BiosProvider>
         </LangProvider>
         <SanityLive />

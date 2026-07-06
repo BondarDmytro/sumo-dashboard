@@ -84,10 +84,22 @@ body {
 }
 /* global_gunbai_cursor_v1: гунбай-курсор, як на лендінгу dohyo-legends */
 @media (hover: hover) and (pointer: fine) {
-  body {
+  *, *::before, *::after {  /* cursor_all_elements_v1 */
     cursor: -webkit-image-set(url('/images/cursors/cursor-gunbai.png') 1x, url('/images/cursors/cursor-gunbai@2x.png') 2x) 6 6, auto;
   }
   a, button, [role="button"], input[type="range"], select, summary {
     cursor: pointer;
+  }
+}
+
+/* global_salt_v1: keyframes солі + hover-курсор */
+@keyframes saltClickFall {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  70%  { opacity: 0.9; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.6); opacity: 0; }
+}
+@media (hover: hover) and (pointer: fine) {
+  a, button, [role="button"], input, select, summary, label {
+    cursor: -webkit-image-set(url('/images/cursors/cursor-gunbai-hover.png') 1x, url('/images/cursors/cursor-gunbai-hover@2x.png') 2x) 6 6, pointer;
   }
 }
