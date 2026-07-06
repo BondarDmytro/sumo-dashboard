@@ -1,4 +1,7 @@
 'use client'
+/* countdown_x2c */
+/* countdown_x2b */
+/* countdown_x2 */
 // Зворотний відлік до старту басьо: dd:hh:mm:ss + час старту в JST і локальному часі глядача.
 // basho_countdown_v1
 import { useEffect, useState } from 'react'
@@ -40,12 +43,12 @@ export default function BashoCountdown({ startUtcMs, bashoLabel }) {
   })
 
   const cell = { textAlign: 'center', minWidth: 52 }
-  const num = { fontFamily: 'monospace', fontSize: '1.6rem', fontWeight: 800, color: '#f0c060', lineHeight: 1 }
-  const lab = { fontFamily: 'monospace', fontSize: '0.52rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginTop: 4 }
+  const num = { fontFamily: 'monospace', fontSize: '2.2rem', fontWeight: 800, color: '#f0c060', lineHeight: 1 }
+  const lab = { fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginTop: 4 }
 
   return (
     <div style={{ marginTop: '0.9rem' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginBottom: 6 }}>
+      <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginBottom: 8 }}>
         {t3(lang, `До старту — ${bashoLabel}`, `Countdown — ${bashoLabel}`, `開始まで — ${bashoLabel}`)}
       </div>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -57,8 +60,9 @@ export default function BashoCountdown({ startUtcMs, bashoLabel }) {
         <div style={{ ...num, opacity: 0.4 }}>:</div>
         <div style={cell}><div style={num}>{pad(s)}</div><div style={lab}>{t3(lang,'сек','sec','秒')}</div></div>
       </div>
-      <div style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: '#6b6560', marginTop: 8 }}>
-        🇯🇵 {jst} JST · 🕐 {t3(lang, 'у вас', 'your time', '現地')}: {local}
+      <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#6b6560', marginTop: 10 }}>
+        <div>🇯🇵 {jst} JST</div>  {/* jst_two_lines */}
+        <div style={{marginTop: 2}}>🕐 {t3(lang, 'у вас', 'your time', '現地')}: {local}</div>
       </div>
     </div>
   )

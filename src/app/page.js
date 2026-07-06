@@ -243,6 +243,10 @@ export default async function Home() {
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <TournamentHeader
+        champion={!isFinished && prevYusho && bashoStatus('202607') === 'upcoming'
+          ? { id: String(prevYusho.id), name: prevYusho.name, wins: 12, losses: 3,
+              label: bashoInfo(prevBashoIdOf('202607')).label.uk + ' \u2014 \u044e\u0448\u043e' }
+          : null}  /* champion_data_v1 */
         currentDay={currentDay}
         daysLeft={15 - currentDay}
         contendersCount={contenders.length}
@@ -251,7 +255,7 @@ export default async function Home() {
       />
 
       {showPlayoffBanner && (
-        <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
+        <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <div style={{background:'var(--bg2)',border:'2px solid #b8860b',borderRadius:4,padding:'1.5rem 2rem',position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',right:'1rem',top:'50%',transform:'translateY(-50%)',fontSize:'5rem',opacity:0.08,pointerEvents:'none'}}>⚡</div>
             <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'#b8860b',marginBottom:'0.75rem'}}>
@@ -278,19 +282,13 @@ export default async function Home() {
         </div>
       )}
 
-      {!isFinished && prevYusho && bashoStatus('202607') === 'upcoming' && (
-        <div style={{maxWidth:1100,margin:'1.5rem auto 0',padding:'0 2rem'}}>
-          <YushoWinner winner={{ _id: String(prevYusho.id), name: prevYusho.name, wins: 12, losses: 3 }} playoff={null}
-            bashoLabel={bashoInfo(prevBashoIdOf('202607')).label.uk} bashoLabelEn={bashoInfo(prevBashoIdOf('202607')).label.en} />
-        </div>
-      )}  {/* prev_champion_v1 */}
       {isFinished && winner && (
-        <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
+        <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
           <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo('202607').label.uk} bashoLabelEn={bashoInfo('202607').label.en} /* basho_labels_v1 */ />
         </div>
       )}
 
-      <div style={{maxWidth:1100,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
+      <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
         <TournamentStatus
           leaders={leaders}
           chasers={chasers}

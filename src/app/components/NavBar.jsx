@@ -99,7 +99,7 @@ useEffect(() => {
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           WebkitOverflowScrolling: 'touch',
-          maxWidth: 1100, margin: '0 auto',
+          maxWidth: 1280, margin: '0 auto',
           padding: '0 0.75rem',
         }}>
               <a href="https://dohyo-legends.com" title="Dohyo Legends" style={{display:'flex',alignItems:'center',marginRight:6,textDecoration:'none'}}> {/*navbar_home_v1 navbar_social_removed_v1*/}

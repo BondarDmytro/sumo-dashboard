@@ -1,8 +1,9 @@
 'use client'
+/* champ_text_v3 */
 import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { bashoInfo, nextBashoId, bashoStatus } from '../lib/bashoCalendar' /* header_calendar_v1 */
+import { bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
 import BashoCountdown from './BashoCountdown'
 
 function t3(lang, uk, en, ja) {
@@ -11,7 +12,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607' }) {
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607', champion = null }) {  /* header_v3 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -27,21 +28,20 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
   return (
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
       <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.12,lineHeight:1,pointerEvents:'none',color:'#ff2121'}}>相撲</div>
-      <div style={{maxWidth:1100,margin:'0 auto',position:'relative',zIndex:1,display:'flex',gap:'1.5rem',alignItems:'flex-start',flexWrap:'wrap'}}>  {/* header_v2a */}
-        <div style={{flexShrink:0,textAlign:'right',order:2,marginLeft:'auto'}}>
-          <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:220,height:120,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.3)',display:'block',marginLeft:'auto'}} />
-          <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#6b6560',marginTop:6}}>{bi.kanji + ' - ' + (lang === 'en' ? bi.label.en + ' - ' + bi.city.en : lang === 'ja' ? bi.label.ja + ' - ' + bi.city.ja : bi.label.uk + ' - ' + bi.city.uk)}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'#6b6560',marginTop:2}}>{bi.venue.name}</div>
+      <div style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,display:'grid',gridTemplateColumns:champion ? '1fr minmax(300px,420px) 1fr' : '2fr 1fr',gap:'2.5rem',alignItems:'center'}}>  {/* header_v10 */}
+        <div style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center',height:300}}>
+          <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:'100%',flex:1,minHeight:0,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
+          <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : bi.city.uk)}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{bi.kanji + ' ' + (lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : bi.label.uk)}</div>
         </div>
-        <div style={{flex:'1 1 420px',minWidth:0,order:1}}>
-        <h1 style={{fontSize:'clamp(1.4rem,3vw,2rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>
+        <div style={{minWidth:0,order:1,height:300,display:'flex',flexDirection:'column',justifyContent:'center'}}>  {/* header_v17 */}
+        <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>
           {t3(lang, 'Гонка за юшо', 'Yusho Race', '優勝レース')}
           <span style={{color:'#fb5050'}}>
             {t3(lang, ' — наживо', ' — Live', '・ライブ')}
           </span>
         </h1>
-        <div style={{fontSize:'0.85rem',color:'#b8c7c8',marginBottom:'0.75rem'}}>{t3(lang, 'Шанси кожного рікіші макуучі, день за днем', 'Chances of every makuuchi rikishi, day by day', '幕内力士全員の優勝確率を毎日更新')}</div>  {/* header_v2b */}
-        <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'0.85rem',color:'#b8c7c8'}}>
+        <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'1rem',color:'#b8c7c8'}}>
           {isFinished ? (
             <span style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'4px 14px',borderRadius:2}}>
               <span>🏆</span>
@@ -49,10 +49,14 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             </span>
           ) : (
             <>
+              {bashoStatus(bashoId) === 'upcoming' ? (
+                <span><b style={{color:'#f5f0e8'}}>{t3(lang, 'Не розпочато', 'Not started', '開始前')}</b></span>
+              ) : (
               <span>
                 <b style={{color:'#f5f0e8'}}>{t3(lang, 'День', 'Day', '')} {currentDay}</b> {t3(lang, 'з 15', 'of 15', '日目／15')}
               </span>
-              {daysLeft > 0 && (
+              )}  {/* header_v18 */}
+              {daysLeft > 0 && bashoStatus(bashoId) !== 'upcoming' && (  /* header_v19 */
                 <span>
                   <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {t3(lang, 'днів залишилось', 'days remaining', '日残り')}
                 </span>
@@ -71,6 +75,19 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
         {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
+        {champion && (
+          <div style={{order:3,display:'flex',flexDirection:'row',gap:'1rem',alignItems:'center',justifySelf:'end',height:300}}>
+            <img src={'/rikishi/' + champion.id + '.jpg'} alt={champion.name} onError={e => { e.currentTarget.style.display = 'none' }}
+              style={{height:'100%',width:'auto',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
+            <div style={{width:420,minWidth:320,textAlign:'right'}}>
+              <div style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',color:'#f0c060',marginBottom:6}}>{(lang === 'en' ? bashoInfo(prevBashoIdOf(bashoId)).label.en : lang === 'ja' ? bashoInfo(prevBashoIdOf(bashoId)).label.ja : bashoInfo(prevBashoIdOf(bashoId)).label.uk) + (lang === 'en' ? ' \u2014 yusho' : lang === 'ja' ? '\u3000\u512a\u52dd' : ' \u2014 \u044e\u0448\u043e')}</div>
+              <div style={{fontSize:'1.8rem',fontWeight:800,lineHeight:1.15,whiteSpace:'nowrap'}}>{champion.name}</div>
+              <div style={{fontFamily:'Georgia,serif',fontSize:'2rem',fontWeight:800,color:'#f0c060',marginTop:8}}>{champion.wins}{'\u2013'}{champion.losses}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#6b6560',marginTop:4}}>{lang === 'en' ? 'Final record' : lang === 'ja' ? '最終成績' : 'Фінальний рекорд'}</div>
+              {champion.playoff && <div style={{fontSize:'0.75rem',color:'#b8c7c8',marginTop:8,maxWidth:220}}>{lang === 'en' ? 'Won the playoff' : lang === 'ja' ? '優勝決定戦を制す' : 'Переміг у плей-офі'}</div>}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )

@@ -21,11 +21,11 @@ function secondSundayDay(year, month) {
 }
 
 const VENUES = {  /* venue_v1: фото поклади в public/images/venues/ */
-  1:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-hatsu.webp' },
+  1:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
   3:  { name: 'EDION Arena Osaka',      img: '/images/venues/venue-haru.webp' },
-  5:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-natsu.webp' },
+  5:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
   7:  { name: 'IG Arena',               img: '/images/venues/venue-nagoya.webp' },
-  9:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-aki.webp' },
+  9:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
   11: { name: 'Fukuoka Kokusai Center', img: '/images/venues/venue-kyushu.webp' },
 }
 
