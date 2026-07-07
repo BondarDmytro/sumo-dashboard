@@ -52,6 +52,25 @@ export function bashoInfo(bashoId) {
   }
 }
 
+export function currentBashoId(now = new Date()) {  /* auto_current_v1: live, інакше найближчий upcoming, інакше останній finished */
+  const year = now.getFullYear()
+  const candidates = []
+  for (const y of [year - 1, year, year + 1]) {
+    for (const m of BASHO_MONTHS) {
+      const id = String(y) + String(m).padStart(2, '0')
+      if (!CANCELLED_BASHO.has(id)) candidates.push(id)
+    }
+  }
+  let lastFinished = null
+  for (const id of candidates) {
+    const st = bashoStatus(id, now)  /* auto_current_v2 */
+    if (st === 'live') return id
+    if (st === 'upcoming') return id  // кандидати відсортовані хронологічно: перший upcoming = найближчий
+    if (st === 'finished') lastFinished = id
+  }
+  return lastFinished
+}
+
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
 export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
 

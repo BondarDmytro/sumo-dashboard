@@ -1,3 +1,4 @@
+import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
 const SUMO_API = 'https://sumo-api.com/api'
 const COUNTRY_FLAGS = {
   'Mongolia': { flag: '🇲🇳', name: 'Монголія' },
@@ -35,7 +36,7 @@ function getCountry(shusshin) {
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
 }
-const CURRENT_BASHO = '202607'
+const CURRENT_BASHO = currentBashoId()
 /* forecast_rules_v1: попередні басьо обчислюються, не хардкодяться */
 function prevBashoId(bashoId) {
   const y = parseInt(String(bashoId).slice(0, 4), 10)

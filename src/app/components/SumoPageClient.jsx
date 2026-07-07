@@ -1,8 +1,9 @@
+/* auto_current_v3 */
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
-import { bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
+import { currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RANK_ORDER = ['Yokozuna', 'Ozeki', 'Sekiwake', 'Komusubi', 'Maegashira']
 const RANK_COLORS = {
@@ -269,7 +270,7 @@ export default function SumoPageClient() {
 
   useEffect(() => {
     Promise.all([
-      fetch('https://sumo-api.com/api/basho/202607/banzuke/Makuuchi').then(r => r.json()),
+      fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/Makuuchi`).then(r => r.json()),  /* auto_current_v4 */
       fetch('https://sumo-api.com/api/kimarite?sortField=count&sortOrder=desc').then(r => r.json()),
       fetch('/api/bios').then(r => r.json()),
     ]).then(([b, k, biosData]) => {
@@ -289,7 +290,7 @@ export default function SumoPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {bashoInfo('202607').label[lang === 'en' ? 'en' : 'uk']}
+          {bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
           {lang === 'en' ? 'About Sumo' : 'Про сумо'}

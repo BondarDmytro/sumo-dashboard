@@ -1,3 +1,4 @@
+import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v4 */
 const SUMO_API = 'https://sumo-api.com/api'
 
 const COUNTRY_FLAGS = {
@@ -40,7 +41,7 @@ function getCountry(shusshin) {
 export async function GET() {
   try {
     const banzukeRes = await fetch(
-      `${SUMO_API}/basho/202607/banzuke/Makuuchi`,
+      `${SUMO_API}/basho/${currentBashoId()}/banzuke/Makuuchi`,  /* auto_current_v4 */
       { next: { revalidate: 86400 } }
     )
     const banzuke = await banzukeRes.json()

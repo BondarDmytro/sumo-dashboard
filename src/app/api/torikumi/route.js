@@ -1,7 +1,8 @@
+import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const day = searchParams.get('day') || 14
-  const bashoId = searchParams.get('basho') || '202607'
+  const bashoId = searchParams.get('basho') || currentBashoId()
 
   const res = await fetch(
     `https://sumo-api.com/api/basho/${bashoId}/torikumi/Makuuchi/${day}`,

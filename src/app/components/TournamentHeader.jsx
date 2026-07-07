@@ -1,9 +1,10 @@
+/* auto_current_v3 */
 'use client'
 /* champ_text_v3 */
 import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
+import { currentBashoId, bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
 import BashoCountdown from './BashoCountdown'
 
 function t3(lang, uk, en, ja) {
@@ -12,7 +13,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = '202607', champion = null, bashoSelect = null }) {  /* basho_filter_v2 */  /* header_v3 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null }) {  /* basho_filter_v2 */  /* header_v3 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))

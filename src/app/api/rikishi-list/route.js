@@ -1,5 +1,6 @@
+import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
 const SUMO_API = 'https://sumo-api.com/api'
-const CURRENT_BASHO = '202607'
+const CURRENT_BASHO = currentBashoId()
 
 const COUNTRY_FLAGS = {
   'Mongolia': { flag: '🇲🇳', name: 'Монголія' },

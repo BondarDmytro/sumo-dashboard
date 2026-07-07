@@ -1,3 +1,4 @@
+/* auto_current_v3 */
 import TournamentHeader from './components/TournamentHeader'
 import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
@@ -13,7 +14,7 @@ import YushoWinner from './components/YushoWinner'
 export const revalidate = 60
 
 import { applyBashoRules, prevBashoId } from './lib/bashoRules' /* basho_rules_v1 */
-import { bashoInfo, bashoStatus, prevBashoIdOf } from './lib/bashoCalendar' /* basho_labels_v1 prev_champion_v1 */
+import { currentBashoId, bashoInfo, bashoStatus, prevBashoIdOf } from './lib/bashoCalendar' /* basho_labels_v1 prev_champion_v1 */
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
@@ -25,10 +26,10 @@ async function getBashoData() {
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
   const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
-    fetch('https://sumo-api.com/api/basho/202607/banzuke/Makuuchi', { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/202607/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
-    fetch('https://sumo-api.com/api/basho/202607', { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${prevBashoId('202607')}/banzuke/Makuuchi`, { next: { revalidate: 3600 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/Makuuchi`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}/banzuke/Makuuchi`, { next: { revalidate: 3600 } }),
   ])
 
   const banzuke = await banzukeRes.json()
@@ -36,9 +37,9 @@ async function getBashoData() {
   const bashoInfo = await bashoInfoRes.json()
   const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
   let prevYusho = null  /* prev_champion_v1 */
-  if (bashoStatus('202607') === 'upcoming') {
+  if (bashoStatus(currentBashoId()) === 'upcoming') {
     try {
-      const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId('202607')}`, { next: { revalidate: 86400 } })
+      const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}`, { next: { revalidate: 86400 } })
       const pInfo = await pInfoRes.json()
       const y = (pInfo.yusho || []).find(v => v.division === 'Makuuchi' || v.type === 'Makuuchi') || (pInfo.yusho || [])[0] || null
       if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn }
@@ -184,7 +185,7 @@ async function getBashoData() {
       )
       const playoffData = await playoffRes.json()
       const playoffMatch = playoffData.records?.find(m =>
-        m.bashoId === '202607' && m.day >= 16
+        m.bashoId === currentBashoId() && m.day >= 16
       )
       if (playoffMatch) {
         playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null
@@ -249,9 +250,9 @@ export default async function Home() {
       <BashoFilterProvider>  {/* basho_filter_v2 */}
       <TournamentHeader
         bashoSelect={<BashoSelect />}
-        champion={!isFinished && prevYusho && bashoStatus('202607') === 'upcoming'
+        champion={!isFinished && prevYusho && bashoStatus(currentBashoId()) === 'upcoming'
           ? { id: String(prevYusho.id), name: prevYusho.name, wins: 12, losses: 3,
-              label: bashoInfo(prevBashoIdOf('202607')).label.uk + ' \u2014 \u044e\u0448\u043e' }
+              label: bashoInfo(prevBashoIdOf(currentBashoId())).label.uk + ' \u2014 \u044e\u0448\u043e' }
           : null}  /* champion_data_v1 */
         currentDay={currentDay}
         daysLeft={15 - currentDay}
@@ -290,7 +291,7 @@ export default async function Home() {
 
       {isFinished && winner && (
         <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
-          <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo('202607').label.uk} bashoLabelEn={bashoInfo('202607').label.en} /* basho_labels_v1 */ />
+          <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo(currentBashoId()).label.uk} bashoLabelEn={bashoInfo(currentBashoId()).label.en} /* basho_labels_v1 */ />
         </div>
       )}
 

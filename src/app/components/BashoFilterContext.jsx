@@ -3,7 +3,8 @@
 import { createContext, useContext, useState } from 'react'
 
 const Ctx = createContext(null)
-export const CURRENT_BASHO = '202607'
+import { currentBashoId } from '../lib/bashoCalendar' /* auto_current_v1 */
+export const CURRENT_BASHO = currentBashoId()
 
 export function BashoFilterProvider({ children }) {
   const [selBasho, setSelBasho] = useState(CURRENT_BASHO)
