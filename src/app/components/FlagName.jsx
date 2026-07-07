@@ -1,12 +1,15 @@
 'use client'
 
 import { useBios } from './BiosProvider'
+import { useLang } from './LangProvider' /* country_name_i18n_v1 */
 
 export default function FlagName({ id, name, size = '0.95rem' }) {
   const bios = useBios()
+  const { lang } = useLang()
   const bio = bios[String(id)]
   const flag = bio?.country?.flag || '🇯🇵'
-  const country = bio?.country?.name || 'Японія'
+  const _n = bio?.country?.name
+  const country = (_n && typeof _n === 'object') ? (_n[lang] || _n.uk) : (_n || (lang === 'ja' ? '日本' : lang === 'en' ? 'Japan' : 'Японія'))  /* country_name_i18n_v1 */
 
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>

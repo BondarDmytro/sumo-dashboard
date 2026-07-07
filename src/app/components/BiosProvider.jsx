@@ -31,7 +31,7 @@ export function RikishiFlag({ id, name }) {
   if (!bio) return <span>{name}</span>
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>
-      <span title={bio.country.name}>{bio.country.flag}</span>
+      <span title={typeof bio.country.name === 'object' ? (bio.country.name.uk || '') : bio.country.name}>{bio.country.flag}</span>  {/* country_name_i18n_v1 */}
       {name}
     </span>
   )

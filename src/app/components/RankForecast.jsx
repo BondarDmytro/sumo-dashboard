@@ -27,32 +27,8 @@ const FORECAST_TRANSLATIONS = {
   '⚠ Під загрозою пониження': '⚠ At risk of demotion',
 }
 
-function translateForecast(text) {
-  if (!text) return text
-  if (FORECAST_TRANSLATIONS[text]) return FORECAST_TRANSLATIONS[text]
-  let result = text
-  result = result.replace('Озекі-тест:', 'Ozeki test:')
-  result = result.replace('(цей цикл недостатній)', '(not enough this cycle)')
-  result = result.replace('(можливо наступного)', '(possible next cycle)')
-  result = result.replace('Потрібно ще', 'Need')
-  result = result.replace('перемог для качі-коші', 'more wins for kachi-koshi')
-  result = result.replace('перемоги для качі-коші', 'more wins for kachi-koshi')
-  result = result.replace('перемога для качі-коші', 'more win for kachi-koshi')
-  result = result.replace('підвищення до Секіваке', 'promotion to Sekiwake')
-  result = result.replace('підвищення до Комусубі', 'promotion to Komusubi')
-  result = result.replace('підвищення до Озекі', 'promotion to Ozeki')
-  result = result.replace('перемог →', 'wins →')
-  result = result.replace('перемоги →', 'wins →')
-  result = result.replace('перемога →', 'win →')
-  result = result.replace('Маке-коші', 'Make-koshi')
-  result = result.replace('Качі-коші', 'Kachi-koshi')
-  result = result.replace('кадо-бан', 'kadoban')
-  result = result.replace('пониження', 'demotion')
-  result = result.replace('збережено', 'retained')
-  result = result.replace('наступний турнір', 'next basho')
-  result = result.replace('виліт з Озекі', 'demoted from Ozeki')
-  return result
-}
+/* translateForecast знесено: API віддає {uk,en,ja} (forecast_i18n_client_v1) */
+
 
 function BashoWins({ bashoId, wins, losses }) {
   const label = bashoId.slice(0,4) + '/' + bashoId.slice(4)
@@ -135,7 +111,7 @@ export default function RankForecast() {
                 }}>
                   {r.forecasts.map((f,i) => {
                     const fst = TYPE_STYLES[f.type] || TYPE_STYLES.info
-                    const text = lang === 'en' ? translateForecast(f.text) : f.text
+                    const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
                     return (
                       <div key={i} style={{
                         color: fst.color,
@@ -205,8 +181,8 @@ export default function RankForecast() {
               </div>
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:3}}>{r.rank}</div>
               <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                {r.bio?.country?.name !== 'Японія' && r.bio?.country?.name !== 'Japan' && (
-                  <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.country.name}</span>
+                {r.bio?.country?.flag && r.bio.country.flag !== '🇯🇵' && (  /* country_name_i18n_v1: порівнюємо прапор, не назву */
+                  <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{typeof r.bio.country.name === 'object' ? (r.bio.country.name[lang] || r.bio.country.name.uk) : r.bio.country.name}</span>
                 )}
                 {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {t3(lang, 'р.', 'y.o.', '歳')}</span>}
                 {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
@@ -252,7 +228,7 @@ export default function RankForecast() {
             }}>
               {r.forecasts.map((f,i) => {
                 const fst = TYPE_STYLES[f.type] || TYPE_STYLES.info
-                const text = lang === 'en' ? translateForecast(f.text) : f.text
+                const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
                 return (
                   <div key={i} style={{
                     color: fst.color,

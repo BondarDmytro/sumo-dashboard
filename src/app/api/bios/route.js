@@ -1,28 +1,29 @@
+/* countries_i18n_v2 */
 import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v4 */
 const SUMO_API = 'https://sumo-api.com/api'
 
 const COUNTRY_FLAGS = {
-  'Mongolia': { flag: '🇲🇳', name: 'Монголія' },
-  'Ukraine': { flag: '🇺🇦', name: 'Україна' },
-  'Georgia': { flag: '🇬🇪', name: 'Грузія' },
-  'Bulgaria': { flag: '🇧🇬', name: 'Болгарія' },
-  'Russia': { flag: '🇷🇺', name: 'Росія' },
-  'China': { flag: '🇨🇳', name: 'Китай' },
-  'Brazil': { flag: '🇧🇷', name: 'Бразилія' },
-  'Kazakhstan': { flag: '🇰🇿', name: 'Казахстан' },
-  'Kyrgyzstan': { flag: '🇰🇬', name: 'Киргизстан' },
-  'Czech Republic': { flag: '🇨🇿', name: 'Чехія' },
-  'Tonga': { flag: '🇹🇴', name: 'Тонга' },
-  'Uzbekistan': { flag: '🇺🇿', name: 'Узбекистан' },
-  'Philippines': { flag: '🇵🇭', name: 'Філіппіни' },
-  'Egypt': { flag: '🇪🇬', name: 'Єгипет' },
+  'Mongolia': { flag: '🇲🇳', name: { uk: 'Монголія', en: 'Mongolia', ja: 'モンゴル' } },
+  'Ukraine': { flag: '🇺🇦', name: { uk: 'Україна', en: 'Ukraine', ja: 'ウクライナ' } },
+  'Georgia': { flag: '🇬🇪', name: { uk: 'Грузія', en: 'Georgia', ja: 'ジョージア' } },
+  'Bulgaria': { flag: '🇧🇬', name: { uk: 'Болгарія', en: 'Bulgaria', ja: 'ブルガリア' } },
+  'Russia': { flag: '🇷🇺', name: { uk: 'Росія', en: 'Russia', ja: 'ロシア' } },
+  'China': { flag: '🇨🇳', name: { uk: 'Китай', en: 'China', ja: '中国' } },
+  'Brazil': { flag: '🇧🇷', name: { uk: 'Бразилія', en: 'Brazil', ja: 'ブラジル' } },
+  'Kazakhstan': { flag: '🇰🇿', name: { uk: 'Казахстан', en: 'Kazakhstan', ja: 'カザフスタン' } },
+  'Kyrgyzstan': { flag: '🇰🇬', name: { uk: 'Киргизстан', en: 'Kyrgyzstan', ja: 'キルギス' } },
+  'Czech Republic': { flag: '🇨🇿', name: { uk: 'Чехія', en: 'Czechia', ja: 'チェコ' } },
+  'Tonga': { flag: '🇹🇴', name: { uk: 'Тонга', en: 'Tonga', ja: 'トンガ' } },
+  'Uzbekistan': { flag: '🇺🇿', name: { uk: 'Узбекистан', en: 'Uzbekistan', ja: 'ウズベキスタン' } },
+  'Philippines': { flag: '🇵🇭', name: { uk: 'Філіппіни', en: 'Philippines', ja: 'フィリピン' } },
+  'Egypt': { flag: '🇪🇬', name: { uk: 'Єгипет', en: 'Egypt', ja: 'エジプト' } },
 }
 
 function getCountry(shusshin) {
-  if (!shusshin) return { flag: '🇯🇵', name: 'Японія' }
+  if (!shusshin) return { flag: '🇯🇵', name: { uk: 'Японія', en: 'Japan', ja: '日本' } }
 
   // Roga — народився в Монголії але виступає за Росію
-  if (shusshin.includes('- Russia')) return { flag: '🏳️', name: 'Росія (нейтральний)' }
+  if (shusshin.includes('- Russia')) return { flag: '🏳️', name: { uk: 'Росія (нейтральний)', en: 'Russia (neutral)', ja: 'ロシア（中立）' } }
 
   const isJapan = shusshin.includes('-ken') || shusshin.includes('-to') ||
                   shusshin.includes('-do') || shusshin.includes('-fu') ||
@@ -33,7 +34,7 @@ function getCountry(shusshin) {
                   shusshin.includes('Niigata') || shusshin.includes('Nagano') ||
                   shusshin.includes('Kumamoto') || shusshin.includes('Kagoshima') ||
                   shusshin.includes('Hiroshima') || shusshin.includes('Kyoto')
-  if (isJapan) return { flag: '🇯🇵', name: 'Японія' }
+  if (isJapan) return { flag: '🇯🇵', name: { uk: 'Японія', en: 'Japan', ja: '日本' } }
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
 }

@@ -79,7 +79,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
     ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut']
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
   const bioValues = [
-    r.country?.name,
+    (typeof r.country?.name === 'object' ? (r.country.name[lang] || r.country.name.uk) : r.country?.name),  /* country_name_i18n_v1 */
     r.age ? `${r.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—',
     r.height ? `${r.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—',
     r.weight ? `${r.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—',
