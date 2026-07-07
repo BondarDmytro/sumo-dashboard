@@ -277,7 +277,7 @@ export default function SumoPageClient() {
 
   const tabs = [
     { id: 'banzuke', label: t3(lang, 'Банзуке', 'Banzuke', '番付') },
-    { id: 'kimarite', label: t3(lang, 'Кіматі', 'Kimarite', '決まり手') },
+    { id: 'kimarite', label: t3(lang, 'Кімаріте', 'Kimarite', '決まり手') },
   ]
 
   return (
@@ -310,6 +310,7 @@ export default function SumoPageClient() {
                 <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'1.5rem',lineHeight:1.6}}>
                   {lang === 'en'
                     ? 'Banzuke is the official ranking list of wrestlers before the tournament. East is traditionally considered the stronger side.'
+                    : lang === 'ja' ? '番付は場所前に発表される公式の力士ランキング。伝統的に東が格上とされる。'  /* ja_final_tails */
                     : 'Банзуке — офіційна таблиця рангів борців перед початком турніру. Схід (East) традиційно вважається сильнішою стороною.'}
                 </p>
                 <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:0,marginBottom:4}}>
@@ -329,7 +330,8 @@ export default function SumoPageClient() {
                 <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'1.5rem',lineHeight:1.6}}>
                   {lang === 'en'
                     ? 'Kimarite are the official winning techniques in sumo. There are 82 official techniques in total. Click on any technique for a description and video.'
-                    : 'Кіматі — офіційні техніки завершення поєдинку в сумо. Всього існує 82 офіційні техніки. Натисни на будь-яку для опису та відео.'}
+                    : lang === 'ja' ? '決まり手は相撲の勝負を決める公式の技。82手あり、クリックで詳細と動画を表示。'
+                    : 'Кімаріте — офіційні техніки завершення поєдинку в сумо. Всього існує 82 офіційні техніки. Натисни на будь-яку для опису та відео.'}
                 </p>
                 <KimariteView data={kimarite} lang={lang} />
               </div>

@@ -133,6 +133,7 @@ export default function ArchivePageClient() {
 
   const tableHeaders = lang === 'en'
     ? ['#', 'Rikishi', 'Rank', 'Record', 'Matches']
+    : lang === 'ja' ? ['#', '力士', '番付', '成績', '取組']  /* ja_final_tails */
     : ['#', 'Рікіші', 'Ранг', 'Рекорд', 'Матчі']
 
   return (
@@ -248,7 +249,7 @@ export default function ArchivePageClient() {
             <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600,wordBreak:'break-word'}}>
               {lang === 'en'
                 ? `Won in playoff vs ${data.playoff.loser} · ${data.playoff.kimarite}`
-                : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
+                : lang === 'ja' ? `優勝決定戦で${data.playoff.loser}を下す · ${data.playoff.kimarite}` : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
             </span>
           </div>
         )}

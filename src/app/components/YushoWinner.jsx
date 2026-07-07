@@ -102,7 +102,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
               <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600,wordBreak:'break-word'}}>
                 {lang === 'en'
                   ? `Won in playoff vs ${playoff.loser} · ${playoff.kimarite}`
-                  : `Переміг у плей-офі проти ${playoff.loser} · ${playoff.kimarite}`}
+                  : lang === 'ja' ? `優勝決定戦で${playoff.loser}を下す · ${playoff.kimarite}` : `Переміг у плей-офі проти ${playoff.loser} · ${playoff.kimarite}`}  {/* ja_final_tails */}
               </span>
             </div>
           )}

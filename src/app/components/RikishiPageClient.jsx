@@ -44,6 +44,7 @@ function WinRate({ wins, total }) {
 }
 
 function RikishiListCard({ r, onClick, selected }) {
+  const { lang } = useLang()  /* listcard_lang_v1 */
   return (
     <div onClick={() => onClick(r)} style={{
       background: selected ? 'var(--ink)' : 'var(--card)',
