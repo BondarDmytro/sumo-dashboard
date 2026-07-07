@@ -194,7 +194,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
-          <div style={{fontSize:'0.7rem',color:'var(--mid)',marginBottom:4}}>Makuuchi</div>
+          <div style={{fontSize:'0.7rem',color:'var(--mid)',marginBottom:4}}>{lang === 'ja' ? '幕内' : 'Makuuchi'}</div>  {/* makuuchi_label_ja */}
           <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700,marginBottom:6}}>
             {r.stats?.makuuchiWins}–{(r.stats?.makuuchiMatches||0) - (r.stats?.makuuchiWins||0)}
           </div>
@@ -252,7 +252,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
                 </span>
               </div>
               {m.opponent ? (
-                <div style={{fontSize:'0.68rem',fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{m.opponent}</div>
+                <div style={{fontSize:'0.68rem',fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && m.opponentJp ? m.opponentJp : m.opponent}</div>
               ) : (
                 <div style={{fontSize:'0.65rem',color:'var(--light)'}}>—</div>
               )}

@@ -111,7 +111,7 @@ const sanyaku = matches
         }}>
           <div style={{textAlign:'right'}}>
             <div style={{fontWeight: eastWon ? 800 : 600, fontSize:'0.88rem'}}>
-              {eastFlag} {m.eastShikona}
+              {eastFlag} {lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}  {/* ja_opponents_v1 */}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:2}}>{m.eastRank}</div>
             {eastR && (
@@ -163,7 +163,7 @@ const sanyaku = matches
           )}
           <div>
             <div style={{fontWeight: westWon ? 800 : 600, fontSize:'0.88rem'}}>
-              {westFlag} {m.westShikona}
+              {westFlag} {lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:2}}>{m.westRank}</div>
             {westR && (

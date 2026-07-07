@@ -80,6 +80,7 @@ export async function GET() {
             day: i + 1,
             result: m.result,
             opponent: m.opponentShikonaEn,
+            opponentJp: m.opponentShikonaJp || null,  /* ja_opponents_v1 */
             kimarite: m.kimarite,
           })),
           stats: {
