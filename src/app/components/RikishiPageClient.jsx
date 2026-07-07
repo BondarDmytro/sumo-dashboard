@@ -1,5 +1,5 @@
 /* auto_current_v3 */
-'use client'
+'use client' /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -213,7 +213,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        {bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']} — {r.wins}–{r.losses}
+        {bashoInfo(currentBashoId()).label[lang] /* ja_batch2 */} — {r.wins}–{r.losses}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {r.record.map(m => {
@@ -242,7 +242,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
                   opacity: isFusen ? 0.5 : 1,
                 }} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
-                  {lang === 'en' ? 'Day' : 'День'} {m.day}
+                  {lang === 'ja' ? `${m.day}日目` : (lang === 'en' ? `Day ${m.day}` : `День ${m.day}`)}
                 </span>
               </div>
               {m.opponent ? (
@@ -279,7 +279,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
                 <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'#f5f0e8', border:'1.5px solid var(--ink)'}} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
-                  {lang === 'en' ? 'Day' : 'День'} 16
+                  {lang === 'ja' ? '16日目' : (lang === 'en' ? 'Day 16' : 'День 16')}
                 </span>
               </div>
               <div style={{fontSize:'0.68rem',fontWeight:600,marginBottom:2}}>Kirishima</div>
@@ -340,7 +340,7 @@ export default function RikishiPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.5rem'}}>
-          {(lang === 'en' ? 'Makuuchi rikishi — ' : 'Рікіші макуучі — ') + bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']}
+          {(lang === 'ja' ? '幕内力士 — ' : lang === 'en' ? 'Makuuchi rikishi — ' : 'Рікіші макуучі — ') + bashoInfo(currentBashoId()).label[lang]}
         </div>
 
         {loading ? (

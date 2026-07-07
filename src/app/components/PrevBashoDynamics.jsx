@@ -1,4 +1,4 @@
-'use client'
+'use client' /* ja_batch2_t */
 // Динаміка попереднього басьо по днях: слайдер дня 1-15 (+плей-оф),
 // повна таблиця всіх учасників зі станом W-L на обраний день. prev_dynamics_v1
 import { useEffect, useState, useMemo } from 'react'
@@ -187,7 +187,7 @@ export default function PrevBashoDynamics({ bashoId }) {
       {view === 'groups' && (
         <CompactGrid currentDay={day} isKyujo={false}
           items={activeNow.map(r => ({ _id: String(r.id), name: r.name, rank: r.rank, wins: r.w, losses: r.l, record: r.rawRecord.slice(0, day) }))}
-          title={(lang === 'en' ? 'Standings after day ' : 'Стан після дня ') + day} />
+          title={lang === 'ja' ? day + '日目終了時点の星取' : (lang === 'en' ? 'Standings after day ' : 'Стан після дня ') + day} />
       )}
     </div>
   )

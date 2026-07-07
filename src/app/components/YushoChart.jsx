@@ -1,4 +1,4 @@
-'use client'
+'use client' /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import {
@@ -38,7 +38,7 @@ export default function YushoChart({ rikishi }) {
 
   const chartData = Array.from({ length: maxDay }, (_, i) => {
     const day = i + 1
-    const point = { day: lang === 'en' ? `Day ${day}` : `День ${day}` }
+    const point = { day: lang === 'ja' ? `${day}日目` : lang === 'en' ? `Day ${day}` : `День ${day}` }
 
     const rawChances = {}
     top.forEach(r => {

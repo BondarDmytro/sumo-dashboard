@@ -25,7 +25,7 @@ export default function BashoSelect() {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
 
-  const L = (id) => bashoInfo(id).label[lang === 'en' ? 'en' : 'uk']
+  const L = (id) => bashoInfo(id).label[lang] /* ja_batch2 */
   const nowYear = new Date().getFullYear()
   const decades = []
   for (let d = Math.floor(nowYear / 10) * 10; d >= Math.floor(HISTORY_START_YEAR / 10) * 10; d -= 10) decades.push(d)
@@ -35,7 +35,7 @@ export default function BashoSelect() {
     return ys
   }
   const allYearsDesc = (() => { const ys = []; for (let y = nowYear; y >= HISTORY_START_YEAR; y--) ys.push(y); return ys })()
-  const bashoName = (m) => bashoInfo('2026' + String(m).padStart(2, '0')).label[lang === 'en' ? 'en' : 'uk'].replace(/\s*\d{4}$/, '')
+  const bashoName = (m) => bashoInfo('2026' + String(m).padStart(2, '0')).label[lang] /* ja_batch2 */.replace(/\s*\d{4}$/, '')
   const pick = (id) => { setSelBasho(id); setOpen(false) }
   const idsForYear = (y) => {
     const ids = bashoIdsOfYear(y)

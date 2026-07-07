@@ -1,4 +1,4 @@
-'use client'
+'use client' /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
@@ -56,7 +56,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       const winsAmount = r.wins * PRIZE_PER_WIN
       total += winsAmount
       breakdown.push({
-        label: lang === 'en' ? `${r.wins} wins × ¥70,000` : `${r.wins} перемог × ¥70,000`,
+        label: lang === 'ja' ? `${r.wins}勝 × ¥70,000` : lang === 'en' ? `${r.wins} wins × ¥70,000` : `${r.wins} перемог × ¥70,000`,
         amount: winsAmount,
         color: '#1a6b5c'
       })

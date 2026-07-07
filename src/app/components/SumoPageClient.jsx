@@ -291,7 +291,7 @@ export default function SumoPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']}
+          {bashoInfo(currentBashoId()).label[lang] /* ja_batch2 */}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
           {t3(lang, 'Про сумо', 'About Sumo', '相撲について')}

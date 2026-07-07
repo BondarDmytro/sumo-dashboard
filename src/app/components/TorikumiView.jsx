@@ -1,4 +1,4 @@
-'use client'
+'use client' /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -56,7 +56,7 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
 
   if (!matches.length) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {lang === 'en' ? `Schedule for day ${nextDay} not yet available` : `Розклад на день ${nextDay} ще не сформовано`}
+      {lang === 'ja' ? `${nextDay}日目の取組は未発表` : lang === 'en' ? `Schedule for day ${nextDay} not yet available` : `Розклад на день ${nextDay} ще не сформовано`}
     </div>
   )
 
