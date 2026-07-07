@@ -1,6 +1,7 @@
 /* sanity_removed_v1 */
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";  /* ga4_v1 */
 import { BiosProvider } from './components/BiosProvider'
 import NavBar from './components/NavBar'
 import { LangProvider } from './components/LangProvider'
@@ -48,6 +49,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-2ZRV6QSTKP" strategy="afterInteractive" />
+        <Script id="ga4" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-2ZRV6QSTKP');
+        `}</Script>
         <LangProvider>
           <BiosProvider>
             <NavBar />
