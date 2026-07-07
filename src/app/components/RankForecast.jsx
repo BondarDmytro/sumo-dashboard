@@ -31,6 +31,15 @@ function BashoWins({ bashoId, wins, losses }) {
   )
 }
 
+const HEYA_JA = {  /* ja_gaps_v2: основні стайні */
+  'Tatsunami': '立浪', 'Nishonoseki': '二所ノ関', 'Otowayama': '音羽山', 'Sadogatake': '佐渡ヶ嚆',
+  'Isegahama': '伊勢ヶ濱', 'Oshiogawa': '押尾川', 'Kokonoe': '九重', 'Takasago': '高砂',
+  'Kasugano': '春日野', 'Oitekaze': '追手風', 'Tokitsukaze': '時津風', 'Dewanoumi': '出羽海',
+  'Hakkaku': '八角', 'Kise': '木瀬', 'Minato': '渊', 'Naruto': '鳴戸',
+  'Asakayama': '浅香山', 'Tamanoi': '玉ノ井', 'Fujishima': '藤島', 'Miyagino': '宮城野',
+  'Onomatsu': '阿武松', 'Shikoroyama': '錆山', 'Ajigawa': '安治川', 'Takadagawa': '高田川',
+  'Arashio': '荒汐', 'Ikazuchi': '雷', 'Hanaregoma': '放駒', 'Nishikido': '錦戸',
+}
 export default function RankForecast() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -176,7 +185,7 @@ export default function RankForecast() {
                 {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
                 {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {t3(lang, 'кг', 'kg', 'kg')}</span>}
                 {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{t3(lang, 'дебют', 'debut', '初土俯')} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
-                {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.heya}</span>}
+                {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{lang === 'ja' ? (HEYA_JA[r.bio.heya] || r.bio.heya) : r.bio.heya}</span>}
               </div>
             </div>
 

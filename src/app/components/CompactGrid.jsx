@@ -16,6 +16,8 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
     : (t3(lang, 'Вибули з гонки юшо', 'Eliminated from yusho race', '優勝争い脱落')))
 
   const winsLabel = w => {
+    if (lang === 'ja') return w + '勝'  /* ja_gaps_v2 */
+    if (lang === 'en') return w + (w === 1 ? ' win' : ' wins')
     if (lang === 'en') return `${w} ${w === 1 ? 'win' : 'wins'}`
     return w === 1 ? '1 перемога' : w >= 2 && w <= 4 ? `${w} перемоги` : `${w} перемог`
   }
@@ -81,7 +83,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               const isWin = RESULTS_WIN.includes(m.result)
               const isLoss = RESULTS_LOSS.includes(m.result)
               return (
-                <span key={idx} title={`День ${idx+1}${m.opponent?': '+m.opponent:''}`} style={{
+                <span key={idx} title={(lang === 'ja' ? `${idx+1}日目` : lang === 'en' ? `Day ${idx+1}` : `День ${idx+1}`) + (m.opponent?': '+m.opponent:'')} style={{
                   width:9,height:9,borderRadius:'50%',
                   background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
                   border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',

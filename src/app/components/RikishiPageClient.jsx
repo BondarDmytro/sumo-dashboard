@@ -1,5 +1,5 @@
 /* auto_current_v3 */
-'use client' /* kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
+'use client' /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -43,6 +43,7 @@ function WinRate({ wins, total }) {
   )
 }
 
+const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' }  /* ja_gaps_v1 */
 function RikishiListCard({ r, onClick, selected }) {
   const { lang } = useLang()  /* listcard_lang_v1 */
   return (
@@ -144,6 +145,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
                     .filter(([, count]) => count > 0)
                     .sort(([a], [b]) => {
                       const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
+                      // ja_gaps_v1
                       return order.indexOf(a) - order.indexOf(b)
                     })
                     .map(([division, count]) => (
@@ -154,7 +156,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
                         color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
                         padding:'2px 7px',borderRadius:2,
                       }}>
-                        {division} {count}{'×'}
+                        {lang === 'ja' ? (DIVISION_JA[division] || division) : division} {count}{'×'}  {/* ja_gaps_div_fix */}
                       </span>
                     ))}
                 </div>
