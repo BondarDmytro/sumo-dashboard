@@ -20,13 +20,13 @@ function secondSundayDay(year, month) {
   return firstSunday + 7
 }
 
-const VENUES = {  /* venue_v1: фото поклади в public/images/venues/ */
-  1:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
-  3:  { name: 'EDION Arena Osaka',      img: '/images/venues/venue-haru.webp' },
-  5:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
-  7:  { name: 'IG Arena',               img: '/images/venues/venue-nagoya.webp' },
-  9:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp' },
-  11: { name: 'Fukuoka Kokusai Center', img: '/images/venues/venue-kyushu.webp' },
+const VENUES = {  /* venue_v1 + venue_credits_v1: фото з Wikimedia Commons */
+  1:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp', credit: { author: null, license: 'Public Domain (1909)', licenseUrl: null, fileUrl: 'https://commons.wikimedia.org/wiki/File:Ryogoku_Kokugikan_1909.jpg' } },
+  3:  { name: 'EDION Arena Osaka',      img: '/images/venues/venue-haru.webp', credit: { author: 'KishujiRapid', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0', fileUrl: 'https://commons.wikimedia.org/wiki/File:Osaka_Prefectural_Gymnasium_20191129.jpg' } },
+  5:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp', credit: { author: null, license: 'Public Domain (1909)', licenseUrl: null, fileUrl: 'https://commons.wikimedia.org/wiki/File:Ryogoku_Kokugikan_1909.jpg' } },
+  7:  { name: 'IG Arena',               img: '/images/venues/venue-nagoya.webp', credit: { author: '\u5186\u5468\u7387\uff13\u30d1\u30fc\u30bb\u30f3\u30c8', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0', fileUrl: 'https://commons.wikimedia.org/wiki/File:NGO_Kita_Meijokoen_20250712_1446a.jpg' } },
+  9:  { name: 'Ryogoku Kokugikan',      img: '/images/venues/venue-kokugikan.webp', credit: { author: null, license: 'Public Domain (1909)', licenseUrl: null, fileUrl: 'https://commons.wikimedia.org/wiki/File:Ryogoku_Kokugikan_1909.jpg' } },
+  11: { name: 'Fukuoka Kokusai Center', img: '/images/venues/venue-kyushu.webp', credit: { author: 'Auximines', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/', fileUrl: 'https://commons.wikimedia.org/wiki/File:Fukuoka_International_Center.jpg' } },
 }
 
 const START_HOUR_JST = 8   // початок боїв дня 1 (нижні дивізіони), JST

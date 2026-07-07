@@ -34,6 +34,17 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         <div style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center',height:300}}>
           <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:'100%',flex:1,minHeight:0,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
           <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : bi.city.uk)}</div>
+          {bi.venue.credit && (
+            <div style={{fontSize:'0.55rem',fontFamily:'monospace',color:'#f5f0e8',opacity:0.45,marginTop:3}}>  {/* venue_credits_v1 */}
+              Photo: {bi.venue.credit.author
+                ? <a href={bi.venue.credit.fileUrl} target="_blank" rel="noreferrer" style={{color:'inherit'}}>{bi.venue.credit.author}</a>
+                : <a href={bi.venue.credit.fileUrl} target="_blank" rel="noreferrer" style={{color:'inherit'}}>Wikimedia Commons</a>}
+              {' / '}
+              {bi.venue.credit.licenseUrl
+                ? <a href={bi.venue.credit.licenseUrl} target="_blank" rel="noreferrer" style={{color:'inherit'}}>{bi.venue.credit.license}</a>
+                : bi.venue.credit.license}
+            </div>
+          )}
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{bi.kanji + ' ' + (lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : bi.label.uk)}</div>
         </div>
         <div style={{minWidth:0,order:1,height:300,display:'flex',flexDirection:'column',justifyContent:'center'}}>  {/* header_v17 */}
