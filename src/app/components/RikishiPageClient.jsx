@@ -169,8 +169,8 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           {sanshoList.length > 0 && (
             <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
               {sanshoList.map(([name, count]) => (
-                <span key={lang === 'ja' ? (SANSHO_JA[name] || name) : name} style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 7px',borderRadius:2,color:'var(--mid)'}}>
-                  {name} {count}{'×'}
+                <span key={name} style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 7px',borderRadius:2,color:'var(--mid)'}}>
+                  {lang === 'ja' ? (SANSHO_JA[name] || name) : name} {count}{'×'}  {/* sansho_render_fix */}
                 </span>
               ))}
             </div>

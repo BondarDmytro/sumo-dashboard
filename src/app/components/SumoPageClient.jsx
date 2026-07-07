@@ -19,6 +19,11 @@ function getRankType(rank) {
   return RANK_ORDER.find(r => rank?.includes(r)) || 'Maegashira'
 }
 
+export function kimariteKanji(name) {  /* kimarite_kanji_v1 */
+  const info = KIMARITE_INFO[name]
+  if (!info?.ja) return name
+  return info.ja.split('\u3002')[0] || name
+}
 const KIMARITE_CATS = [  /* kimarite_ja_v1 */
   { label: { uk: 'Виштовхування', en: 'Push-out', ja: '寄り・押し' }, moves: ['yorikiri','oshidashi','tsukidashi','okuridashi','yoritaoshi','oshitaoshi','tsukiotoshi','okuritsuriotoshi','okuriashi'] },
   { label: { uk: 'Кидки', en: 'Throws', ja: '投げ手' }, moves: ['uwatenage','shitatenage','uwatedashinage','shitatedashinage','kotenage','kubinage','sukuinage','kirikaeshi','tottari','katasukashi','ipponzeoi','uwatehineri','shitatehineri'] },

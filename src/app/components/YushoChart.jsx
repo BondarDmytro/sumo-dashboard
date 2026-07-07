@@ -90,8 +90,9 @@ export default function YushoChart({ rikishi }) {
           />
           <Legend
             wrapperStyle={{fontFamily:'monospace',fontSize:11,paddingTop:8}}
-            formatter={(value) => <span style={{color:'var(--ink)'}}>{value}</span>}
+            formatter={(value) => { const rr = top.find(x => x.name === value); return <span style={{color:'var(--ink)'}}>{lang === 'ja' && rr?.nameJp ? rr.nameJp : value}</span> }}
           />
+          {/* chart_ja_names */}
           {top.map((r, i) => (
             <Line
               key={r.name}
