@@ -1,4 +1,5 @@
 'use client'
+import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { displayName, displayRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -93,7 +94,7 @@ export default function RankForecast() {
                 <div style={{flex:1, padding:'0.5rem 0.75rem'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{fontSize:'1rem'}}>{r.bio?.country?.flag}</span>
-                    <div style={{fontWeight:700,fontSize:'0.9rem'}}>{displayName(r, lang)}</div>
+                    <div style={{fontWeight:700,fontSize:'0.9rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
                   </div>
                   <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:2}}>{displayRank(r.rank, lang)}</div>
                 </div>
@@ -176,7 +177,7 @@ export default function RankForecast() {
             <div style={{padding:'0.5rem 1rem',borderRight:'1px solid var(--border)'}}>
               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                 <span style={{fontSize:'1.1rem'}}>{r.bio?.country?.flag}</span>
-                <div style={{fontWeight:700,fontSize:'0.9rem'}}>{displayName(r, lang)}</div>
+                <div style={{fontWeight:700,fontSize:'0.9rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
               </div>
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:3}}>{displayRank(r.rank, lang)}</div>
               <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>

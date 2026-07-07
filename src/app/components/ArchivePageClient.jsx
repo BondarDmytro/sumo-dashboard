@@ -1,4 +1,5 @@
 'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
+import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { kimariteKanji } from '../lib/kimarite' /* ja_kimarite_ui_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
@@ -6,12 +7,7 @@ import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
 
-const BASHOS = [
-  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', location: 'Осака', locationEn: 'Osaka' },
-  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
-]
+import { BASHO_LIST as BASHOS } from '../lib/bashoCalendar' /* archive_basho_list_import_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -282,7 +278,7 @@ export default function ArchivePageClient() {
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
                           <span>{r.flag}</span>
                           <div>
-                            <div style={{fontWeight:700,fontSize:'0.88rem'}}>{displayName(r, lang)}</div>
+                            <div style={{fontWeight:700,fontSize:'0.88rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
                             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>
                           </div>
                         </div>
