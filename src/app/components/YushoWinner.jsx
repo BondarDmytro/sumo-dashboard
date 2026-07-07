@@ -72,7 +72,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
               color:'var(--ink)',
               wordBreak:'break-word',
             }}>
-              {flag} {winner.name}
+              {flag} {lang === 'ja' && winner.nameJp ? winner.nameJp : winner.name}  {/* ja_gaps_v5 */}
             </h2>
             <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:6}}>
               {winner.rankFull}
@@ -102,7 +102,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
               <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600,wordBreak:'break-word'}}>
                 {lang === 'en'
                   ? `Won in playoff vs ${playoff.loser} · ${playoff.kimarite}`
-                  : lang === 'ja' ? `優勝決定戦で${playoff.loser}を下す · ${playoff.kimarite}` : `Переміг у плей-офі проти ${playoff.loser} · ${playoff.kimarite}`}  {/* ja_final_tails */}
+                  : lang === 'ja' ? `優勝決定戦で${playoff.loserJp || playoff.loser}を下す · ${playoff.kimarite}` : `Переміг у плей-офі проти ${playoff.loser} · ${playoff.kimarite}`}  {/* ja_final_tails */}
               </span>
             </div>
           )}

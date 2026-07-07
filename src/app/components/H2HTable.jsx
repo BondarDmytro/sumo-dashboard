@@ -5,7 +5,7 @@ import { useLang } from './LangProvider'
 
 export default function H2HTable({ rikishi, h2h }) {
   const { lang } = useLang()
-  const names = rikishi.map(r => r.name)
+  const names = rikishi.map(r => (lang === 'ja' && r.nameJp) ? r.nameJp : r.name)  /* ja_gaps_v4 */
 
   const getResult = (a, b) => {
     const match = h2h.find(m =>

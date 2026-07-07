@@ -109,7 +109,7 @@ function BanzukeView({ data, lang }) {
 
   const rankLabel = (rankType) => {
     if (lang === 'en') return rankType
-    return rankType === 'Maegashira' ? 'Маєґашіра' :
+    return rankType === 'Maegashira' ? (lang === 'ja' ? '前頭' : lang === 'en' ? 'Maegashira' : 'Маєґашіра') :  /* ja_gaps_v4 */
            lang === 'ja' ? (rankType === 'Yokozuna' ? '横綱' : rankType === 'Ozeki' ? '大関' : rankType === 'Sekiwake' ? '関脇' : '小結') :  /* ja_tails_v1 */
            rankType === 'Yokozuna' ? 'Йокодзуна' :
            rankType === 'Ozeki' ? 'Озекі' :

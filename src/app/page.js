@@ -42,7 +42,7 @@ async function getBashoData() {
       const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}`, { next: { revalidate: 86400 } })
       const pInfo = await pInfoRes.json()
       const y = (pInfo.yusho || []).find(v => v.division === 'Makuuchi' || v.type === 'Makuuchi') || (pInfo.yusho || [])[0] || null
-      if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn }
+      if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn, nameJp: y.shikonaJp }  /* ja_gaps_v4 */
     } catch (e) {}
   }
   const specialPrizes = bashoInfo.specialPrizes || []
@@ -190,10 +190,12 @@ async function getBashoData() {
       )
       if (playoffMatch) {
         playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null
+        const loserId = playoffMatch.winnerId === playoffMatch.eastId ? playoffMatch.westId : playoffMatch.eastId  /* ja_loser_v1 */
+        const loserObj = normalized.find(r => String(r._id) === String(loserId))
         const loserName = playoffMatch.winnerId === playoffMatch.eastId
           ? playoffMatch.westShikona
           : playoffMatch.eastShikona
-        playoff = { loser: loserName, kimarite: playoffMatch.kimarite }
+        playoff = { loser: loserName, loserJp: loserObj?.nameJp || null, kimarite: playoffMatch.kimarite }
       }
     } catch(e) {}
   }
