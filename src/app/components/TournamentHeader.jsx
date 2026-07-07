@@ -45,7 +45,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
                 : bi.venue.credit.license}
             </div>
           )}
-          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{bi.kanji + ' ' + (lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : bi.label.uk)}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{lang === 'ja' ? bi.label.ja : bi.kanji + ' ' + (lang === 'en' ? bi.label.en : bi.label.uk)}  {/* kanji_dedup_v1 */}</div>
         </div>
         <div style={{minWidth:0,order:1,height:300,display:'flex',flexDirection:'column',justifyContent:'center'}}>  {/* header_v17 */}
         <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>

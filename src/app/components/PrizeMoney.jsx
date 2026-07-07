@@ -75,6 +75,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'1rem',lineHeight:1.6}}>
         {lang === 'en'
           ? 'Tournament prize money. Includes yusho prize (¥10M), special prizes (¥2M each), and ¥70,000 per win.'
+          : lang === 'ja' ? '場所の賞金。優勝賞金（¥10M）、三賞（各¥2M）、勝利給（1勝¥70,000）を含む。'  /* ja_gaps_v3 */
           : 'Призові за турнір. Включає приз юшо (¥10M), спеціальні призи (¥2M кожен) та ¥70,000 за кожну перемогу.'}
       </div>
 
@@ -136,6 +137,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       <div style={{marginTop:'1rem',fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',lineHeight:1.6}}>
         {lang === 'en'
           ? '* Base salary not included. Exchange rate ~¥149/$1. Special prizes announced after tournament.'
+          : lang === 'ja' ? '* 基本給は含まず。レート約¥149/$1。三賞は場所後に発表。'
           : '* Базова зарплата не включена. Курс ~¥149/$1. Спеціальні призи оголошуються після турніру.'}
       </div>
     </div>
