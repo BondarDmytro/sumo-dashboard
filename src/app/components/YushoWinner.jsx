@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import { useBios } from './BiosProvider'
@@ -84,7 +85,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
                 {winner.wins}–{winner.losses}
               </div>
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>
-                {lang === 'en' ? 'Final record' : 'Фінальний рекорд'}
+                {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績')}
               </div>
             </div>
           </div>

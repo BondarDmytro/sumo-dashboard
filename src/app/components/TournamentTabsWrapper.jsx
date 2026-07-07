@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useState } from 'react'
 import { useLang } from './LangProvider'
@@ -17,12 +18,12 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
   const bios = useBios()
 
   const tabs = [
-    { id: 'standings', label: lang === 'en' ? 'Standings' : 'Таблиця' },
+    { id: 'standings', label: t3(lang, 'Таблиця', 'Standings', '星取表') },
     ...(isCurrent && !isFinished && currentDay <= 15 ? [{
       id: 'torikumi',
       label: lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
     }] : []),
-    ...(isCurrent ? [{ id: 'prizes', label: lang === 'en' ? 'Prize money' : 'Призові' }] : []),
+    ...(isCurrent ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
   ]  /* basho_filter_v1 */
 
   return (

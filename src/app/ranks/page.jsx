@@ -1,5 +1,6 @@
 /* auto_current_v3 */
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import RankForecast from '../components/RankForecast'
 import { useLang } from '../components/LangProvider'
@@ -15,8 +16,8 @@ export default function RanksPage() {
           {bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'0.4rem'}}>
-          {lang === 'en' ? 'Rank Forecast' : 'Прогноз змін рангу'}
-          <span style={{color:'#b8860b'}}>{lang === 'en' ? " — San'yaku" : " — Сан'яку"}</span>
+          {t3(lang, 'Прогноз змін рангу', 'Rank Forecast', '番付予想')}
+          <span style={{color:'#b8860b'}}>{t3(lang, " — Сан'яку", " — San'yaku", " — 三役")}</span>
         </h1>
         <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'2rem',lineHeight:1.6}}>
           {lang === 'en'

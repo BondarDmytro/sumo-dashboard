@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -43,13 +44,13 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
 
   if (nextDay > 15) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {lang === 'en' ? 'Tournament is over' : 'Турнір завершено'}
+      {t3(lang, 'Турнір завершено', 'Tournament is over', '場所終了')}
     </div>
   )
 
   if (loading) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {lang === 'en' ? 'Loading...' : 'Завантаження...'}
+      {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
     </div>
   )
 
@@ -182,7 +183,7 @@ const sanyaku = matches
       {sanyaku.length > 0 && (
         <div style={{marginBottom:'0.5rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 1rem',background:'var(--bg2)',borderLeft:'3px solid #b8860b',marginBottom:1}}>
-            {lang === 'en' ? "San'yaku" : "Сан'яку"}
+            {t3(lang, "Сан'яку", "San'yaku", "三役")}
           </div>
           {sanyaku.map(m => renderMatch(m))}
         </div>

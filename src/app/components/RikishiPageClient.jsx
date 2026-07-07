@@ -1,5 +1,6 @@
 /* auto_current_v3 */
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -69,7 +70,7 @@ function RikishiListCard({ r, onClick, selected }) {
 function RikishiDetail({ r, lang, onBack, isMobile }) {
   if (!r) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300,color:'var(--mid)',fontFamily:'monospace',fontSize:'0.8rem'}}>
-      {lang === 'en' ? '← Select a rikishi from the list' : '← Виберіть рікіші зі списку'}
+      {t3(lang, '← Виберіть рікіші зі списку', '← Select a rikishi from the list', '← 一覧から力士を選択')}
     </div>
   )
 
@@ -79,9 +80,9 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
   const bioValues = [
     r.country?.name,
-    r.age ? `${r.age} ${lang === 'en' ? 'y.o.' : 'р.'}` : '—',
-    r.height ? `${r.height} ${lang === 'en' ? 'cm' : 'см'}` : '—',
-    r.weight ? `${r.weight} ${lang === 'en' ? 'kg' : 'кг'}` : '—',
+    r.age ? `${r.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—',
+    r.height ? `${r.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—',
+    r.weight ? `${r.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—',
     r.heya || '—',
     r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—',
   ]
@@ -98,7 +99,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           cursor:'pointer',padding:'0 0 1rem 0',
           letterSpacing:'0.05em',
         }}>
-          {'‹'} {lang === 'en' ? 'Back to list' : 'До списку'}
+          {'‹'} {t3(lang, 'До списку', 'Back to list', '一覧に戻る')}
         </button>
       )}
 
@@ -132,7 +133,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
                   <span key={i} style={{fontSize:'0.9rem'}}>{'🏆'}</span>
                 ))}
                 <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
-                  {r.stats.yusho}{'×'} {lang === 'en' ? 'yusho' : 'юшо'}
+                  {r.stats.yusho}{'×'} {t3(lang, 'юшо', 'yusho', '優勝')}
                 </span>
               </div>
               {Object.keys(r.stats.yushoByDivision || {}).length > 0 && (
@@ -193,7 +194,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           </div>
           <WinRate wins={r.stats?.makuuchiWins||0} total={r.stats?.makuuchiMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {r.stats?.makuuchiBasho} {lang === 'en' ? 'tournaments' : 'турнірів'}
+            {r.stats?.makuuchiBasho} {t3(lang, 'турнірів', 'tournaments', '場所')}
           </div>
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
@@ -205,7 +206,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
           </div>
           <WinRate wins={r.stats?.totalWins||0} total={r.stats?.totalMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {r.stats?.totalMatches} {lang === 'en' ? 'matches' : 'матчів'}
+            {r.stats?.totalMatches} {t3(lang, 'матчів', 'matches', '番')}
           </div>
         </div>
       </div>
@@ -260,7 +261,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
               )}
               {isAbsent && (
                 <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'#c0392b',marginTop:2}}>
-                  {lang === 'en' ? 'kyujo' : 'кюджо'}
+                  {t3(lang, 'кюджо', 'kyujo', '休場')}
                 </div>
               )}
             </div>
@@ -271,7 +272,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
       {hasPlayoff && (
         <div style={{marginTop:'1rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-            {lang === 'en' ? 'Playoff — Day 16' : 'Плей-оф — День 16'}
+            {t3(lang, 'Плей-оф — День 16', 'Playoff — Day 16', '優勝決定戦')}
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
             <div style={{background:'var(--bg2)',border:'1px solid rgba(184,134,11,0.4)',padding:'0.4rem 0.6rem',borderRadius:2}}>
@@ -344,7 +345,7 @@ export default function RikishiPageClient() {
 
         {loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {lang === 'en' ? 'Loading...' : 'Завантаження даних...'}
+            {t3(lang, 'Завантаження даних...', 'Loading...', '読み込み中...')}
           </div>
         ) : isMobile ? (
           /* Мобільний layout */
@@ -361,7 +362,7 @@ export default function RikishiPageClient() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={lang === 'en' ? 'Search...' : 'Пошук...'}
+                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...')}
                 style={{
                   width:'100%',padding:'0.5rem 0.75rem',
                   background:'var(--bg2)',border:'1px solid var(--border)',
@@ -387,7 +388,7 @@ export default function RikishiPageClient() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={lang === 'en' ? 'Search...' : 'Пошук...'}
+                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...')}
                 style={{
                   width:'100%',padding:'0.5rem 0.75rem',
                   background:'var(--bg2)',border:'1px solid var(--border)',

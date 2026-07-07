@@ -1,6 +1,6 @@
 'use client'
-/* basho_history_select_v1: дворівневий вибір басьо 1958-сьогодні.
-   Режим "За роком": декада -> рік -> басьо. Режим "За басьо": назва -> рік. */
+/* basho_history_select_v1 + ja_batch1 */
+import { t3 } from '../i18n'
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom' /* select_portal_v1 */
 import { useLang } from './LangProvider'
@@ -55,8 +55,8 @@ export default function BashoSelect() {
         <div data-basho-popover="1" style={{ position: 'fixed', top: 110, right: 24, zIndex: 9999,  /* select_fix_v3 */ width: 340, maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',  /* select_fix_v2 */
           background: '#161006', border: '1px solid rgba(240,192,96,0.35)', borderRadius: 4, padding: 12, boxShadow: '0 12px 34px rgba(0,0,0,0.6)' }}>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            <button style={mode === 'year' ? btnActive : btn} onClick={() => setMode('year')}>{lang === 'en' ? 'By year' : 'За роком'}</button>
-            <button style={mode === 'basho' ? btnActive : btn} onClick={() => setMode('basho')}>{lang === 'en' ? 'By basho' : 'За басьо'}</button>
+            <button style={mode === 'year' ? btnActive : btn} onClick={() => setMode('year')}>{t3(lang, 'За роком', 'By year', '年別')}</button>
+            <button style={mode === 'basho' ? btnActive : btn} onClick={() => setMode('basho')}>{t3(lang, 'За басьо', 'By basho', '場所別')}</button>
           </div>
 
           {mode === 'year' && (
@@ -76,7 +76,7 @@ export default function BashoSelect() {
                   {idsForYear(year).map(id => (
                     <button key={id} style={selBasho === id ? btnActive : btn} onClick={() => pick(id)}>{L(id)}</button>
                   ))}
-                  {idsForYear(year).length === 0 && <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#8a8378' }}>{lang === 'en' ? 'No data' : 'Нема даних'}</span>}
+                  {idsForYear(year).length === 0 && <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#8a8378' }}>{t3(lang, 'Нема даних', 'No data', 'データなし')}</span>}
                 </div>
               )}
             </div>

@@ -1,5 +1,6 @@
 /* auto_current_v3 */
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -39,7 +40,7 @@ function getKimariteCategory(name, lang) {
   for (const [cat, moves] of Object.entries(cats)) {
     if (moves.includes(name)) return cat
   }
-  return lang === 'en' ? 'Other' : 'Інші'
+  return t3(lang, 'Інші', 'Other', 'その他')
 }
 
 const KIMARITE_EXT = {
@@ -206,7 +207,7 @@ function KimariteModal({ item, onClose, lang }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>
-              {lang === 'en' ? 'Uses in all-time history' : 'Використань за всю історію'}
+              {t3(lang, 'Використань за всю історію', 'Uses in all-time history', '通算使用回数')}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700}}>{item.count.toLocaleString()}</div>
           </div>
@@ -255,7 +256,7 @@ function KimariteView({ data, lang }) {
         ))}
       </div>
       <div style={{fontSize:'0.72rem',color:'var(--mid)',fontFamily:'monospace'}}>
-        {lang === 'en' ? '* All-time statistics since 1958 · Click on a technique for details' : '* Загальна статистика з 1958 · Натисни на техніку для деталей'}
+        {t3(lang, '* Загальна статистика з 1958 · Натисни на техніку для деталей', '* All-time statistics since 1958 · Click on a technique for details', '* 1958年以降の通算統計 ・ 技をクリックで詳細')}
       </div>
     </div>
   )
@@ -282,8 +283,8 @@ export default function SumoPageClient() {
   }, [])
 
   const tabs = [
-    { id: 'banzuke', label: lang === 'en' ? 'Banzuke' : 'Банзуке' },
-    { id: 'kimarite', label: lang === 'en' ? 'Kimarite' : 'Кіматі' },
+    { id: 'banzuke', label: t3(lang, 'Банзуке', 'Banzuke', '番付') },
+    { id: 'kimarite', label: t3(lang, 'Кіматі', 'Kimarite', '決まり手') },
   ]
 
   return (
@@ -293,8 +294,8 @@ export default function SumoPageClient() {
           {bashoInfo(currentBashoId()).label[lang === 'en' ? 'en' : 'uk']}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
-          {lang === 'en' ? 'About Sumo' : 'Про сумо'}
-          <span style={{color:'#b8860b'}}>{lang === 'en' ? ' — Guide' : ' — Довідник'}</span>
+          {t3(lang, 'Про сумо', 'About Sumo', '相撲について')}
+          <span style={{color:'#b8860b'}}>{t3(lang, ' — Довідник', ' — Guide', ' — ガイド')}</span>
         </h1>
 
         <div style={{display:'flex',gap:1,marginBottom:'2rem',borderBottom:'2px solid var(--border)'}}>
@@ -307,7 +308,7 @@ export default function SumoPageClient() {
 
         {loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {lang === 'en' ? 'Loading...' : 'Завантаження...'}
+            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
           </div>
         ) : (
           <>
@@ -320,11 +321,11 @@ export default function SumoPageClient() {
                 </p>
                 <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:0,marginBottom:4}}>
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',textAlign:'right',color:'var(--mid)'}}>
-                    {lang === 'en' ? 'EAST' : 'СХІД (EAST)'}
+                    {t3(lang, 'СХІД (EAST)', 'EAST', '東')}
                   </div>
                   <div style={{padding:'0.4rem 0.5rem',minWidth:80}} />
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--mid)'}}>
-                    {lang === 'en' ? 'WEST' : 'ЗАХІД (WEST)'}
+                    {t3(lang, 'ЗАХІД (WEST)', 'WEST', '西')}
                   </div>
                 </div>
                 <BanzukeView data={banzuke} lang={lang} />

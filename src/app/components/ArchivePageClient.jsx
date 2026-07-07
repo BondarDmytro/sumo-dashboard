@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -138,11 +139,11 @@ export default function ArchivePageClient() {
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {lang === 'en' ? 'Tournament archive' : 'Архів турнірів'}
+          {t3(lang, 'Архів турнірів', 'Tournament archive', '場所アーカイブ')}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
-          {lang === 'en' ? 'Results' : 'Результати'}
-          <span style={{color:'#b8860b'}}>{lang === 'en' ? ' — Previous basho' : ' — Попередні басьо'}</span>
+          {t3(lang, 'Результати', 'Results', '結果')}
+          <span style={{color:'#b8860b'}}>{t3(lang, ' — Попередні басьо', ' — Previous basho', ' — 過去の場所')}</span>
         </h1>
 
         {/* Кнопки вибору басьо */}
@@ -165,7 +166,7 @@ export default function ArchivePageClient() {
 
         {loading && (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {lang === 'en' ? 'Loading...' : 'Завантаження...'}
+            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
           </div>
         )}
 
@@ -230,7 +231,7 @@ export default function ArchivePageClient() {
               {data.winner.wins}–{data.winner.losses}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>
-              {lang === 'en' ? 'Final record' : 'Фінальний рекорд'}
+              {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績')}
             </div>
           </div>
         </div>
@@ -291,7 +292,7 @@ export default function ArchivePageClient() {
                         </span>
                         {r.kyujo && (
                           <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,marginLeft:4}}>
-                            {lang === 'en' ? 'KYJ' : 'КЮД'}
+                            {t3(lang, 'КЮД', 'KYJ', '休')}
                           </span>
                         )}
                       </td>

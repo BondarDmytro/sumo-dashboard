@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -57,7 +58,7 @@ export default function YushoChart({ rikishi }) {
   return (
     <div>
       <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'0.75rem',letterSpacing:'0.08em'}}>
-        {lang === 'en' ? 'Yusho chance dynamics by tournament day' : 'Динаміка шансів на юшо по днях турніру'}
+        {t3(lang, 'Динаміка шансів на юшо по днях турніру', 'Yusho chance dynamics by tournament day', '優勝確率の日別推移')}
       </div>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={chartData} margin={{top:5,right:20,left:0,bottom:5}}>

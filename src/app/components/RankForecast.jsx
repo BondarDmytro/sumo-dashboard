@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -88,7 +89,7 @@ export default function RankForecast() {
 
   if (loading) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-      {lang === 'en' ? 'Loading rank forecast...' : 'Завантаження прогнозу рангів...'}
+      {t3(lang, 'Завантаження прогнозу рангів...', 'Loading rank forecast...', '番付予想を読み込み中...')}
     </div>
   )
 
@@ -158,7 +159,7 @@ export default function RankForecast() {
                 scrollbarWidth:'none',
               }}>
                 <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--light)',whiteSpace:'nowrap',flexShrink:0}}>
-                  {lang === 'en' ? '← prev' : '← попер'}
+                  {t3(lang, '← попер', '← prev', '← 前')}
                 </div>
                 {[...r.prevBashos].reverse().map(b => (
                   <BashoWins key={b.bashoId} {...b} />
@@ -166,14 +167,14 @@ export default function RankForecast() {
                 <div style={{width:1,height:24,background:'var(--border)',flexShrink:0}} />
                 <div style={{textAlign:'center',minWidth:44,flexShrink:0}}>
                   <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'#1a6b5c',marginBottom:1}}>
-                    {lang === 'en' ? 'now' : 'зараз'}
+                    {t3(lang, 'зараз', 'now', '現在')}
                   </div>
                   <div style={{fontFamily:'monospace',fontSize:'0.78rem',fontWeight:700,color:'var(--ink)'}}>{r.wins}–{r.losses}</div>
                 </div>
                 {r.rank.includes('Sekiwake') && (
                   <div style={{display:'flex',flexDirection:'column',alignItems:'center',background:'var(--bg2)',borderRadius:2,padding:'3px 8px',minWidth:60,flexShrink:0}}>
                     <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)'}}>
-                      {lang === 'en' ? 'Ozeki test' : 'Озекі-тест'}
+                      {t3(lang, 'Озекі-тест', 'Ozeki test', '大関取り')}
                     </div>
                     <div style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:700,color:(r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'}}>
                       {r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)}
@@ -207,17 +208,17 @@ export default function RankForecast() {
                 {r.bio?.country?.name !== 'Японія' && r.bio?.country?.name !== 'Japan' && (
                   <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.country.name}</span>
                 )}
-                {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {lang === 'en' ? 'y.o.' : 'р.'}</span>}
-                {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {lang === 'en' ? 'cm' : 'см'}</span>}
-                {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {lang === 'en' ? 'kg' : 'кг'}</span>}
-                {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{lang === 'en' ? 'debut' : 'дебют'} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
+                {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {t3(lang, 'р.', 'y.o.', '歳')}</span>}
+                {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
+                {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {t3(lang, 'кг', 'kg', 'kg')}</span>}
+                {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{t3(lang, 'дебют', 'debut', '初土俯')} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
                 {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.heya}</span>}
               </div>
             </div>
 
             <div style={{padding:'0.5rem 1rem',display:'flex',alignItems:'center',gap:'0.6rem',flexWrap:'wrap',borderRight:'1px solid var(--border)'}}>
               <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)',whiteSpace:'nowrap'}}>
-                {lang === 'en' ? '← previous' : '← попередні'}
+                {t3(lang, '← попередні', '← previous', '← 前の場所')}
               </div>
               {[...r.prevBashos].reverse().map(b => (
                 <BashoWins key={b.bashoId} {...b} />
@@ -225,14 +226,14 @@ export default function RankForecast() {
               <div style={{width:1,height:28,background:'var(--border)',margin:'0 2px'}} />
               <div style={{textAlign:'center',minWidth:48}}>
                 <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'#1a6b5c',marginBottom:1}}>
-                  {lang === 'en' ? 'current' : 'поточний'}
+                  {t3(lang, 'поточний', 'current', '現在')}
                 </div>
                 <div style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:700,color:'var(--ink)'}}>{r.wins}–{r.losses}</div>
               </div>
               {r.rank.includes('Sekiwake') && (
                 <div style={{display:'flex',flexDirection:'column',alignItems:'center',background:'var(--bg2)',borderRadius:2,padding:'3px 8px',minWidth:65}}>
                   <div style={{fontFamily:'monospace',fontSize:'0.54rem',color:'var(--light)'}}>
-                    {lang === 'en' ? 'Ozeki test' : 'Озекі-тест'}
+                    {t3(lang, 'Озекі-тест', 'Ozeki test', '大関取り')}
                   </div>
                   <div style={{fontFamily:'monospace',fontSize:'0.88rem',fontWeight:700,color:(r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'}}>
                     {r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)}

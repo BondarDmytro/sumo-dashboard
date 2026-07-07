@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 
@@ -30,7 +31,7 @@ export default function H2HTable({ rikishi, h2h }) {
               minWidth:100, position:'sticky', left:0,
               background:'var(--bg)',zIndex:1,
             }}>
-              {lang === 'en' ? 'Rikishi' : 'Рікіші'}
+              {t3(lang, 'Рікіші', 'Rikishi', '力士')}
             </th>
             {names.map(name => (
               <th key={name} style={{
@@ -99,9 +100,9 @@ export default function H2HTable({ rikishi, h2h }) {
         </tbody>
       </table>
       <div style={{marginTop:'0.75rem',fontSize:'0.68rem',color:'var(--light)',fontFamily:'monospace',display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
-        <span><span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span> {lang === 'en' ? 'win' : 'перемога'}</span>
-        <span><span style={{border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span> {lang === 'en' ? 'loss' : 'поразка'}</span>
-        <span><span style={{color:'var(--light)'}}>·</span> {lang === 'en' ? 'not met' : 'не зустрічались'}</span>
+        <span><span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span> {t3(lang, 'перемога', 'win', '勝ち')}</span>
+        <span><span style={{border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span> {t3(lang, 'поразка', 'loss', '負け')}</span>
+        <span><span style={{color:'var(--light)'}}>·</span> {t3(lang, 'не зустрічались', 'not met', '対戦なし')}</span>
       </div>
     </div>
   )

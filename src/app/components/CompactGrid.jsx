@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
@@ -10,8 +11,8 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
   const { lang } = useLang()
 
   const title = titleProp || (isKyujo
-    ? (lang === 'en' ? 'Kyujo — absent' : 'Кюджо — відсутні')
-    : (lang === 'en' ? 'Eliminated from yusho race' : 'Вибули з гонки юшо'))
+    ? (t3(lang, 'Кюджо — відсутні', 'Kyujo — absent', '休場'))
+    : (t3(lang, 'Вибули з гонки юшо', 'Eliminated from yusho race', '優勝争い脱落')))
 
   const winsLabel = w => {
     if (lang === 'en') return `${w} ${w === 1 ? 'win' : 'wins'}`

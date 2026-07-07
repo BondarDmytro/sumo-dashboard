@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 const VS_ANIM = `
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&display=swap');
@@ -208,7 +209,7 @@ export default function VSScreen({ playerLabel, opponentLabel, lang, playerAvata
             marginTop: '1rem', marginBottom: '1rem',
             animation: 'vsHeynakke 0.65s ease 0.25s both',
           }}>
-            {lang === 'en' ? 'HEY-NAKKE!' : 'ХЕЙ-НАККЕ!'}
+            {t3(lang, 'ХЕЙ-НАККЕ!', 'HEY-NAKKE!', 'ハッケヨイ!')}
           </div>
         )}
 

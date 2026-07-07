@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import { useBios } from './BiosProvider'
@@ -35,7 +36,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
     const isYusho = yushoWinnerId && String(yushoWinnerId) === r._id
     if (isYusho) {
       total += PRIZE_YUSHO
-      breakdown.push({ label: lang === 'en' ? 'Yusho' : 'Юшо', amount: PRIZE_YUSHO, color: '#b8860b' })
+      breakdown.push({ label: t3(lang, 'Юшо', 'Yusho', '優勝'), amount: PRIZE_YUSHO, color: '#b8860b' })
     }
 
     // Санко-шо
@@ -78,7 +79,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
 
       {!isFinished && (
         <div style={{background:'rgba(184,134,11,0.1)',border:'1px solid rgba(184,134,11,0.3)',padding:'0.5rem 1rem',borderRadius:2,marginBottom:'1rem',fontFamily:'monospace',fontSize:'0.68rem',color:'#b8860b'}}>
-          {lang === 'en' ? '⚡ Tournament in progress — prizes estimated on current results' : '⚡ Турнір триває — призові розраховані на основі поточних результатів'}
+          {t3(lang, '⚡ Турнір триває — призові розраховані на основі поточних результатів', '⚡ Tournament in progress — prizes estimated on current results', '⚡ 場所開催中 — 賞金は現時点の成績による推定')}
         </div>
       )}
 

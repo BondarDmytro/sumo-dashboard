@@ -1,4 +1,5 @@
 'use client'
+import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import ChartWrapper from './ChartWrapper'
@@ -10,14 +11,14 @@ export default function TournamentFooter({ contenders, h2h }) {
   return (
     <>
       <div className="anim-4" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
-        {lang === 'en' ? 'Yusho probability chart' : 'Графік ймовірностей юшо'}
+        {t3(lang, 'Графік ймовірностей юшо', 'Yusho probability chart', '優勝確率チャート')}
       </div>
       <div className="anim-4" style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
         <ChartWrapper rikishi={contenders.slice(0,10)} />
       </div>
 
       <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>
-        {lang === 'en' ? 'Head-to-head — this tournament (top contenders)' : 'Очні зустрічі — цей турнір (топ претенденти)'}
+        {t3(lang, 'Очні зустрічі — цей турнір (топ претенденти)', 'Head-to-head — this tournament (top contenders)', '対戦成績 — 今場所（上位陣）')}
       </div>
       <div className="anim-5">
         <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
