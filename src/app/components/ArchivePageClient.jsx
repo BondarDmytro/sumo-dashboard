@@ -1,5 +1,6 @@
-'use client'
+'use client' /* ja_batch3_fix */
 import { t3 } from '../i18n' /* ja_batch1 */
+import { bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -70,7 +71,7 @@ export default function ArchivePageClient() {
       setLoading(true)
       setData(null)
       try {
-        const [banzuke, bashoInfo] = await Promise.all([
+        const [banzuke, bashoApiData] = await Promise.all([  /* shadow_fix_v1: не тінити bashoInfo з календаря */
           fetch(`https://sumo-api.com/api/basho/${selectedBasho.id}/banzuke/Makuuchi`).then(r => r.json()),
           fetch(`https://sumo-api.com/api/basho/${selectedBasho.id}`).then(r => r.json()),
         ])
@@ -95,7 +96,7 @@ export default function ArchivePageClient() {
         })
         processed.sort((a,b) => b.wins - a.wins || a.rankValue - b.rankValue)
         const maxWins = Math.max(...processed.filter(r => !r.kyujo).map(r => r.wins))
-        const officialWinnerId = bashoInfo.yusho?.find(y => y.type === 'Makuuchi')?.rikishiId
+        const officialWinnerId = bashoApiData.yusho?.find(y => y.type === 'Makuuchi')?.rikishiId
         const winner = officialWinnerId
           ? processed.find(r => r.id === officialWinnerId)
           : processed.find(r => r.wins === maxWins && !r.kyujo)
@@ -158,8 +159,8 @@ export default function ArchivePageClient() {
               border:`1px solid ${selectedBasho.id === b.id ? 'var(--ink)' : 'var(--border)'}`,
               borderRadius:2,cursor:'pointer',
             }}>
-              <div style={{fontWeight:700}}>{lang === 'en' ? b.labelEn : b.label}</div>
-              <div style={{fontSize:'0.58rem',opacity:0.7}}>{lang === 'en' ? b.locationEn : b.location}</div>
+              <div style={{fontWeight:700}}>{bashoInfo(b.id).label[lang]}</div>
+              <div style={{fontSize:'0.58rem',opacity:0.7}}>{bashoInfo(b.id).city[lang]}</div>
             </button>
           ))}
         </div>
@@ -213,7 +214,7 @@ export default function ArchivePageClient() {
         gap:'0.6rem',
       }}>
         <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#b8860b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-          {lang === 'en' ? `${selectedBasho.labelEn} — Yusho` : `${selectedBasho.label} — Юшо`}
+          {bashoInfo(selectedBasho.id).label[lang] + ' — ' + t3(lang, 'Юшо', 'Yusho', '優勝')}
         </div>
 
         <div>

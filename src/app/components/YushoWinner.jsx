@@ -1,16 +1,16 @@
-'use client'
+'use client' /* ja_batch3 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import { useBios } from './BiosProvider'
 
-export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn }) {
+export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn, bashoLabelJa }) {  /* ja_batch3_fix */
   const { lang } = useLang()
   const bios = useBios()
   if (!winner) return null
 
   const flag = bios[winner._id]?.country?.flag || '🇯🇵'
-  const label = lang === 'en' ? bashoLabelEn : bashoLabel
+  const label = lang === 'ja' ? (bashoLabelJa || bashoLabelEn) : lang === 'en' ? bashoLabelEn : bashoLabel
 
   return (
     <div style={{
@@ -62,7 +62,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn 
           minWidth:0,
         }}>
           <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'#b8860b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-            {lang === 'en' ? `${label} — Yusho` : `${label} — Юшо`}
+            {lang === 'ja' ? `${label} — 優勝` : lang === 'en' ? `${label} — Yusho` : `${label} — Юшо`}
           </div>
 
           <div>

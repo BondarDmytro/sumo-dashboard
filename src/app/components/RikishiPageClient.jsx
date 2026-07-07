@@ -1,5 +1,5 @@
 /* auto_current_v3 */
-'use client' /* ja_batch2_t */
+'use client' /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -184,7 +184,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
 
       {/* Кар'єрна статистика */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        {lang === 'en' ? 'Career statistics' : "Кар'єрна статистика"}
+        {lang === 'ja' ? '通算成績' : lang === 'en' ? 'Career statistics' : "Кар'єрна статистика"}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
@@ -199,7 +199,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
           <div style={{fontSize:'0.7rem',color:'var(--mid)',marginBottom:4}}>
-            {lang === 'en' ? 'Career total' : "Кар'єра загалом"}
+            {lang === 'ja' ? '通算合計' : lang === 'en' ? 'Career total' : "Кар'єра загалом"}
           </div>
           <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700,marginBottom:6}}>
             {r.stats?.totalWins}–{r.stats?.totalLosses}

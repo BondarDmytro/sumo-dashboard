@@ -291,7 +291,7 @@ export default async function Home() {
 
       {isFinished && winner && (
         <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
-          <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo(currentBashoId()).label.uk} bashoLabelEn={bashoInfo(currentBashoId()).label.en} /* basho_labels_v1 */ />
+          <YushoWinner winner={winner} playoff={playoff} bashoLabel={bashoInfo(currentBashoId()).label.uk} bashoLabelEn={bashoInfo(currentBashoId()).label.en} bashoLabelJa={bashoInfo(currentBashoId()).label.ja} /* basho_labels_v1 */ />
         </div>
       )}
 

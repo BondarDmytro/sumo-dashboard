@@ -1,4 +1,4 @@
-'use client'
+'use client' /* ja_batch3 */
 /* basho_history_select_v1 + ja_batch1 */
 import { t3 } from '../i18n'
 import { useState, useRef, useEffect } from 'react'
@@ -63,7 +63,7 @@ export default function BashoSelect() {
             <div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                 {decades.map(d => (
-                  <button key={d} style={{ ...(decade === d ? btnActive : btn), textTransform: 'none' }} onClick={() => { setDecade(d); setYear(null) }}>{d}{lang === 'en' ? 's' : '-\u0456'}</button>
+                  <button key={d} style={{ ...(decade === d ? btnActive : btn), textTransform: 'none' }} onClick={() => { setDecade(d); setYear(null) }}>{d}{lang === 'ja' ? '年代' : lang === 'en' ? 's' : '-\u0456'}</button>
                 ))}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
