@@ -43,8 +43,8 @@ export default function BashoSelect() {
     return ids
   }
 
-  const btn = { fontFamily: 'monospace', fontSize: '0.68rem', letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', border: '1px solid rgba(240,192,96,0.3)', borderRadius: 2, padding: '4px 10px', cursor: 'pointer' }
-  const btnActive = { ...btn, background: '#b8860b', color: '#1a120a', borderColor: '#b8860b', fontWeight: 700 }
+  const btn = { fontFamily: 'monospace', fontSize: '0.68rem', letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', borderWidth: 1, borderStyle: 'solid', borderColor: 'rgba(240,192,96,0.3)', borderRadius: 2, padding: '4px 10px', cursor: 'pointer' }  /* border_longhand_v1 */
+  const btnActive = { ...btn, background: '#b8860b', color: '#1a120a', borderColor: '#b8860b', fontWeight: 700 }  // longhand-only, конфлікту нема
 
   return (
     <div ref={boxRef} style={{ position: 'relative' }}>
