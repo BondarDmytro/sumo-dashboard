@@ -52,8 +52,10 @@ function RikishiListCard({ r, onClick, selected }) {
     <div onClick={() => onClick(r)} style={{
       background: selected ? 'var(--ink)' : 'var(--card)',
       color: selected ? 'var(--bg)' : 'var(--ink)',
-      border:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
-      borderLeft:`3px solid ${r.stats?.yusho > 0 ? '#b8860b' : 'var(--border)'}`,
+      borderTop:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
+      borderRight:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
+      borderBottom:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
+      borderLeft:`3px solid ${r.stats?.yusho > 0 ? '#b8860b' : 'var(--border)'}`,  /* listcard_border_split_v1 */
       padding:'0.65rem 0.9rem',
       cursor:'pointer',
     }}>
@@ -121,6 +123,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
             flexShrink:0,display:'block',
           }}
           onError={e => { e.target.style.display = 'none' }}
+          onLoad={e => { e.target.style.display = 'block' }}
         />
 
         <div style={{flex:1,minWidth:150,paddingTop:4}}>
@@ -334,7 +337,7 @@ export default function RikishiPageClient() {
   const filtered = data?.rikishi?.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase()) ||
     r.rank.toLowerCase().includes(search.toLowerCase()) ||
-    r.country?.name.toLowerCase().includes(search.toLowerCase())
+    (typeof r.country?.name === 'object' ? Object.values(r.country.name).join(' ') : (r.country?.name || '')).toLowerCase().includes(search.toLowerCase())  /* rikishi_page_fixes_v1 */
   ) || []
 
   function handleSelect(r) {
@@ -421,3 +424,4 @@ export default function RikishiPageClient() {
     </main>
   )
 }
+/* rikishi_page_fixes_v1 */

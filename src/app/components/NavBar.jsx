@@ -110,7 +110,7 @@ useEffect(() => {
                 <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
               </a>  {/* navbar_cleanup_v1 */}
           {tabs.map(tab => (
-            <Link key={tab.href} href={langPrefix + tab.href} style={{
+            <Link key={tab.href} href={langPrefix + tab.href} className="nav-tab" style={{
               display: 'inline-block',
               padding: '0.7rem 0.9rem',
               fontFamily: 'monospace',
@@ -184,3 +184,4 @@ useEffect(() => {
     </>
   )
 }
+/* navbar_mobile_v1 */

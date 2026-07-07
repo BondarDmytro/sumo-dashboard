@@ -32,14 +32,14 @@ function getRankShort(rank) {
 
 function MatchDots({ record }) {
   return (
-    <div style={{display:'flex',gap:2,flexWrap:'wrap'}}>
+    <div style={{display:'flex',gap:1,flexWrap:'nowrap'}}>
       {record.map((m, idx) => {
         const isWin = RESULTS_WIN.includes(m.result)
         const isLoss = RESULTS_LOSS.includes(m.result)
         const isFusen = m.kimarite === 'fusen'
         return (
           <span key={idx} title={`Day ${idx+1}${m.opponentShikonaEn ? ': '+m.opponentShikonaEn : ''}`} style={{
-            width:11,height:11,borderRadius:'50%',
+            width:7,height:7,borderRadius:'50%',
             background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
             border: isLoss ? '1.5px solid var(--ink)' : m.result==='absent' ? '1.5px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
             display:'inline-block',flexShrink:0,
@@ -262,11 +262,11 @@ export default function ArchivePageClient() {
 
             {/* Таблиця результатів */}
             <div style={{overflowX:'auto'}}>
-              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.78rem'}}>
                 <thead>
                   <tr style={{borderBottom:'2px solid var(--ink)'}}>
                     {tableHeaders.map(h => (
-                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.5rem 0.75rem',textAlign:'left',fontWeight:500}}>
+                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.3rem',textAlign:'left',fontWeight:500}}>
                         {h}
                       </th>
                     ))}
@@ -275,10 +275,10 @@ export default function ArchivePageClient() {
                 <tbody>
                   {data.rikishi.map((r, i) => (
                     <tr key={r.id} style={{borderBottom:'1px solid var(--border)',opacity: r.kyujo ? 0.5 : 1}}>
-                      <td style={{padding:'0.6rem 0.75rem',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
+                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
                         {r.id === data.winner?.id ? '🏆' : i+1}
                       </td>
-                      <td style={{padding:'0.6rem 0.75rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem'}}>
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
                           <span>{r.flag}</span>
                           <div>
@@ -287,10 +287,10 @@ export default function ArchivePageClient() {
                           </div>
                         </div>
                       </td>
-                      <td style={{padding:'0.6rem 0.75rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem'}}>
                         <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 5px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
                       </td>
-                      <td style={{padding:'0.6rem 0.75rem',fontFamily:'monospace',fontWeight:600,fontSize:'0.88rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize:'0.88rem'}}>
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>
                           {r.wins}–{r.losses}
                         </span>
@@ -300,7 +300,7 @@ export default function ArchivePageClient() {
                           </span>
                         )}
                       </td>
-                      <td style={{padding:'0.6rem 0.75rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem'}}>
                         <MatchDots record={r.record} />
                       </td>
                     </tr>
@@ -315,3 +315,6 @@ export default function ArchivePageClient() {
     </main>
   )
 }
+/* archive_dots_nowrap_v1 */
+
+/* archive_table_compact_v1 */

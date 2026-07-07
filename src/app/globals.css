@@ -103,3 +103,39 @@ body {
     cursor: -webkit-image-set(url('/images/cursors/cursor-gunbai-hover.png') 1x, url('/images/cursors/cursor-gunbai-hover@2x.png') 2x) 6 6, pointer;
   }
 }
+
+/* header_mobile_v2: адаптивний грід хедера турніру */
+.th-grid { display: grid; gap: 2.5rem; }
+.th-grid-3 { grid-template-columns: 1fr minmax(300px, 420px) 1fr; }
+.th-grid-2 { grid-template-columns: 2fr 1fr; }
+.th-col { height: 300px; }
+.th-col img { max-height: 100%; }
+@media (max-width: 860px) {
+  .th-grid-3, .th-grid-2 { grid-template-columns: 1fr; gap: 1rem; }
+  .th-col { height: auto; justify-self: stretch !important; }
+  /* фото арени — компактне */
+  .th-col img { max-height: 160px; width: auto; max-width: 100%; }
+  /* чемпіон: рядок, мале фото, текст зліва */
+  .th-col:last-child { justify-content: flex-start !important; }
+  .th-col:last-child img { max-height: 110px; border-radius: 4px; }
+  .th-col:last-child > div { text-align: left !important; }
+}
+
+/* basho_select_mobile_v1: фільтр басьо — absolute на десктопі, у потоці на мобілці */
+.th-basho-select { position: absolute; top: 1rem; right: 1.25rem; }
+@media (max-width: 860px) {
+  .th-basho-select { position: static; margin-bottom: 0.75rem; display: flex; justify-content: flex-end; }
+}
+
+/* navbar_mobile_v1 + tstatus_mobile_v1: мобільні ущільнення */
+.ts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.ts-num { font-size: 2.8rem; }
+@media (max-width: 860px) {
+  .nav-tab { padding: 0.7rem 0.55rem !important; font-size: 0.62rem !important; }
+  /* tstatus_mobile_v2: 1 ряд з 5 блоків */
+  .ts-grid { grid-template-columns: repeat(5, 1fr); }
+  .ts-num { font-size: 1.05rem; }
+  .ts-grid > div { padding: 0.5rem 0.1rem !important; }
+  .ts-grid > div > div:nth-child(2) { font-size: 0.5rem !important; }
+  .ts-grid > div > div:nth-child(3) { font-size: 0.44rem !important; }
+}

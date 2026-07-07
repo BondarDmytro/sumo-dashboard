@@ -101,8 +101,10 @@ export default function RankForecast() {
                   background: st.bg,
                   display:'flex',flexDirection:'column',
                   alignItems:'center',justifyContent:'center',
-                  padding:'0.5rem 0.75rem',
-                  minWidth:120,
+                  padding:'0.5rem 0.5rem',
+                  flex:'0 0 45%',
+                  maxWidth:'45%',
+                  boxSizing:'border-box',
                   borderLeft:'1px solid var(--border)',
                   textAlign:'center',
                 }}>
@@ -244,3 +246,4 @@ export default function RankForecast() {
     </div>
   )
 }
+/* rankforecast_verdict_fixed_v1 */
