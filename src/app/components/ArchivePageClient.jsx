@@ -1,6 +1,6 @@
 'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
 import { t3 } from '../i18n' /* ja_batch1 */
-import { displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
+import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -86,6 +86,7 @@ export default function ArchivePageClient() {
           return {
             id: r.rikishiID,
             name: r.shikonaEn,
+            nameJp: r.shikonaJp,  /* ja_names_sweep_v1 */
             rank: getRankShort(r.rank),
             rankFull: r.rank,
             rankValue: r.rankValue || 999,
@@ -220,7 +221,7 @@ export default function ArchivePageClient() {
 
         <div>
           <div style={{fontWeight:800,fontSize:'clamp(1.1rem,4vw,2.2rem)',lineHeight:1.1,color:'var(--ink)',wordBreak:'break-word'}}>
-            {data.winner.flag} {data.winner.name}
+            {data.winner.flag} {displayName(data.winner, lang)}
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:6}}>
             {displayRank(data.winner.rankFull, lang)}
@@ -280,13 +281,13 @@ export default function ArchivePageClient() {
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
                           <span>{r.flag}</span>
                           <div>
-                            <div style={{fontWeight:700,fontSize:'0.88rem'}}>{r.name}</div>
+                            <div style={{fontWeight:700,fontSize:'0.88rem'}}>{displayName(r, lang)}</div>
                             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>
                           </div>
                         </div>
                       </td>
                       <td style={{padding:'0.6rem 0.75rem'}}>
-                        <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 5px',borderRadius:2,color:'var(--mid)'}}>{r.rank}</span>
+                        <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 5px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
                       </td>
                       <td style={{padding:'0.6rem 0.75rem',fontFamily:'monospace',fontWeight:600,fontSize:'0.88rem'}}>
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>

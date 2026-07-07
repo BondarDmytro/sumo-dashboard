@@ -252,6 +252,7 @@ export async function GET() {
         return {
           id: r.rikishiID,
           name: r.shikonaEn,
+          nameJp: r.shikonaJp,
           rank: r.rank,
           rankValue: r.rankValue,
           wins,

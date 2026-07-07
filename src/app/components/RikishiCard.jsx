@@ -1,6 +1,9 @@
 'use client'
+import { useLang } from './LangProvider' /* langfix3 */
+import { displayName, displayRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */
 
 export default function RikishiCard({ r, index }) {
+  const { lang } = useLang()
   const rankColors = ['#b8860b', '#888', '#a0522d']
   const bgColor = index < 3 ? rankColors[index] : 'var(--bg2)'
   const textColor = index < 3 ? '#fff' : 'var(--mid)'
@@ -31,9 +34,9 @@ export default function RikishiCard({ r, index }) {
       <div style={{padding:'0.75rem 1rem'}}>
         <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8,marginBottom:'0.5rem'}}>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,fontSize:'0.95rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
+            <div style={{fontWeight:700,fontSize:'0.95rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{displayName(r, lang)}</div>
             <div style={{fontSize:'0.68rem',color:'var(--mid)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-              {r.rankFull} · <span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.rank}</span>
+              {displayRank(r.rankFull, lang)} · <span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.rank}</span>
             </div>
           </div>
           <div style={{textAlign:'right',flexShrink:0}}>

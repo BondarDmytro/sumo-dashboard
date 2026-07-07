@@ -1,4 +1,5 @@
-'use client' /* ja_batch2_t */
+'use client'
+import { displayName, displayRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
@@ -99,8 +100,8 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div>
               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
                 <span>{r.flag}</span>
-                <span style={{fontWeight:600,fontSize:'0.88rem'}}>{r.name}</span>
-                <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2}}>{r.rank}</span>
+                <span style={{fontWeight:600,fontSize:'0.88rem'}}>{displayName(r, lang)}</span>
+                <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2}}>{displayRank(r.rank, lang)}</span>
                 <span style={{fontFamily:'monospace',fontSize:'0.65rem',color: r.wins >= 8 ? '#1a6b5c' : '#c0392b'}}>{r.wins}–{r.losses}</span>
               </div>
               <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>

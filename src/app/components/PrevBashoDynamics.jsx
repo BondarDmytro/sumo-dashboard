@@ -3,7 +3,7 @@
 // повна таблиця всіх учасників зі станом W-L на обраний день. prev_dynamics_v1
 import { useEffect, useState, useMemo } from 'react'
 import { useLang } from './LangProvider'
-import { bashoInfo } from '../lib/bashoCalendar'
+import { displayRank, displayName, bashoInfo } from '../lib/bashoCalendar'
 import CompactGrid from './CompactGrid' /* dyn_compactgrid_v1 */
 
 const WIN = ['win', 'fusen win']
@@ -52,7 +52,7 @@ export default function PrevBashoDynamics({ bashoId }) {
         }
         cum.push({ w, l, res })
       }
-      return { id: r.rikishiID, name: r.shikonaEn, rank: r.rank, rankValue: r.rankValue || 999, cum, rawRecord: rec }
+      return { id: r.rikishiID, name: r.shikonaEn, nameJp: r.shikonaJp, rank: r.rank,  /* ja_names_sweep_v1 */ rankValue: r.rankValue || 999, cum, rawRecord: rec }
     })
   }, [data])
 
@@ -133,7 +133,7 @@ export default function PrevBashoDynamics({ bashoId }) {
       {/* Плей-оф банер на дні 15 */}
       {day === 15 && (playoff || yusho) && (
         <div style={{ background: 'rgba(184,134,11,0.12)', border: '1px solid rgba(184,134,11,0.4)', borderRadius: 2, padding: '0.75rem 1rem', marginBottom: '1rem', fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--ink)' }}>
-          🏆 {yusho ? (yusho.shikonaEn + ' — ' + t3(lang, 'юшо', 'yusho', '優勝')) : ''}{playoff ? ' · ' + t3(lang, 'плей-оф', 'playoff', '優勝決定戦') : ''}
+          🏆 {yusho ? ((lang === 'ja' && yusho.shikonaJp ? yusho.shikonaJp : yusho.shikonaEn) + ' — ' + t3(lang, 'юшо', 'yusho', '優勝')) : ''}{playoff ? ' · ' + t3(lang, 'плей-оф', 'playoff', '優勝決定戦') : ''}
         </div>
       )}
 
@@ -161,9 +161,9 @@ export default function PrevBashoDynamics({ bashoId }) {
                 <tr key={r.id} style={{ borderTop: '1px solid var(--border)', background: isLeader ? 'rgba(184,134,11,0.08)' : 'transparent' }}>
                   <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{i + 1}</td>
                   <td style={{ padding: '6px 8px', fontWeight: isLeader ? 800 : 500, color: 'var(--ink)' }}>
-                    {r.name}{isLeader && ' ★'}
+                    {displayName(r, lang)}{isLeader && ' ★'}
                   </td>
-                  <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{r.rank}</td>
+                  <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{displayRank(r.rank, lang)}</td>
                   <td style={{ padding: '6px 8px', fontWeight: 700, color: isLeader ? '#b8860b' : 'var(--ink)' }}>{r.w}–{r.l}</td>
                   <td style={{ padding: '6px 8px' }}>
                     {r.res === 'w' ? <span style={{ color: '#1a6b5c' }}>○</span> : r.res === 'l' ? <span style={{ color: '#c0392b' }}>●</span> : r.res === 'a' ? <span style={{ color: 'var(--light)' }}>{t3(lang, 'кюджо', 'kyujo', '休')}</span> : <span style={{ color: 'var(--light)' }}>—</span>}

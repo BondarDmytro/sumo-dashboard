@@ -1,5 +1,5 @@
 /* auto_current_v3 */
-'use client'
+'use client' /* ja_names_sweep_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -135,7 +135,7 @@ function BanzukeView({ data, lang }) {
                   <div style={{padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,justifyContent:'flex-end'}}>
                     {er && (<>
                       <div style={{textAlign:'right'}}>
-                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{er.shikonaEn}</div>
+                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{lang === 'ja' && er.shikonaJp ? er.shikonaJp : er.shikonaEn}</div>
                         <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{er.wins}–{er.losses}</div>
                       </div>
                       <span style={{fontSize:'0.9rem'}}>{er.flag || '🇯🇵'}</span>
@@ -150,7 +150,7 @@ function BanzukeView({ data, lang }) {
                     {wr && (<>
                       <span style={{fontSize:'0.9rem'}}>{wr.flag || '🇯🇵'}</span>
                       <div>
-                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{wr.shikonaEn}</div>
+                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{lang === 'ja' && wr.shikonaJp ? wr.shikonaJp : wr.shikonaEn}</div>
                         <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{wr.wins}–{wr.losses}</div>
                       </div>
                     </>)}
