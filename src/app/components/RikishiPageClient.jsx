@@ -77,6 +77,7 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
   const sanshoList = Object.entries(r.stats?.sansho || {}).filter(([,v]) => v > 0)
   const bioLabels = lang === 'en'
     ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut']
+    : lang === 'ja' ? ['出身', '年齢', '身長', '体重', '部屋', '初土俯']  /* ja_tails_v1 */
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
   const bioValues = [
     (typeof r.country?.name === 'object' ? (r.country.name[lang] || r.country.name.uk) : r.country?.name),  /* country_name_i18n_v1 */

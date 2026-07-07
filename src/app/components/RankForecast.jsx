@@ -11,21 +11,8 @@ const TYPE_STYLES = {
   info: { bg: 'var(--bg2)', color: 'var(--mid)', border: 'var(--border)' },
 }
 
-const FORECAST_TRANSLATIONS = {
-  '✓ Ранг Озекі збережено': '✓ Ozeki rank retained',
-  'Довічний ранг': 'Lifetime rank (Yokozuna)',
-  '⚠ Маке-коші — очікується критика': '⚠ Make-koshi — criticism expected',
-  '⚠ Маке-коші → наступний турнір кадо-бан': '⚠ Make-koshi → next basho kadoban',
-  '🔴 Кюджо на кадо-бані → виліт з Озекі на наступний турнір': '🔴 Kyujo on kadoban → demoted from Ozeki next basho',
-  '✓ Качі-коші — ранг Секіваке збережено': '✓ Kachi-koshi — Sekiwake rank retained',
-  '⚠ Маке-коші → пониження з Секіваке': '⚠ Make-koshi → demotion from Sekiwake',
-  '✓ Качі-коші — ранг Комусубі збережено': '✓ Kachi-koshi — Komusubi rank retained',
-  '⚠ Маке-коші → пониження з Комусубі': '⚠ Make-koshi → demotion from Komusubi',
-  '⚠ Маке-коші → пониження': '⚠ Make-koshi → demotion',
-  '✓ Качі-коші': '✓ Kachi-koshi',
-  '✓ Качі-коші — ранг збережено': '✓ Kachi-koshi — rank retained',
-  '⚠ Під загрозою пониження': '⚠ At risk of demotion',
-}
+/* dead_dict_removed: словник translateForecast знесено */
+
 
 /* translateForecast знесено: API віддає {uk,en,ja} (forecast_i18n_client_v1) */
 
