@@ -2,14 +2,35 @@
 'use client' /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'  /* useref_fix_v1 */
+import YT_VIDEOS from '../lib/ytVideos.json' /* yt_direct_videos_v1 */
+
+function directVideo(bashoId, day, myJa, oppJa) {
+  const bouts = YT_VIDEOS?.[bashoId]?.[String(day)]
+  if (!bouts || !myJa) return null
+  const me = String(myJa).split(/\s|\u3000/)[0]
+  const op = oppJa ? String(oppJa).split(/\s|\u3000/)[0] : null
+  const hit = bouts.find(x => (x.a === me || x.b === me) && (!op || x.a === op || x.b === op))
+  return hit ? `https://www.youtube.com/watch?v=${hit.v}` : null
+}
+
 import { useLang } from './LangProvider'
-import { displayName, displayRank, currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
+import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
+/* yt_query_ja_v1: poshuk po kanalu yaponskoyu u formati nazv @sumo-video */
+const DAY_JA = {1:'初日',2:'二日目',3:'三日目',4:'四日目',5:'五日目',6:'六日目',7:'七日目',8:'中日',9:'九日目',10:'十日目',11:'十一日目',12:'十二日目',13:'十三日目',14:'十四日目',15:'千秋楽'}
+const MONTH_JA = {'01':'一','03':'三','05':'五','07':'七','09':'九','11':'十一'}
+function bashoJa(bashoId) {
+  const y = parseInt(bashoId.slice(0,4)) - 2018
+  const m = MONTH_JA[bashoId.slice(4)] || ''
+  return `令和${y}年${m}月場所`
+}
 
-const NATSU_2026_DAYS = {
+
+const DAY_VIDEOS = {}
+DAY_VIDEOS['202605'] = {
   1:'https://www.youtube.com/watch?v=iDs67K0MBkw',
   2:'https://www.youtube.com/watch?v=SB8XBdvcQWk',
   3:'https://www.youtube.com/watch?v=g_EIsaBPfDQ',
@@ -29,6 +50,7 @@ const NATSU_2026_DAYS = {
 
 const PINNED_VIDEOS = {
   '202605-12-day16': 'https://www.youtube.com/watch?v=dqkC7MPlufc',
+  '202605-7-day16': 'https://www.youtube.com/watch?v=dqkC7MPlufc',  /* toi samyi bii z boku Kirishimy */
 }
 
 function WinRate({ wins, total }) {
@@ -73,7 +95,27 @@ function RikishiListCard({ r, onClick, selected }) {
   )
 }
 
-function RikishiDetail({ r, lang, onBack, isMobile }) {
+function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
+  /* rikishi_basho_selector_v1 */
+  const [selBasho, setSelBasho] = useState(currentBashoId())
+  const [pastData, setPastData] = useState(null)
+  const [pastLoading, setPastLoading] = useState(false)
+  const pastCache = useRef({})
+  useEffect(() => { setSelBasho(currentBashoId()); setPastData(null) }, [r?.id])
+  useEffect(() => {
+    if (!r || selBasho === currentBashoId()) { setPastData(null); return }
+    const key = `${selBasho}-${r.id}`
+    if (pastCache.current[key]) { setPastData(pastCache.current[key]); return }
+    setPastLoading(true)
+    fetch(`/api/rikishi-matches?rikishiId=${r.id}&bashoId=${selBasho}`)
+      .then(res => res.json())
+      .then(d => { pastCache.current[key] = d; setPastData(d); setPastLoading(false) })
+      .catch(() => { setPastData({ record: [] }); setPastLoading(false) })
+  }, [selBasho, r?.id])
+  const shownRecord = pastData ? (pastData.record || []) : (r?.record || [])
+  const shownWins = pastData ? pastData.wins : r?.wins
+  const shownLosses = pastData ? pastData.losses : r?.losses
+
   if (!r) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300,color:'var(--mid)',fontFamily:'monospace',fontSize:'0.8rem'}}>
       {t3(lang, '← Виберіть рікіші зі списку', '← Select a rikishi from the list', '← 一覧から力士を選択')}
@@ -93,7 +135,9 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
     (lang === 'ja' && r.heya && HEYA_JA[r.heya]) ? HEYA_JA[r.heya] : (r.heya || '—'),
     r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—',
   ]
-  const hasPlayoff = String(r.id) === '12'
+  /* playoff_generic_v1 */
+  const regularMatches = shownRecord.filter(m => (m.day || 0) <= 15)
+  const playoffMatches = shownRecord.filter(m => (m.day || 0) > 15)
 
   return (
     <div>
@@ -222,19 +266,22 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        {bashoInfo(currentBashoId()).label[lang] /* ja_batch2 */} — {r.wins}–{r.losses}
+        <select value={selBasho} onChange={e => setSelBasho(e.target.value)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink)',background:'var(--card)',border:'1px solid var(--border)',borderRadius:2,padding:'2px 6px',marginRight:6}}>
+          {BASHO_LIST.map(b => <option key={b.id} value={b.id}>{lang === 'en' || lang === 'ja' ? b.labelEn : b.label}</option>)}
+        </select> — {pastLoading ? '...' : `${shownWins ?? 0}–${shownLosses ?? 0}`}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
-        {r.record.map(m => {
+        {regularMatches.map(m => {
           if (!m.result && !m.opponent) return null
           const isWin = RESULTS_WIN.includes(m.result)
           const isLoss = RESULTS_LOSS.includes(m.result)
           const isFusen = m.kimarite === 'fusen'
           const isAbsent = m.result === 'absent'
           const isEmpty = !m.result
-          const pinnedKey = `202605-${r.id}-day${m.day}`
-          const pinnedUrl = PINNED_VIDEOS[pinnedKey] || NATSU_2026_DAYS[m.day]
-          const ytQuery = encodeURIComponent(`${bashoInfo(currentBashoId()).label.en} Day ${m.day} ${r.name} ${m.opponent || ''}`) /* basho_labels_v2 */
+          const pinnedKey = `${selBasho}-${r.id}-day${m.day}`
+          const pinnedUrl = PINNED_VIDEOS[pinnedKey] || directVideo(selBasho, m.day, r.nameJp, m.opponentJp || jpMap?.[m.opponent]) || DAY_VIDEOS[selBasho]?.[m.day]
+          const oppJa = m.opponentJp || jpMap?.[m.opponent] || m.opponent || ''
+          const ytQuery = encodeURIComponent(`${r.nameJp || r.name} ${oppJa} ${bashoJa(selBasho)} ${DAY_JA[m.day] || `Day ${m.day}`}`)
           const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
           return (
             <div key={m.day} style={{
@@ -278,28 +325,37 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
         })}
       </div>
 
-      {hasPlayoff && (
+      {playoffMatches.length > 0 && (
         <div style={{marginTop:'1rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-            {t3(lang, 'Плей-оф — День 16', 'Playoff — Day 16', '優勝決定戦')}
+            {t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦')}
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
-            <div style={{background:'var(--bg2)',border:'1px solid rgba(184,134,11,0.4)',padding:'0.4rem 0.6rem',borderRadius:2}}>
-              <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
-                <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background:'#f5f0e8', border:'1.5px solid var(--ink)'}} />
-                <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
-                  {lang === 'ja' ? '16日目' : (lang === 'en' ? 'Day 16' : 'День 16')}
-                </span>
-              </div>
-              <div style={{fontSize:'0.68rem',fontWeight:600,marginBottom:2}}>Kirishima</div>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
-                <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>oshidashi ⚡</div>
-                <a href="https://www.youtube.com/watch?v=dqkC7MPlufc" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                  style={{display:'inline-flex',alignItems:'center',fontFamily:'monospace',fontSize:'0.5rem',color:'#fff',background:'#c00',padding:'1px 5px',borderRadius:2,textDecoration:'none',flexShrink:0,lineHeight:1.4}}>
-                  {'\u25B6'}
-                </a>
-              </div>
-            </div>
+            {playoffMatches.map((m, pi) => {
+              const isWin = RESULTS_WIN.includes(m.result)
+              const pinnedKey = `${selBasho}-${r.id}-day${m.day}`
+              const pinnedUrl = PINNED_VIDEOS[pinnedKey] || directVideo(selBasho, m.day, r.nameJp, m.opponentJp || jpMap?.[m.opponent]) || DAY_VIDEOS[selBasho]?.[m.day]
+              const oppJa = m.opponentJp || jpMap?.[m.opponent] || m.opponent || ''
+              const ytQuery = encodeURIComponent(`${r.nameJp || r.name} ${oppJa} ${bashoJa(selBasho)} 優勝決定戦`)
+              const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
+              const label = t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦') + (playoffMatches.length > 1 ? ` ${pi+1}` : '')
+              return (
+                <div key={`po-${m.day}-${pi}`} style={{background:'var(--bg2)',border:`1px solid ${isWin ? 'rgba(184,134,11,0.5)' : 'rgba(192,57,43,0.4)'}`,padding:'0.4rem 0.6rem',borderRadius:2}}>
+                  <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
+                    <span style={{width:9,height:9,borderRadius:'50%',flexShrink:0,background: isWin ? '#f5f0e8' : '#1a1a1a',border:'1.5px solid var(--ink)'}} />
+                    <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{label}</span>
+                  </div>
+                  <div style={{fontSize:'0.68rem',fontWeight:600,marginBottom:2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && m.opponentJp ? m.opponentJp : m.opponent}</div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:2,gap:4}}>
+                    <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--light)'}}>{m.kimarite} {'\u26a1'}</div>
+                    <a href={ytUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                      style={{display:'inline-flex',alignItems:'center',fontFamily:'monospace',fontSize:'0.5rem',color:'#fff',background:'#c00',padding:'1px 5px',borderRadius:2,textDecoration:'none',flexShrink:0,lineHeight:1.4}}>
+                      {'\u25B6'}
+                    </a>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -328,7 +384,13 @@ export default function RikishiPageClient() {
       .then(r => r.json())
       .then(d => {
         setData(d)
-        if (d.rikishi?.length) setSelected(d.rikishi[0])
+        /* rikishi_deeplink_v1: ?id= vede na konkretnogo rikishi */
+        const urlId = new URLSearchParams(window.location.search).get('id')
+        const target = urlId ? d.rikishi?.find(x => String(x._id) === urlId || String(x.id) === urlId) : null
+        if (target) {
+          setSelected(target)
+          if (window.innerWidth <= 860) setShowDetail(true)
+        } else if (d.rikishi?.length) setSelected(d.rikishi[0])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -339,6 +401,8 @@ export default function RikishiPageClient() {
     r.rank.toLowerCase().includes(search.toLowerCase()) ||
     (typeof r.country?.name === 'object' ? Object.values(r.country.name).join(' ') : (r.country?.name || '')).toLowerCase().includes(search.toLowerCase())  /* rikishi_page_fixes_v1 */
   ) || []
+  const jpMap = {}
+  data?.rikishi?.forEach(x => { if (x.nameJp) jpMap[x.name] = x.nameJp })  /* yt_query_ja_v1 */
 
   function handleSelect(r) {
     setSelected(r)
@@ -361,6 +425,7 @@ export default function RikishiPageClient() {
           showDetail ? (
             <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1rem'}}>
               <RikishiDetail
+                jpMap={jpMap}
                 r={selected} lang={lang}
                 isMobile={true}
                 onBack={() => setShowDetail(false)}
@@ -416,7 +481,7 @@ export default function RikishiPageClient() {
               </div>
             </div>
             <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem'}}>
-              <RikishiDetail r={selected} lang={lang} isMobile={false} />
+              <RikishiDetail r={selected} lang={lang} isMobile={false} jpMap={jpMap} />
             </div>
           </div>
         )}
@@ -425,3 +490,13 @@ export default function RikishiPageClient() {
   )
 }
 /* rikishi_page_fixes_v1 */
+
+/* rikishi_deeplink_v1 */
+
+/* rikishi_basho_selector_v1 */
+
+/* playoff_generic_v1 */
+
+/* yt_query_ja_v1 */
+
+/* yt_direct_videos_v1 */

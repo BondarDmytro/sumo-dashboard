@@ -86,6 +86,15 @@ export function displayRank(rank, lang) {
   return (side ? side + ' ' : '') + RANK_JA[m[1]] + (m[2] ? ' ' + m[2] : '')
 }
 
+/* basho_list_shared_v1: spilnyi spysok bashо dlia arkhivu ta storinky rikishi; onovliuvaty pislia kozhnoho turniru */
+export const BASHO_LIST = [
+  { id: '202607', label: 'Наґоя 2026', labelEn: 'Nagoya 2026', location: 'Наґоя', locationEn: 'Nagoya' },  /* basho_list_nagoya_v1 */
+  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', location: 'Осака', locationEn: 'Osaka' },
+  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
+]
+
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
 export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
 

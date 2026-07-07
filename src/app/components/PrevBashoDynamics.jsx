@@ -1,4 +1,5 @@
 'use client' /* ja_batch2_t */
+import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 // Динаміка попереднього басьо по днях: слайдер дня 1-15 (+плей-оф),
 // повна таблиця всіх учасників зі станом W-L на обраний день. prev_dynamics_v1
 import { useEffect, useState, useMemo } from 'react'
@@ -161,7 +162,7 @@ export default function PrevBashoDynamics({ bashoId }) {
                 <tr key={r.id} style={{ borderTop: '1px solid var(--border)', background: isLeader ? 'rgba(184,134,11,0.08)' : 'transparent' }}>
                   <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{i + 1}</td>
                   <td style={{ padding: '6px 8px', fontWeight: isLeader ? 800 : 500, color: 'var(--ink)' }}>
-                    {displayName(r, lang)}{isLeader && ' ★'}
+                    <RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink>{isLeader && ' ★'}
                   </td>
                   <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{displayRank(r.rank, lang)}</td>
                   <td style={{ padding: '6px 8px', fontWeight: 700, color: isLeader ? '#b8860b' : 'var(--ink)' }}>{r.w}–{r.l}</td>

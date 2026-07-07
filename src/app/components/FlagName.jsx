@@ -2,6 +2,7 @@
 
 import { useBios } from './BiosProvider'
 import { useLang } from './LangProvider' /* country_name_i18n_v1 */
+import RikishiLink from './RikishiLink' /* flagname_link_v1 */
 
 export default function FlagName({ id, name, size = '0.95rem' }) {
   const bios = useBios()
@@ -14,7 +15,7 @@ export default function FlagName({ id, name, size = '0.95rem' }) {
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>
       <span title={country} style={{fontSize:'1rem',lineHeight:1,flexShrink:0}}>{flag}</span>
-      <span style={{fontSize:size,fontWeight:700}}>{lang === 'ja' && bio?.nameJp ? bio.nameJp : name}</span>  {/* kanji_names_v2 */}
+      <span style={{fontSize:size,fontWeight:700}}><RikishiLink id={id}>{lang === 'ja' && bio?.nameJp ? bio.nameJp : name}</RikishiLink></span>  {/* kanji_names_v2 */}
     </span>
   )
 }

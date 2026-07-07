@@ -1,4 +1,5 @@
 'use client'
+import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { displayName, displayRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -101,7 +102,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div>
               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
                 <span>{r.flag}</span>
-                <span style={{fontWeight:600,fontSize:'0.88rem'}}>{displayName(r, lang)}</span>
+                <span style={{fontWeight:600,fontSize:'0.88rem'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></span>
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2}}>{displayRank(r.rank, lang)}</span>
                 <span style={{fontFamily:'monospace',fontSize:'0.65rem',color: r.wins >= 8 ? '#1a6b5c' : '#c0392b'}}>{r.wins}–{r.losses}</span>
               </div>
