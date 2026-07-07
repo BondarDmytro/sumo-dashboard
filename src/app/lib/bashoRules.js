@@ -1,3 +1,4 @@
+/* ja_batch4b */
 // src/app/lib/bashoRules.js
 // Автоматичні контекст-бейджі з правил сумо, обчислені з даних sumo-api
 // (поточне + попереднє басьо). Без ручних списків. basho_rules_v1
@@ -41,25 +42,25 @@ export function applyBashoRules(rikishiList, prevBanzuke) {
     // Повернення після повного кюджо
     if (p.played === 0 && p.absent > 0) {
       badges.push('returning')
-      note = { uk: 'Повернення після пропущеного басьо', en: 'Returning after missed basho' }
+      note = { uk: 'Повернення після пропущеного басьо', en: 'Returning after missed basho', ja: '休場明けの復帰' }
     }
 
     // Кадобан: озекі зараз, маке-коші (або кюджо) як озекі минулого разу
     if (isOzeki(r.rankFull) && isOzeki(prev.rank) && (p.losses > p.wins || p.played === 0)) {
       badges.push('kadoban')
-      note = { uk: 'Кадобан: 8 перемог, щоб зберегти озекі', en: 'Kadoban: needs 8 wins to keep ozeki' }
+      note = { uk: 'Кадобан: 8 перемог, щоб зберегти озекі', en: 'Kadoban: needs 8 wins to keep ozeki', ja: '角番: 大関防衛に8勝必要' }
     }
 
     // Повернення озекі: секіваке зараз, озекі минулого разу -> 10 перемог
     if (isSekiwake(r.rankFull) && isOzeki(prev.rank)) {
       badges.push('ozekiReturn')
-      note = { uk: 'Екс-озекі: 10 перемог повертають ранг', en: 'Ex-ozeki: 10 wins restore the rank' }
+      note = { uk: 'Екс-озекі: 10 перемог повертають ранг', en: 'Ex-ozeki: 10 wins restore the rank', ja: '元大関: 10勝で復帰' }
     }
 
     // Йокодзуна-ран (евристика): озекі зараз, >=12 перемог минулого басьо
     if (isOzeki(r.rankFull) && isOzeki(prev.rank) && p.wins >= 11) {  /* run_threshold_11 */
       badges.push('yokozunaRun')
-      note = { uk: 'Йокодзуна-ран: юшо-результат дає підвищення', en: 'Yokozuna run: yusho-level result earns promotion' }
+      note = { uk: 'Йокодзуна-ран: юшо-результат дає підвищення', en: 'Yokozuna run: yusho-level result earns promotion', ja: '綱取り: 優勝相当の成績で昇進' }
     }
 
     if (badges.length === 0) return r

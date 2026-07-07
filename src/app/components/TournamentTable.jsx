@@ -120,7 +120,7 @@ export default function TournamentTable({ contenders, currentDay }) {
                   <td style={{padding:'0.85rem 0.75rem'}}>
                     <FlagName id={r._id} name={r.name} />
                     <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{r.rankFull}</div>
-                    {r.editorialNote && <div style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{typeof lang !== 'undefined' && lang === 'en' ? r.editorialNote.en : r.editorialNote.uk}</div>} {/* badge_render_v1 */}
+                    {r.editorialNote && <div style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b */}</div>} {/* badge_render_v1 */}
                   </td>
                   <td style={{padding:'0.85rem 0.75rem'}}>
                     <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{r.rank}</span>

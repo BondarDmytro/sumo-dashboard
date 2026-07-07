@@ -9,9 +9,9 @@ const PRIZE_SPECIAL = 2_000_000
 const PRIZE_PER_WIN = 70_000
 
 const SPECIAL_PRIZE_NAMES = {
-  'Shukun-sho': { uk: 'Шюкун-шо (найкращий результат)', en: 'Shukun-sho (Outstanding Performance)' },
-  'Kanto-sho': { uk: 'Канто-шо (бойовий дух)', en: 'Kanto-sho (Fighting Spirit)' },
-  'Gino-sho': { uk: 'Гіно-шо (техніка)', en: 'Gino-sho (Technique)' },
+  'Shukun-sho': { uk: 'Шюкун-шо (найкращий результат)', en: 'Shukun-sho (Outstanding Performance)', ja: '殊勲賞' },
+  'Kanto-sho': { uk: 'Канто-шо (бойовий дух)', en: 'Kanto-sho (Fighting Spirit)', ja: '敢闘賞' },
+  'Gino-sho': { uk: 'Гіно-шо (техніка)', en: 'Gino-sho (Technique)', ja: '技能賞' },  /* ja_batch4b */
 }
 
 function formatYen(amount) {
@@ -45,7 +45,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       total += PRIZE_SPECIAL
       const name = SPECIAL_PRIZE_NAMES[p.type]
       breakdown.push({
-        label: lang === 'en' ? (name?.en || p.type) : (name?.uk || p.type),
+        label: lang === 'ja' ? (name?.ja || p.type) : lang === 'en' ? (name?.en || p.type) : (name?.uk || p.type),
         amount: PRIZE_SPECIAL,
         color: '#1a4a7a'
       })

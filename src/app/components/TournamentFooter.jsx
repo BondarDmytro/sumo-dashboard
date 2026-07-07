@@ -25,9 +25,11 @@ export default function TournamentFooter({ contenders, h2h }) {
       </div>
 
       <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>
-        {lang === 'en' ? (
+        {lang === 'ja' ? (
+          <><b style={{color:'var(--ink)'}}>データ:</b> sumo-api.com · 60秒ごとに更新 · <b style={{color:'var(--ink)'}}>算出方法:</b> 現在の成績 (60%)、番付 (15%)、残り取組の難易度 (15%)、直近5日の調子 (10%)。不戦 (✦) — 相手の休場による勝ち。賭けではありません。</>
+        ) : lang === 'en' ? (
           <><b style={{color:'var(--ink)'}}>Data:</b> sumo-api.com · updates every 60 seconds · <b style={{color:'var(--ink)'}}>Methodology:</b> current record (60%), rank (15%), remaining schedule difficulty (15%), recent form last 5 days (10%). Fusen (✦) — win by opponent withdrawal. Not a bet.</>
-        ) : (
+        ) : (  /* footer_ja_v1 */
           <><b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 60 секунд · <b style={{color:'var(--ink)'}}>Методологія:</b> поточний рекорд (60%), ранг (15%), складність розкладу (15%), форма останніх 5 днів (10%). Fusen (✦) — перемога через знімання суперника. Не є ставкою.</>
         )}
       </div>
