@@ -1,6 +1,6 @@
+/* sanity_removed_v1 */
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SanityLive } from '@/sanity/lib/live'
 import { BiosProvider } from './components/BiosProvider'
 import NavBar from './components/NavBar'
 import { LangProvider } from './components/LangProvider'
@@ -50,7 +50,7 @@ export default function RootLayout({ children }) {
             {children}<GlobalSalt />
           </BiosProvider>
         </LangProvider>
-        <SanityLive />
+        
         <Analytics />
       </body>
     </html>
