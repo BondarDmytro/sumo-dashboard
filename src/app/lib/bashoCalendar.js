@@ -52,6 +52,21 @@ export function bashoInfo(bashoId) {
   }
 }
 
+export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
+export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
+
+export function bashoIdsOfYear(year) {
+  // Всі басьо року, що вже завершились або live (мають дані), без скасованих.
+  const out = []
+  for (const m of BASHO_MONTHS) {
+    const id = String(year) + String(m).padStart(2, '0')
+    if (CANCELLED_BASHO.has(id)) continue
+    const st = bashoStatus(id)
+    if (st === 'finished' || st === 'live') out.push(id)
+  }
+  return out
+}
+
 export function bashoListOfYear(year, includeUpcomingCurrent = true) {
   // Басьо року, що вже стартували (мають дані в API) + опційно найближчий upcoming.
   const now = new Date()
