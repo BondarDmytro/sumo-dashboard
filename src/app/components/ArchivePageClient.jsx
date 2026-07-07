@@ -1,4 +1,5 @@
 'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
+import { kimariteKanji } from '../lib/kimarite' /* ja_kimarite_ui_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
 
@@ -250,7 +251,7 @@ export default function ArchivePageClient() {
             <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600,wordBreak:'break-word'}}>
               {lang === 'en'
                 ? `Won in playoff vs ${data.playoff.loser} · ${data.playoff.kimarite}`
-                : lang === 'ja' ? `優勝決定戦で${data.playoff.loser}を下す · ${data.playoff.kimarite}` : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
+                : lang === 'ja' ? `優勝決定戦で${data.playoff.loser}を下す · ${kimariteKanji(data.playoff.kimarite)}` : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
             </span>
           </div>
         )}

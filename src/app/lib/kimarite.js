@@ -60,8 +60,14 @@ export const KIMARITE_INFO = {
   'okuriashi':        { ua: 'Виштовхування суперника ззаду поштовхом в спину.', en: 'Pushing the opponent out from behind with a push to the back.', ja: '送り足。吊られた相手を背後へ送る際の足の運び。', img: NSK_IMG('okuriashi') },
 }
 
+const KANJI_EXTRA = {  /* ja_champ_kanji: техніки без описів у KIMARITE_INFO */
+  'fusen': '不戦', 'utchari': 'うっちゃり', 'okuritaoshi': '送り倒し',
+  'abisetaoshi': '浴びせ倒し', 'tsukitaoshi': '突き倒し', 'kakenage': '掛け投げ',
+  'tsuridashi': '吊り出し', 'kimedashi': '極め出し', 'okuriashi': '送り足',
+  'fumidashi': '踏み出し', 'isamiashi': '勇み足', 'koshikudake': '腰砕け',
+}
 export function kimariteKanji(name) {
   const info = KIMARITE_INFO[name]
-  if (!info?.ja) return name
+  if (!info?.ja) return KANJI_EXTRA[name] || name
   return info.ja.split('。')[0] || name
 }

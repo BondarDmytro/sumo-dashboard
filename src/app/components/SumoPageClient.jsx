@@ -1,5 +1,5 @@
 /* auto_current_v3 */
-'use client'
+'use client' /* ja_kimarite_ui_v1 */
 import { KIMARITE_INFO, kimariteKanji } from '../lib/kimarite' /* ja_names_sweep_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -88,7 +88,7 @@ function BanzukeView({ data, lang }) {
               const er = e[i]
               const wr = w[i]
               return (
-                <div key={i} style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:4,borderBottom:'1px solid var(--border)',background: i % 2 === 0 ? 'var(--card)' : 'var(--bg2)'}}>
+                <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,borderBottom:'1px solid var(--border)',background: i % 2 === 0 ? 'var(--card)' : 'var(--bg2)'}}>
                   <div style={{padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,justifyContent:'flex-end'}}>
                     {er && (<>
                       <div style={{textAlign:'right'}}>
@@ -98,11 +98,7 @@ function BanzukeView({ data, lang }) {
                       <span style={{fontSize:'0.9rem'}}>{er.flag || '🇯🇵'}</span>
                     </>)}
                   </div>
-                  <div style={{padding:'0.5rem 0.5rem',textAlign:'center',minWidth:80,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:RANK_COLORS[rankType],fontWeight:600}}>
-                      {er?.rank?.replace(rankType+' ','').replace(' East','e').replace(' West','w') || wr?.rank?.replace(rankType+' ','').replace(' East','e').replace(' West','w')}
-                    </div>
-                  </div>
+
                   <div style={{padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8}}>
                     {wr && (<>
                       <span style={{fontSize:'0.9rem'}}>{wr.flag || '🇯🇵'}</span>
@@ -136,7 +132,8 @@ function KimariteModal({ item, onClose, lang }) {
         <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--light)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:4}}>
           {getKimariteCategory(item.kimarite, lang)}
         </div>
-        <h2 style={{fontSize:'1.4rem',fontWeight:800,marginBottom:'0.75rem'}}>{item.kimarite}</h2>
+        <h2 style={{fontSize:'1.4rem',fontWeight:800,marginBottom: lang === 'ja' ? 0 : '0.75rem'}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : item.kimarite}</h2>
+        {lang === 'ja' && <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:'0.75rem'}}>{item.kimarite}</div>}
         {(lang === 'ja' ? (info?.ja || info?.en) : lang === 'en' ? info?.en : info?.ua) && (
           <p style={{fontSize:'0.85rem',color:'var(--mid)',lineHeight:1.6,marginBottom:'1rem'}}>
             {lang === 'ja' ? (info.ja || info.en) : lang === 'en' ? info.en : info.ua}
@@ -192,7 +189,8 @@ function KimariteView({ data, lang }) {
               {i+1}
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontWeight:600,fontSize:'0.85rem',marginBottom:1}}>{item.kimarite}</div>
+              <div style={{fontWeight:600,fontSize:'0.85rem',marginBottom:1}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : item.kimarite}</div>
+              {lang === 'ja' && <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--light)'}}>{item.kimarite}</div>}
               <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:3}}>{getKimariteCategory(item.kimarite, lang)}</div>
               <div style={{height:3,background:'var(--bg2)',borderRadius:1}}>
                 <div style={{height:'100%',width:`${item.count/maxCount*100}%`,background: i === 0 ? '#b8860b' : i < 3 ? '#1a6b5c' : 'var(--mid)',borderRadius:1}} />
@@ -270,11 +268,11 @@ export default function SumoPageClient() {
                     : lang === 'ja' ? '番付は場所前に発表される公式の力士ランキング。伝統的に東が格上とされる。'  /* ja_final_tails */
                     : 'Банзуке — офіційна таблиця рангів борців перед початком турніру. Схід (East) традиційно вважається сильнішою стороною.'}
                 </p>
-                <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:0,marginBottom:4}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,marginBottom:4}}>
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',textAlign:'right',color:'var(--mid)'}}>
                     {t3(lang, 'СХІД (EAST)', 'EAST', '東')}
                   </div>
-                  <div style={{padding:'0.4rem 0.5rem',minWidth:80}} />
+
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--mid)'}}>
                     {t3(lang, 'ЗАХІД (WEST)', 'WEST', '西')}
                   </div>
