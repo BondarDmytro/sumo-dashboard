@@ -1,6 +1,6 @@
-'use client' /* ja_batch3_fix */
+'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
 import { t3 } from '../i18n' /* ja_batch1 */
-import { bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
+import { displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
@@ -223,7 +223,7 @@ export default function ArchivePageClient() {
             {data.winner.flag} {data.winner.name}
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginTop:6}}>
-            {data.winner.rankFull}
+            {displayRank(data.winner.rankFull, lang)}
           </div>
         </div>
 
@@ -281,7 +281,7 @@ export default function ArchivePageClient() {
                           <span>{r.flag}</span>
                           <div>
                             <div style={{fontWeight:700,fontSize:'0.88rem'}}>{r.name}</div>
-                            <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{r.rankFull}</div>
+                            <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>
                           </div>
                         </div>
                       </td>
