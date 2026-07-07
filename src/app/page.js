@@ -42,7 +42,7 @@ async function getBashoData() {
       const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}`, { next: { revalidate: 86400 } })
       const pInfo = await pInfoRes.json()
       const y = (pInfo.yusho || []).find(v => v.division === 'Makuuchi' || v.type === 'Makuuchi') || (pInfo.yusho || [])[0] || null
-      if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn, nameJp: y.shikonaJp }  /* ja_gaps_v4 */
+      if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn, nameJp: y.shikonaJp || null }  /* champ_lookup_v1: Jp дошиється нижче з normalized */
     } catch (e) {}
   }
   const specialPrizes = bashoInfo.specialPrizes || []
@@ -224,6 +224,10 @@ async function getBashoData() {
 
   const showPlayoffBanner = allPlayed && needsPlayoff && !isFinished
 
+  if (prevYusho && !prevYusho.nameJp) {  /* champ_lookup_v2 */
+    const c = normalized.find(r => String(r._id) === String(prevYusho.id))
+    if (c?.nameJp) prevYusho.nameJp = c.nameJp
+  }
   return { prevYusho, rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData }
 }
 
@@ -254,7 +258,7 @@ export default async function Home() {
       <TournamentHeader
         bashoSelect={<BashoSelect />}
         champion={!isFinished && prevYusho && bashoStatus(currentBashoId()) === 'upcoming'
-          ? { id: String(prevYusho.id), name: prevYusho.name, wins: 12, losses: 3,
+          ? { id: String(prevYusho.id), name: prevYusho.name, nameJp: prevYusho.nameJp, wins: 12, losses: 3,  /* champ_prop_jp */
               label: bashoInfo(prevBashoIdOf(currentBashoId())).label.uk + ' \u2014 \u044e\u0448\u043e' }
           : null}  /* champion_data_v1 */
         currentDay={currentDay}
