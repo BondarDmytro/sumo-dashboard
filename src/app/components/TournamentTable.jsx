@@ -1,4 +1,5 @@
 'use client'
+import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
@@ -123,7 +124,7 @@ export default function TournamentTable({ contenders, currentDay }) {
                     {r.editorialNote && <div style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b */}</div>} {/* badge_render_v1 */}
                   </td>
                   <td style={{padding:'0.85rem 0.75rem'}}>
-                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{r.rank}</span>
+                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
                   </td>
                   <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
                   <td style={{padding:'0.85rem 0.75rem'}}>

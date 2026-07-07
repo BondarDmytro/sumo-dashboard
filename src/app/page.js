@@ -68,6 +68,7 @@ async function getBashoData() {
     return {
       _id: String(r.rikishiID),
       name: r.shikonaEn,
+      nameJp: r.shikonaJp,  /* kanji_names_v1 */
       rank: getRankShort(r.rank),
       rankFull: r.rank,
       rankValue,

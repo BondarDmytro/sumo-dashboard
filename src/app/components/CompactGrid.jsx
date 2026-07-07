@@ -1,4 +1,5 @@
 'use client'
+import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
@@ -33,7 +34,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
               <div style={{flex:1,minWidth:0}}>
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{r.rank} · {r.wins}–{r.losses}</div>
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{displayRank(r.rank, lang)} · {r.wins}–{r.losses}</div>
               </div>
               
             </div>
@@ -72,7 +73,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
       <div key={r._id} style={{display:'flex',alignItems:'center',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,flex:1}}>
           <div style={{display:'flex',alignItems:'baseline',gap:4}}>
-            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{r.rank}</span>
+            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{displayRank(r.rank, lang)}</span>
             <FlagName id={r._id} name={r.name} size='0.75rem' />
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'nowrap',marginTop:4}}>

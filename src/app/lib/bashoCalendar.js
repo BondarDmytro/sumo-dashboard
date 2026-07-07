@@ -71,6 +71,21 @@ export function currentBashoId(now = new Date()) {  /* auto_current_v1: live, і
   return lastFinished
 }
 
+export function displayName(r, lang) {  /* kanji_names_v1 */
+  if (lang === 'ja' && (r?.nameJp || r?.shikonaJp)) return r.nameJp || r.shikonaJp
+  return r?.name || r?.shikonaEn || ''
+}
+
+const RANK_JA = { Yokozuna: '横綱', Ozeki: '大関', Sekiwake: '関脇', Komusubi: '小結', Maegashira: '前頭', Juryo: '十両' }
+export function displayRank(rank, lang) {
+  // "Sekiwake 2 East" -> ja: "東 関脇 2"; інші мови — як є
+  if (lang !== 'ja' || !rank) return rank
+  const m = String(rank).match(/^(\w+)\s*(\d*)\s*(East|West)?$/)
+  if (!m || !RANK_JA[m[1]]) return rank
+  const side = m[3] === 'East' ? '東' : m[3] === 'West' ? '西' : ''
+  return (side ? side + ' ' : '') + RANK_JA[m[1]] + (m[2] ? ' ' + m[2] : '')
+}
+
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
 export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
 

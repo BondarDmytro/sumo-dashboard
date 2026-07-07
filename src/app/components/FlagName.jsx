@@ -14,7 +14,7 @@ export default function FlagName({ id, name, size = '0.95rem' }) {
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>
       <span title={country} style={{fontSize:'1rem',lineHeight:1,flexShrink:0}}>{flag}</span>
-      <span style={{fontSize:size,fontWeight:700}}>{name}</span>
+      <span style={{fontSize:size,fontWeight:700}}>{lang === 'ja' && bio?.nameJp ? bio.nameJp : name}</span>  {/* kanji_names_v2 */}
     </span>
   )
 }

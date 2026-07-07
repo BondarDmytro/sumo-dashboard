@@ -1,10 +1,10 @@
 /* auto_current_v3 */
-'use client' /* ja_batch3 */ /* ja_batch2_t */
+'use client' /* kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
-import { currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
+import { displayName, displayRank, currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -56,8 +56,8 @@ function RikishiListCard({ r, onClick, selected }) {
       <div style={{display:'flex',alignItems:'center',gap:8}}>
         <span style={{fontSize:'0.9rem'}}>{r.country?.flag}</span>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:700,fontSize:'0.85rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{r.name}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color: selected ? 'rgba(245,240,232,0.6)' : 'var(--mid)'}}>{r.rank}</div>
+          <div style={{fontWeight:700,fontSize:'0.85rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{displayName(r, lang)}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color: selected ? 'rgba(245,240,232,0.6)' : 'var(--mid)'}}>{displayRank(r.rank, lang)}</div>
         </div>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',fontWeight:600,flexShrink:0}}>
           {r.wins}–{r.losses}
@@ -122,10 +122,10 @@ function RikishiDetail({ r, lang, onBack, isMobile }) {
         <div style={{flex:1,minWidth:150,paddingTop:4}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
             <span style={{fontSize:'1.5rem'}}>{r.country?.flag}</span>
-            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1}}>{r.name}</div>
+            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1}}>{displayName(r, lang)}</div>
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:4}}>{r.nameJp}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{r.rank}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{displayRank(r.rank, lang)}</div>
 
           {r.stats?.yusho > 0 && (
             <div style={{marginBottom:6}}>
