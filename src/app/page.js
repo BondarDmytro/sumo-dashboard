@@ -11,7 +11,7 @@ import CurrentOnly from './components/CurrentOnly' /* basho_filter_v2_fix */
 import RikishiCard from './components/RikishiCard'
 import YushoWinner from './components/YushoWinner'
 
-export const revalidate = 60
+export const revalidate = 300  /* cpu_diet_v1: 60->300, x4 lang paths made 60s too hot for free tier */
 
 import { applyBashoRules, prevBashoId } from './lib/bashoRules' /* basho_rules_v1 */
 import { currentBashoId, bashoInfo, bashoStatus, prevBashoIdOf } from './lib/bashoCalendar' /* basho_labels_v1 prev_champion_v1 */
@@ -26,9 +26,9 @@ async function getBashoData() {
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
   const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/Makuuchi`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/Makuuchi`, { next: { revalidate: 300 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/Makuuchi/${currentDay}`, { next: { revalidate: 300 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 300 } }),
     fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}/banzuke/Makuuchi`, { next: { revalidate: 3600 } }),
   ])
 
@@ -182,7 +182,7 @@ async function getBashoData() {
     try {
       const playoffRes = await fetch(
         `https://sumo-api.com/api/rikishi/${tiedCheck[0]._id}/matches?limit=20`,
-        { next: { revalidate: 60 } }
+        { next: { revalidate: 300 } }
       )
       const playoffData = await playoffRes.json()
       const playoffMatch = playoffData.records?.find(m =>
