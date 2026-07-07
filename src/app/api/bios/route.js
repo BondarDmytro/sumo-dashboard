@@ -62,6 +62,7 @@ export async function GET() {
     infoList.forEach(r => {
       if (r.id) {
         bios[r.id] = {
+          nameJp: r.shikonaJp || null,  /* bios_namejp_v1 */
           country: getCountry(r.shusshin),
           height: r.height || null,
           weight: r.weight || null,
