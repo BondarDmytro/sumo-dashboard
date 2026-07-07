@@ -9,6 +9,16 @@ export function LangProvider({ children }) {
   const [lang, setLang] = useState(defaultLang)
 
   useEffect(() => {
+    /* lang_query_v1: ?lang= з лендінга має пріоритет над збереженою; невідома мова -> en */
+    try {
+      const q = new URLSearchParams(window.location.search).get('lang')
+      if (q) {
+        const l = ['uk','en','ja'].includes(q) ? q : 'en'
+        setLang(l)
+        localStorage.setItem('lang', l)
+        return
+      }
+    } catch (e) {}
     const saved = localStorage.getItem('lang')
     if (saved && translations[saved]) setLang(saved)
   }, [])
