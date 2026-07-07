@@ -22,7 +22,15 @@ export const metadata = {  /* seo_meta_v2: en-base + ja, canonical на prod-д�
   title: "Grand Sumo 2026 — Live Yusho Race, Banzuke & Stats | 大相撲 優勝予想",
   description: "Live sumo tournament tracker: yusho race forecasts, banzuke predictions, rikishi profiles, head-to-head stats and full basho archive since 1958. 大相撲本場所の優勝レースと番付予想をライブで。",
   keywords: "sumo, grand sumo, basho, yusho, banzuke, rikishi, sumo results, sumo stats, 大相撲, 優勝予想, 番付, Nagoya Basho 2026",
-  alternates: { canonical: 'https://sumo.dohyo-legends.com' },
+  alternates: {  /* root_hreflang_v1 */
+    canonical: 'https://sumo.dohyo-legends.com',
+    languages: {
+      en: 'https://sumo.dohyo-legends.com/en',
+      ja: 'https://sumo.dohyo-legends.com/ja',
+      uk: 'https://sumo.dohyo-legends.com/uk',
+      'x-default': 'https://sumo.dohyo-legends.com/en',
+    },
+  },
   openGraph: {
     title: "Grand Sumo 2026 — Live Yusho Race & Stats",
     description: "Live forecasts, banzuke predictions and full basho archive. 大相撲優勝予想ライブ。",

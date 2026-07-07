@@ -78,6 +78,10 @@ useEffect(() => {
 
   if (isStudio) return null
 
+  /* navbar_lang_prefix_v1: на мовному шляху таби зберігають префікс */
+  const _seg = (path || '').split('/')[1]  /* navbar_lang_prefix_v2: через usePathname — без гідраційних розбіжностей */
+  /* navbar_active_v1 */
+  const langPrefix = ['uk','en','ja'].includes(_seg) ? '/' + _seg : ''
   const tabs = [
     { href: '/', label: t?.nav?.tournament || 'Турнір' },
     { href: '/ranks', label: t?.nav?.ranks || 'Прогноз рангів' },
@@ -106,16 +110,16 @@ useEffect(() => {
                 <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
               </a>  {/* navbar_cleanup_v1 */}
           {tabs.map(tab => (
-            <Link key={tab.href} href={tab.href} style={{
+            <Link key={tab.href} href={langPrefix + tab.href} style={{
               display: 'inline-block',
               padding: '0.7rem 0.9rem',
               fontFamily: 'monospace',
               fontSize: '0.68rem',
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: path === tab.href ? '#f5f0e8' : '#6b6560',
+              color: path === langPrefix + tab.href ? '#f5f0e8' : '#6b6560',
               textDecoration: 'none',
-              borderBottom: path === tab.href ? '2px solid #b8860b' : '2px solid transparent',
+              borderBottom: path === langPrefix + tab.href ? '2px solid #b8860b' : '2px solid transparent',
               whiteSpace: 'nowrap',
               flexShrink: 0,
             }}>

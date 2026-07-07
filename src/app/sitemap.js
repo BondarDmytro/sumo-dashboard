@@ -1,11 +1,25 @@
+/* lang_routes_v1: 3 мови × 5 сторінок + корінь */
 export default function sitemap() {
   const base = 'https://sumo.dohyo-legends.com'
   const now = new Date()
-  return [
-    { url: base, lastModified: now, changeFrequency: 'daily', priority: 1 },
-    { url: `${base}/ranks`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${base}/rikishi`, lastModified: now, changeFrequency: 'daily', priority: 0.8 },
-    { url: `${base}/archive`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${base}/sumo`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+  const pages = [
+    { path: '', changeFrequency: 'daily', priority: 1 },
+    { path: '/ranks', changeFrequency: 'daily', priority: 0.9 },
+    { path: '/rikishi', changeFrequency: 'daily', priority: 0.8 },
+    { path: '/archive', changeFrequency: 'weekly', priority: 0.7 },
+    { path: '/sumo', changeFrequency: 'monthly', priority: 0.6 },
   ]
+  const langs = ['en', 'ja', 'uk']
+  const out = [{ url: base, lastModified: now, changeFrequency: 'daily', priority: 1 }]
+  for (const l of langs) {
+    for (const p of pages) {
+      out.push({
+        url: `${base}/${l}${p.path}`,
+        lastModified: now,
+        changeFrequency: p.changeFrequency,
+        priority: l === 'en' ? p.priority : p.priority - 0.05,
+      })
+    }
+  }
+  return out
 }
