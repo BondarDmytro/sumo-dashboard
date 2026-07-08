@@ -16,9 +16,9 @@ export default function RikishiCard({ r, index }) {
       <div style={{padding:'0.4rem 0.6rem',display:'flex',alignItems:'center',gap:8}}>
         <div style={{width:20,height:20,borderRadius:'50%',flexShrink:0,background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.68rem',fontWeight:500,fontFamily:'monospace'}}>{index+1}</div>
         <div style={{flex:'0 0 32%',minWidth:0}}>
-          <div style={{fontWeight:700,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
+          <div className="rc-name" style={{fontWeight:700,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
           <div style={{fontSize:'0.62rem',color:'var(--mid)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-            {displayRank(r.rankFull, lang)} <span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.rank}</span>
+            <span className="rc-rankfull">{displayRank(r.rankFull, lang)} </span><span style={{fontFamily:'monospace',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.rank}</span>
           </div>
         </div>
         <div style={{flex:1,minWidth:0}}>
@@ -31,7 +31,7 @@ export default function RikishiCard({ r, index }) {
               {r.chanceDelta>0?`\u25b2+${r.chanceDelta}`:r.chanceDelta<0?`\u25bc${r.chanceDelta}`:'\u2013'}
             </span>
           </div>
-          <div style={{fontSize:'0.6rem',color:'var(--mid)',fontStyle:'italic',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginTop:2}}>
+          <div style={{fontSize:'0.6rem',color:'var(--mid)',fontStyle:'italic',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginTop:2}} className="rc-day">
             {r.note}{' · день '}{r.nextOpponent ? `vs ${r.nextOpponent}` : '—'}
           </div>
         </div>
@@ -45,3 +45,5 @@ export default function RikishiCard({ r, index }) {
     </div>
   )
 }
+
+/* rikishi_card_fluid_v1 */

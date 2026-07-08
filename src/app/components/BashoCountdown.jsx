@@ -43,15 +43,15 @@ export default function BashoCountdown({ startUtcMs, bashoLabel }) {
   })
 
   const cell = { textAlign: 'center', minWidth: 52 }
-  const num = { fontFamily: 'monospace', fontSize: '2.2rem', fontWeight: 800, color: '#f0c060', lineHeight: 1 }
-  const lab = { fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginTop: 4 }
+  const num = { fontFamily: 'monospace', fontSize: 'clamp(1.35rem, 6vw, 2.2rem)', fontWeight: 800, color: '#f0c060', lineHeight: 1 }
+  const lab = { fontFamily: 'monospace', fontSize: 'clamp(0.5rem, 1.8vw, 0.7rem)', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginTop: 4 }
 
   return (
     <div style={{ marginTop: '0.9rem' }}>
       <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#b8c7c8', marginBottom: 8 }}>
         {t3(lang, `До старту — ${bashoLabel}`, `Countdown — ${bashoLabel}`, `開始まで — ${bashoLabel}`)}
       </div>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 'clamp(4px, 1.6vw, 10px)', alignItems: 'center', flexWrap: 'nowrap' /* countdown_fluid_v1 */ }}>
         <div style={cell}><div style={num}>{pad(d)}</div><div style={lab}>{t3(lang,'днів','days','日')}</div></div>
         <div style={{ ...num, opacity: 0.4 }}>:</div>
         <div style={cell}><div style={num}>{pad(h)}</div><div style={lab}>{t3(lang,'год','hrs','時間')}</div></div>
