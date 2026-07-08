@@ -225,3 +225,10 @@ body {
 
 /* discord_btn_v1 */
 .fb-discord { bottom: 74px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+
+/* share_button_v1 */
+.share-btn { display:inline-flex; align-items:center; gap:6px; font-family:monospace; font-size:0.62rem;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--mid,#b8c7c8); background:none;
+  border:1px solid var(--border,rgba(184,134,11,0.4)); border-radius:2px; padding:4px 10px; cursor:pointer;
+  transition:color .2s, border-color .2s; margin-bottom:0.75rem; }
+.share-btn:hover { color:#b8860b; border-color:#b8860b; }

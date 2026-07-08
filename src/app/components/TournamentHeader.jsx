@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { currentBashoId, bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
 import BashoCountdown from './BashoCountdown'
+import ShareButton from './ShareButton' /* share_button_v1 */
 
 function t3(lang, uk, en, ja) {
   if (lang === 'en') return en
@@ -54,6 +55,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             {t3(lang, ' — наживо', ' — Live', '・ライブ')}
           </span>
         </h1>
+        <div style={{marginBottom:'0.6rem'}}><ShareButton /></div>  {/* share_button_v1 */}
         <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'1rem',color:'#b8c7c8'}}>
           {isFinished ? (
             <span style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'4px 14px',borderRadius:2}}>
