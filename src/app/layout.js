@@ -49,6 +49,7 @@ export const metadata = {  /* seo_meta_v2: en-base + ja, canonical на prod-д�
 };
 
 import GlobalSalt from './components/GlobalSalt' /* global_salt_v1 */
+import SiteFooter from './components/SiteFooter' /* site_footer_v1 */
 
 export default function RootLayout({ children }) {
   return (
@@ -67,7 +68,7 @@ export default function RootLayout({ children }) {
         <LangProvider>
           <BiosProvider>
             <NavBar />
-            {children}<GlobalSalt />
+            {children}<SiteFooter /><GlobalSalt />
           </BiosProvider>
         </LangProvider>
         

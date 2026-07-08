@@ -139,3 +139,23 @@ body {
   .ts-grid > div > div:nth-child(2) { font-size: 0.5rem !important; }
   .ts-grid > div > div:nth-child(3) { font-size: 0.44rem !important; }
 }
+
+/* site_footer_v2: kompaktnishe, kartky 50/50, skrin fonom */
+.site-footer { background:#0f0e0c; border-top:2px solid #b8860b; margin-top:3rem; }
+.sf-inner { max-width:1280px; margin:0 auto; padding:1.1rem 1.5rem 0.8rem; }
+.sf-promo-head { font-family:monospace; font-size:0.56rem; letter-spacing:0.2em; text-transform:uppercase; color:#7d7466; margin-bottom:0.6rem; }
+.sf-promos { display:flex; gap:0.8rem; margin-bottom:0.9rem; }
+.sf-promo { position:relative; overflow:hidden; display:flex; align-items:center; border:1px solid rgba(184,134,11,0.3); border-radius:3px; padding:12px 16px; text-decoration:none; flex:1 1 50%; min-height:86px; transition:border-color .2s; }
+.sf-promo::before { content:''; position:absolute; inset:0; background-image:var(--sf-bg); background-size:cover; background-position:center 25%; opacity:0.35; }
+.sf-promo::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(15,14,12,0.92) 0%, rgba(15,14,12,0.55) 60%, rgba(15,14,12,0.35) 100%); }
+.sf-promo:hover { border-color:#b8860b; }
+.sf-promo-text { position:relative; z-index:2; }
+.sf-promo-logo { width:110px; height:auto; display:block; margin-bottom:3px; filter:drop-shadow(0 1px 6px rgba(0,0,0,0.8)); }
+.sf-promo-tag { font-family:monospace; font-size:0.54rem; letter-spacing:0.12em; text-transform:uppercase; color:#b5aa99; margin-bottom:4px; text-shadow:0 1px 6px rgba(0,0,0,0.9); }
+.sf-promo-cta { font-family:monospace; font-size:0.6rem; font-weight:700; color:#b8860b; text-shadow:0 1px 6px rgba(0,0,0,0.9); }
+.sf-nav { display:flex; gap:1.1rem; flex-wrap:wrap; padding:0.6rem 0; border-top:1px solid rgba(181,170,153,0.15); }
+.sf-nav-link { font-family:monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:#b5aa99; text-decoration:none; }
+.sf-nav-link:hover { color:#f5f0e8; }
+.sf-bottom { display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.4rem; padding:0.55rem 0 0; border-top:1px solid rgba(181,170,153,0.15); font-family:monospace; font-size:0.56rem; color:#7d7466; }
+.sf-credit a { color:#b5aa99; text-decoration:none; }
+@media (max-width:600px) { .sf-promos { flex-direction:column; } }
