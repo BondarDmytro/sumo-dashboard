@@ -207,7 +207,7 @@ body {
   background:#12100d; border:1px solid rgba(184,134,11,0.6); font-size:1.3rem; cursor:pointer;
   box-shadow:0 2px 12px rgba(0,0,0,0.3); transition:border-color .2s, transform .2s; }
 .fb-btn:hover { border-color:#b8860b; transform:scale(1.06); }
-.fb-modal { position:fixed; right:16px; bottom:74px; z-index:150; width:min(320px, calc(100vw - 32px));
+.fb-modal { position:fixed; right:16px; bottom:132px; /* discord_btn_v1: pidniato nad discord-knopku */ z-index:150; width:min(320px, calc(100vw - 32px));
   background:var(--card, #f5f0e8); border:1px solid var(--border, #d8d2c6); border-radius:4px;
   padding:12px; box-shadow:0 8px 32px rgba(0,0,0,0.25); }
 .fb-head { display:flex; justify-content:space-between; align-items:center; font-family:monospace;
@@ -222,3 +222,6 @@ body {
 .fb-send:disabled { opacity:0.5; cursor:default; }
 .fb-done { text-align:center; padding:1.2rem 0; font-size:0.9rem; }
 .fb-note { font-family:monospace; font-size:0.6rem; color:#c0392b; margin-bottom:8px; }
+
+/* discord_btn_v1 */
+.fb-discord { bottom: 74px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
