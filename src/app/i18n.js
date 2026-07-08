@@ -3,7 +3,7 @@ export const translations = {
     nav: {
       tournament: 'Турнір',
       rikishi: 'Рікіші',
-      ranks: 'Прогноз рангів',
+      ranks: 'Ранги',  /* nav_ranks_short_v1 */
       archive: 'Архів',
       sumo: 'Про сумо',
     },
@@ -56,7 +56,7 @@ export const translations = {
     nav: {
       tournament: 'Tournament',
       rikishi: 'Rikishi',
-      ranks: 'Rank Forecast',
+      ranks: 'Ranks',
       archive: 'Archive',
       sumo: 'About Sumo',
     },

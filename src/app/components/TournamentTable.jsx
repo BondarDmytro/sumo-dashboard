@@ -40,7 +40,7 @@ function TodayCell({ record, currentDay, t, lang }) {
 
 function MatchDots({ record, currentDay }) {
   return (
-    <div style={{display:'flex',alignItems:'center',gap:2,flexWrap:'nowrap',maxWidth:240}}>
+    <div className="tt-dots" style={{display:'flex',alignItems:'center',gap:2,flexWrap:'nowrap',maxWidth:240}}>
       {Array.from({length:15}).map((_, idx) => {
         const m = record[idx]
         const isWin = m && RESULTS_WIN.includes(m.result)
@@ -91,7 +91,7 @@ export default function TournamentTable({ contenders, currentDay }) {
         {t3(lang, 'Турнірна таблиця — всі рікіші макуучі', 'Standings — all Makuuchi rikishi', '幕内力士 全員成績表')}
       </div>
       <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
-        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
+        <table className="tt-table" style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
           <thead>
             <tr style={{borderBottom:'2px solid var(--ink)'}}>
               {headers.map(h => (
@@ -139,7 +139,7 @@ export default function TournamentTable({ contenders, currentDay }) {
                   </td>
                   <td style={{padding:'0.85rem 0.75rem',minWidth:180}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <div style={{flex:1,height:5,background:'var(--bg2)'}}>
+                      <div className="tt-chancebar" style={{flex:1,height:5,background:'var(--bg2)'}}>
                         <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}} />
                       </div>
                       <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>

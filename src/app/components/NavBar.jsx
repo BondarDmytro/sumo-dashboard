@@ -84,7 +84,7 @@ useEffect(() => {
   const langPrefix = ['uk','en','ja'].includes(_seg) ? '/' + _seg : ''
   const tabs = [
     { href: '/', label: t?.nav?.tournament || 'Турнір' },
-    { href: '/ranks', label: t?.nav?.ranks || 'Прогноз рангів' },
+    { href: '/ranks', label: t?.nav?.ranks || 'Ранги' },
     { href: '/rikishi', label: t?.nav?.rikishi || 'Рікіші' },
     { href: '/archive', label: t?.nav?.archive || 'Архів' },
     { href: '/sumo', label: t?.nav?.sumo || 'Про сумо' },
@@ -96,8 +96,8 @@ useEffect(() => {
         background: 'var(--header)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         position: 'sticky', top: 0, zIndex: 100,
-      }}>
-        <div style={{
+      }} className="nav-scroll-wrap">
+        <div className="nav-scroll-inner" style={{
           display: 'flex', alignItems: 'center',
           overflowX: 'auto',
           scrollbarWidth: 'none',
