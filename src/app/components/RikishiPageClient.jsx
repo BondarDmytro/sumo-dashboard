@@ -16,6 +16,7 @@ function directVideo(bashoId, day, myJa, oppJa) {
 
 import { useLang } from './LangProvider'
 import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 */
+import RikishiTopTable from './RikishiTopTable' /* rikishi_top_table_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -71,18 +72,18 @@ const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', 
 function RikishiListCard({ r, onClick, selected }) {
   const { lang } = useLang()  /* listcard_lang_v1 */
   return (
-    <div onClick={() => onClick(r)} style={{
+    <div onClick={() => onClick(r)} className="rikishi-list-item" style={{
       background: selected ? 'var(--ink)' : 'var(--card)',
       color: selected ? 'var(--bg)' : 'var(--ink)',
       borderTop:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
       borderRight:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
       borderBottom:`1px solid ${selected ? 'var(--ink)' : 'var(--border)'}`,
-      borderLeft:`3px solid ${r.stats?.yusho > 0 ? '#b8860b' : 'var(--border)'}`,  /* listcard_border_split_v1 */
+      borderLeft:'3px solid var(--border)',  /* bio_render_v1: yusho-ramka znialy - stats bilshe ne v spysku */
       padding:'0.65rem 0.9rem',
       cursor:'pointer',
     }}>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
-        <span style={{fontSize:'0.9rem'}}>{r.country?.flag}</span>
+        
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontWeight:700,fontSize:'0.85rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{displayName(r, lang)}</div>
           <div style={{fontFamily:'monospace',fontSize:'0.58rem',color: selected ? 'rgba(245,240,232,0.6)' : 'var(--mid)'}}>{displayRank(r.rank, lang)}</div>
@@ -102,6 +103,18 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
   const [pastLoading, setPastLoading] = useState(false)
   const pastCache = useRef({})
   useEffect(() => { setSelBasho(currentBashoId()); setPastData(null) }, [r?.id])
+  /* bio_fetch_v1: bio+stats dovantazhuiutsia po kliku z /api/rikishi-info, kesh po id */
+  const [bio, setBio] = useState(null)
+  const bioCache = useRef({})
+  useEffect(() => {
+    if (!r?.id) { setBio(null); return }
+    if (bioCache.current[r.id]) { setBio(bioCache.current[r.id]); return }
+    setBio(null)
+    fetch(`/api/rikishi-info?id=${r.id}`)
+      .then(res => res.json())
+      .then(d => { if (!d.error) { bioCache.current[r.id] = d; setBio(d) } })
+      .catch(() => {})
+  }, [r?.id])
   useEffect(() => {
     if (!r || selBasho === currentBashoId()) { setPastData(null); return }
     const key = `${selBasho}-${r.id}`
@@ -122,18 +135,18 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
     </div>
   )
 
-  const sanshoList = Object.entries(r.stats?.sansho || {}).filter(([,v]) => v > 0)
+  const sanshoList = Object.entries(bio?.stats?.sansho || {}).filter(([,v]) => v > 0)  /* bio_render_v1 */
   const bioLabels = lang === 'en'
     ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut']
     : lang === 'ja' ? ['出身', '年齢', '身長', '体重', '部屋', '初土俯']  /* ja_tails_v1 */
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
   const bioValues = [
-    (typeof r.country?.name === 'object' ? (r.country.name[lang] || r.country.name.uk) : r.country?.name),  /* country_name_i18n_v1 */
-    r.age ? `${r.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—',
-    r.height ? `${r.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—',
-    r.weight ? `${r.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—',
-    (lang === 'ja' && r.heya && HEYA_JA[r.heya]) ? HEYA_JA[r.heya] : (r.heya || '—'),
-    r.debut ? `${r.debut.slice(0,4)}/${r.debut.slice(4)}` : '—',
+    (bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : '…'),  /* country_name_i18n_v1 */
+    bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—') : '…',
+    bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—') : '…',
+    bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…',
+    bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…',
+    bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…'),
   ]
   /* playoff_generic_v1 */
   const regularMatches = shownRecord.filter(m => (m.day || 0) <= 15)
@@ -172,25 +185,25 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
 
         <div style={{flex:1,minWidth:150,paddingTop:4}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-            <span style={{fontSize:'1.5rem'}}>{r.country?.flag}</span>
+            <span style={{fontSize:'1.5rem'}}>{bio?.country?.flag || ''}</span>
             <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1}}>{displayName(r, lang)}</div>
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:4}}>{r.nameJp}</div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{displayRank(r.rank, lang)}</div>
 
-          {r.stats?.yusho > 0 && (
+          {(bio?.stats?.yusho || 0) > 0 && (
             <div style={{marginBottom:6}}>
               <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
-                {Array.from({length: Math.min(r.stats.yusho, 10)}).map((_,i) => (
+                {Array.from({length: Math.min(bio.stats.yusho, 10)}).map((_,i) => (
                   <span key={i} style={{fontSize:'0.9rem'}}>{'🏆'}</span>
                 ))}
                 <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
-                  {r.stats.yusho}{'×'} {t3(lang, 'юшо', 'yusho', '優勝')}
+                  {bio.stats.yusho}{'×'} {t3(lang, 'юшо', 'yusho', '優勝')}
                 </span>
               </div>
-              {Object.keys(r.stats.yushoByDivision || {}).length > 0 && (
+              {Object.keys(bio.stats.yushoByDivision || {}).length > 0 && (
                 <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                  {Object.entries(r.stats.yushoByDivision)
+                  {Object.entries(bio.stats.yushoByDivision)
                     .filter(([, count]) => count > 0)
                     .sort(([a], [b]) => {
                       const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
@@ -243,11 +256,11 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
           <div style={{fontSize:'0.7rem',color:'var(--mid)',marginBottom:4}}>{lang === 'ja' ? '幕内' : 'Makuuchi'}</div>  {/* makuuchi_label_ja */}
           <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700,marginBottom:6}}>
-            {r.stats?.makuuchiWins}–{(r.stats?.makuuchiMatches||0) - (r.stats?.makuuchiWins||0)}
+            {bio ? `${bio.stats?.makuuchiWins||0}–${(bio.stats?.makuuchiMatches||0) - (bio.stats?.makuuchiWins||0)}` : '…'}
           </div>
-          <WinRate wins={r.stats?.makuuchiWins||0} total={r.stats?.makuuchiMatches||0} />
+          <WinRate wins={bio?.stats?.makuuchiWins||0} total={bio?.stats?.makuuchiMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {r.stats?.makuuchiBasho} {t3(lang, 'турнірів', 'tournaments', '場所')}
+            {bio?.stats?.makuuchiBasho ?? '…'} {t3(lang, 'турнірів', 'tournaments', '場所')}
           </div>
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
@@ -255,11 +268,11 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
             {lang === 'ja' ? '通算合計' : lang === 'en' ? 'Career total' : "Кар'єра загалом"}
           </div>
           <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700,marginBottom:6}}>
-            {r.stats?.totalWins}–{r.stats?.totalLosses}
+            {bio ? `${bio.stats?.totalWins||0}–${bio.stats?.totalLosses||0}` : '…'}
           </div>
-          <WinRate wins={r.stats?.totalWins||0} total={r.stats?.totalMatches||0} />
+          <WinRate wins={bio?.stats?.totalWins||0} total={bio?.stats?.totalMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {r.stats?.totalMatches} {t3(lang, 'матчів', 'matches', '番')}
+            {bio?.stats?.totalMatches ?? '…'} {t3(lang, 'матчів', 'matches', '番')}
           </div>
         </div>
       </div>
@@ -396,6 +409,27 @@ export default function RikishiPageClient() {
       .catch(() => setLoading(false))
   }, [])
 
+  /* div_sections_v1: sektsii dyvizioniv, nyzhni zghornuti; poshuk rozghortaie vse */
+  const [openDivs, setOpenDivs] = useState({ Makuuchi: true, Juryo: true })
+  const DIVS = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
+  const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内'), Juryo: t3(lang,'Джюрьо','Juryo','十両'), Makushita: t3(lang,'Макушіта','Makushita','幕下'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口') }
+  const renderSections = (onClickFn) => DIVS.map(div => {
+    const items = (filtered || []).filter(x => x.division === div)
+    if (!items.length) return null
+    const open = search.trim() ? true : (openDivs[div] ?? false)
+    return (
+      <div key={div}>
+        <div onClick={() => setOpenDivs(o => ({...o, [div]: !(o[div] ?? false)}))}
+          style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer',padding:'0.45rem 0.75rem',background:'var(--ink)',color:'var(--card)',fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.14em',textTransform:'uppercase',position:'sticky',top:0,zIndex:2}}>
+          <span>{DIV_LABEL[div]} ({items.length})</span>
+          <span>{open ? '▾' : '▸'}</span>
+        </div>
+        {open && items.map(r => (
+          <RikishiListCard key={r.id} r={r} onClick={onClickFn} selected={selected?.id === r.id} />
+        ))}
+      </div>
+    )
+  })
   const filtered = data?.rikishi?.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase()) ||
     r.rank.toLowerCase().includes(search.toLowerCase()) ||
@@ -413,7 +447,7 @@ export default function RikishiPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.5rem'}}>
-          {(lang === 'ja' ? '幕内力士 — ' : lang === 'en' ? 'Makuuchi rikishi — ' : 'Рікіші макуучі — ') + bashoInfo(currentBashoId()).label[lang]}
+          {(lang === 'ja' ? '力士 — ' : lang === 'en' ? 'Rikishi — ' : 'Рікіші — ') + bashoInfo(currentBashoId()).label[lang]}
         </div>
 
         {loading ? (
@@ -445,13 +479,7 @@ export default function RikishiPageClient() {
                 }}
               />
               <div style={{display:'flex',flexDirection:'column',gap:1}}>
-                {filtered.map(r => (
-                  <RikishiListCard
-                    key={r.id} r={r}
-                    onClick={handleSelect}
-                    selected={selected?.id === r.id}
-                  />
-                ))}
+                {renderSections(handleSelect)}
               </div>
             </>
           )
@@ -471,13 +499,7 @@ export default function RikishiPageClient() {
                 }}
               />
               <div style={{maxHeight:'calc(100vh - 140px)',overflowY:'auto',display:'flex',flexDirection:'column',gap:1}}>
-                {filtered.map(r => (
-                  <RikishiListCard
-                    key={r.id} r={r}
-                    onClick={setSelected}
-                    selected={selected?.id === r.id}
-                  />
-                ))}
+                {renderSections(setSelected)}
               </div>
             </div>
             <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem'}}>
@@ -485,6 +507,14 @@ export default function RikishiPageClient() {
             </div>
           </div>
         )}
+        <RikishiTopTable onSelect={(id) => {  /* rikishi_top_table_v1 */
+          const t = data?.rikishi?.find(x => x.id === id)
+          if (t) {
+            setSelected(t)
+            if (window.innerWidth <= 860) setShowDetail(true)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }
+        }} />
       </div>
     </main>
   )

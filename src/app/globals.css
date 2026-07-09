@@ -232,3 +232,6 @@ body {
   border:1px solid var(--border,rgba(184,134,11,0.4)); border-radius:2px; padding:4px 10px; cursor:pointer;
   transition:color .2s, border-color .2s; margin-bottom:0.75rem; }
 .share-btn:hover { color:#b8860b; border-color:#b8860b; }
+
+/* div_sections_v1: 588 kartok - ne renderyty off-screen */
+.rikishi-list-item { content-visibility: auto; contain-intrinsic-size: 0 58px; }
