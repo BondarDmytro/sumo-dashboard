@@ -168,7 +168,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
       )}
 
       {/* Верхній блок: фото + ім'я + біо */}
-      <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
+      <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1rem',flexWrap:'wrap'}}>
         <img
           src={`/rikishi/${r.id}.webp`}
           alt={r.name}
@@ -502,12 +502,11 @@ export default function RikishiPageClient() {
                 {renderSections(setSelected)}
               </div>
             </div>
-            <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem'}}>
-              <RikishiDetail r={selected} lang={lang} isMobile={false} jpMap={jpMap} />
-            </div>
-          </div>
-        )}
-        <RikishiTopTable onSelect={(id) => {  /* rikishi_top_table_v1 */
+            <div style={{minWidth:0}}>{/* toptable_moved_v1 */}
+              <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1rem 1.25rem'}}>{/* detail_compact_v1 */}
+                <RikishiDetail r={selected} lang={lang} isMobile={false} jpMap={jpMap} />
+              </div>
+              <RikishiTopTable onSelect={(id) => {  /* rikishi_top_table_v1 */
           const t = data?.rikishi?.find(x => x.id === id)
           if (t) {
             setSelected(t)
@@ -515,6 +514,9 @@ export default function RikishiPageClient() {
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }
         }} />
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
