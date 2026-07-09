@@ -157,7 +157,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
       {/* Верхній блок: фото + ім'я + біо */}
       <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
         <img
-          src={`/rikishi/${r.id}.jpg`}
+          src={`/rikishi/${r.id}.webp`}
           alt={r.name}
           style={{
             width: isMobile ? 90 : 108,

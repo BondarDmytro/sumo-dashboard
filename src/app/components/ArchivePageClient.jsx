@@ -191,7 +191,7 @@ export default function ArchivePageClient() {
 
     <div style={{display:'flex',flexDirection:'row',minHeight:220}}>
       <img
-        src={`/rikishi/${data.winner.id}.jpg`}
+        src={`/rikishi/${data.winner.id}.webp`}
         alt={data.winner.name}
         style={{
           width:'clamp(100px,22%,180px)',

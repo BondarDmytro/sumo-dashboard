@@ -42,3 +42,4 @@ next-env.d.ts
 *.bak_*
 scripts/backup-*.json
 .venue-originals/
+public/rikishi/.bak_imgopt

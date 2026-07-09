@@ -37,7 +37,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
       }}>
         {/* Фото */}
         <img
-          src={`/rikishi/${winner._id}.jpg`}
+          src={`/rikishi/${winner._id}.webp`}
           alt={winner.name}
           style={{
             width:'clamp(120px, 25%, 180px)',
