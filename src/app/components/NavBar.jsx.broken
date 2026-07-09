@@ -48,7 +48,6 @@ function IconBtn({ href, onClick, title, color, children }) {
 
 export default function NavBar() {
   const path = usePathname()
-  const isHome = ['/','/en','/ja','/uk'].includes(path)  /* basho_nav_v1 */
   const isStudio = path.startsWith('/studio')
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -128,8 +127,8 @@ useEffect(() => {
               {tab.label}
             </Link>
           ))}
-          <div className="nav-basho-slot">{/* basho_nav_v1 */}
-            {isHome && <BashoSelect />}
+          <div className="nav-basho-slot" style={{flex:1,display:'flex',justifyContent:'center',minWidth:0}}>{/* basho_nav_v1 */}
+            {isHome && <BashoSelect dark />}
           </div>
 
           {/*navbar_games_removed_v1: кнопка ігор прибрана, ігри на /game*/}

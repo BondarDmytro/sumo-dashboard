@@ -254,9 +254,8 @@ export default async function Home() {
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
-      <BashoFilterProvider>  {/* basho_filter_v2 */}
+      <>{/* basho_nav_v1: provider pereikhav u layout */}
       <TournamentHeader
-        bashoSelect={<BashoSelect />}
         champion={!isFinished && prevYusho && bashoStatus(currentBashoId()) === 'upcoming'
           ? { id: String(prevYusho.id), name: prevYusho.name, nameJp: prevYusho.nameJp, wins: 12, losses: 3,  /* champ_prop_jp */
               label: bashoInfo(prevBashoIdOf(currentBashoId())).label.uk + ' \u2014 \u044e\u0448\u043e' }
@@ -328,7 +327,7 @@ export default async function Home() {
         <TournamentFooter contenders={contenders} h2h={h2h} />
         </CurrentOnly>
       </div>
-      </BashoFilterProvider>  {/* basho_filter_v2_fix2 */}
+      </>
     </main>
   )
 }

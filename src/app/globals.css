@@ -191,8 +191,8 @@ body {
 }
 
 /* navbar_scroll_hint_v1: skrolni taby zi zghladzhenym kraiem */
+.nav-scroll-wrap { position: relative; }  /* basho_nav_v2: zavzhdy, ne tilky mob */
 @media (max-width: 860px) {
-  .nav-scroll-wrap { position: relative; }
   .nav-scroll-wrap::after {
     content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 36px;
     background: linear-gradient(90deg, transparent, #0f0e0c 85%);
@@ -235,3 +235,11 @@ body {
 
 /* div_sections_v1: 588 kartok - ne renderyty off-screen */
 .rikishi-list-item { content-visibility: auto; contain-intrinsic-size: 0 58px; }
+
+/* basho_nav_v2: tsentr na desktopi, okremyi riadok pid tabamy na mob */
+.nav-basho-slot { position:absolute; left:50%; transform:translateX(-50%); }
+@media (max-width: 860px) {
+  .nav-scroll-inner { flex-wrap: wrap; }
+  .nav-basho-slot { position:static; transform:none; flex-basis:100%; order:99; display:flex; justify-content:center; padding:4px 0 8px; }
+}
+.nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; }

@@ -413,6 +413,9 @@ export default function RikishiPageClient() {
 
   /* div_sections_v1: sektsii dyvizioniv, nyzhni zghornuti; poshuk rozghortaie vse */
   const [openDivs, setOpenDivs] = useState({ Makuuchi: true, Juryo: true })
+  useEffect(() => {  /* divs_mobile_collapsed_v2: mob - vse zghorneno pislia mauntu, bez hidratsiinoho mismatchu */
+    if (window.innerWidth <= 860) setOpenDivs({})
+  }, [])
   const DIVS = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
   const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内'), Juryo: t3(lang,'Джюрьо','Juryo','十両'), Makushita: t3(lang,'Макушіта','Makushita','幕下'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口') }
   const renderSections = (onClickFn) => DIVS.map(div => {
@@ -483,6 +486,10 @@ export default function RikishiPageClient() {
               <div style={{display:'flex',flexDirection:'column',gap:1}}>
                 {renderSections(handleSelect)}
               </div>
+              <RikishiTopTable onSelect={(id) => {  /* toptable_mobile_v1 */
+                const t = data?.rikishi?.find(x => x.id === id)
+                if (t) { setSelected(t); setShowDetail(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+              }} />
             </>
           )
         ) : (

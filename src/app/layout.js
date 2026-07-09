@@ -51,6 +51,7 @@ export const metadata = {  /* seo_meta_v2: en-base + ja, canonical на prod-д�
 import GlobalSalt from './components/GlobalSalt' /* global_salt_v1 */
 import SiteFooter from './components/SiteFooter' /* site_footer_v1 */
 import FeedbackButton from './components/FeedbackButton' /* feedback_button_v1 */
+import { BashoFilterProvider } from './components/BashoFilterContext' /* basho_nav_v1 */
 
 export default function RootLayout({ children }) {
   return (
@@ -68,8 +69,10 @@ export default function RootLayout({ children }) {
         `}</Script>
         <LangProvider>
           <BiosProvider>
+          <BashoFilterProvider>{/* basho_nav_v1 */}
             <NavBar />
             {children}<SiteFooter /><FeedbackButton /><GlobalSalt />
+          </BashoFilterProvider>
           </BiosProvider>
         </LangProvider>
         
