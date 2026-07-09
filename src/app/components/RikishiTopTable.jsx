@@ -55,6 +55,10 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
 
   const COLS = [
     { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => m.rank, sort: m => rankSortValue(m.rank), asc: true },
+    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank || '\u2014', sort: m => m.hiVal || 99999, asc: true },  /* cols_v2 + hirank_col_v1 */
+    { key: 'winpct', label: t3(lang,'% \u043f\u0435\u0440\u0435\u043c\u043e\u0433','Win %','\u52dd\u7387'), get: m => m.matches ? Math.round(m.wins / m.matches * 100) + '%' : '\u2014', sort: m => m.matches ? m.wins / m.matches : -1 },
+    { key: 'basho', label: t3(lang,'\u0422\u0443\u0440\u043d\u0456\u0440\u0438','Basho','\u5834\u6240'), get: m => m.basho || '\u2014', sort: m => m.basho || 0 },
+    { key: 'debut', label: t3(lang,'\u0414\u0435\u0431\u044e\u0442','Debut','\u521d\u571f\u4ff5'), get: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4,6)}` : '\u2014', sort: m => Number(m.debut) || 0 },
     { key: 'age', label: t3(lang,'\u0412\u0456\u043a','Age','\u5e74\u9f62'), get: m => ageOf(m.birthDate) ?? '\u2014', sort: m => ageOf(m.birthDate) ?? -1 },
     { key: 'height', label: t3(lang,'\u0417\u0440\u0456\u0441\u0442','Height','\u8eab\u9577'), get: m => m.height ? `${m.height}` : '\u2014', sort: m => m.height || 0 },
     { key: 'weight', label: t3(lang,'\u0412\u0430\u0433\u0430','Weight','\u4f53\u91cd'), get: m => m.weight ? `${m.weight}` : '\u2014', sort: m => m.weight || 0 },

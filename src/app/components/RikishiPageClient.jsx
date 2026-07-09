@@ -17,6 +17,7 @@ function directVideo(bashoId, day, myJa, oppJa) {
 import { useLang } from './LangProvider'
 import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 */
 import RikishiTopTable from './RikishiTopTable' /* rikishi_top_table_v1 */
+import rikishiMeta from '../lib/rikishiMeta.json' /* hirank_bio_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -137,9 +138,9 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
 
   const sanshoList = Object.entries(bio?.stats?.sansho || {}).filter(([,v]) => v > 0)  /* bio_render_v1 */
   const bioLabels = lang === 'en'
-    ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut']
-    : lang === 'ja' ? ['出身', '年齢', '身長', '体重', '部屋', '初土俯']  /* ja_tails_v1 */
-    : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют']
+    ? ['Country', 'Age', 'Height', 'Weight', 'Stable', 'Debut', 'Highest rank']  /* hirank_bio_v1 */
+    : lang === 'ja' ? ['出身', '年齢', '身長', '体重', '部屋', '初土俯', '最高位']  /* ja_tails_v1 */
+    : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют', 'Найвищий ранг']
   const bioValues = [
     (bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : '…'),  /* country_name_i18n_v1 */
     bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—') : '…',
@@ -147,6 +148,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
     bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…',
     bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…',
     bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…'),
+    rikishiMeta.find(m => m.id === r.id)?.hiRank || '—',
   ]
   /* playoff_generic_v1 */
   const regularMatches = shownRecord.filter(m => (m.day || 0) <= 15)

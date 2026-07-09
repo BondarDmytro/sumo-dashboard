@@ -13,6 +13,15 @@ let done = 0
 for (const r of recs) {
   try {
     const stats = await (await fetch(`${API}/rikishi/${r.id}/stats`)).json()
+    /* meta_v3: istoriia rangiv -> highest */
+    let hiRank = null, hiVal = null
+    try {
+      const ranks = await (await fetch(`${API}/ranks?rikishiId=${r.id}`)).json()
+      if (Array.isArray(ranks) && ranks.length) {
+        const best = ranks.reduce((a, b) => (b.rankValue && (!a || b.rankValue < a.rankValue)) ? b : a, null)
+        if (best) { hiRank = best.rank; hiVal = best.rankValue }
+      }
+    } catch (e) {}
     out.push({
       id: r.id,
       name: r.shikonaEn,
@@ -24,7 +33,11 @@ for (const r of recs) {
       height: r.height || null,
       weight: r.weight || null,
       matches: stats.totalMatches || 0,
+      wins: stats.totalWins || 0,  /* meta_v2 */
+      basho: stats.basho || 0,
+      debut: r.debut || null,
       yusho: stats.yusho || 0,
+      hiRank, hiVal,
     })
   } catch (e) { console.log(`skip ${r.shikonaEn}: ${e.message}`) }
   done++
