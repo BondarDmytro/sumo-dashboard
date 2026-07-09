@@ -22,10 +22,9 @@ const JAPAN = { flag: '\u{1F1EF}\u{1F1F5}', name: { uk: '\u042f\u043f\u043e\u043
 function getCountry(shusshin) {
   if (!shusshin) return JAPAN
   if (shusshin.includes('- Russia')) return { flag: '\u{1F3F3}\u{FE0F}', name: '404' }
-  const isJapan = ['-ken','-to','-do','-fu','Tokyo','Osaka','Hokkaido','Okinawa','Aichi','Fukuoka','Hyogo','Miyagi','Niigata','Nagano','Kumamoto','Kagoshima','Hiroshima','Kyoto'].some(s => shusshin.includes(s))
-  if (isJapan) return JAPAN
+  /* japan_default_v1: vse, shcho ne inozemna kraina zi spysku - Yaponiia (47 prefektur, riznyi format) */
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
-  return country ? COUNTRY_FLAGS[country] : { flag: '\u{1F30D}', name: shusshin.split(',')[0] }
+  return country ? COUNTRY_FLAGS[country] : JAPAN
 }
 
 export async function GET(request) {

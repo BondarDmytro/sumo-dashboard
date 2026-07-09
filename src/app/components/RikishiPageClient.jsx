@@ -148,7 +148,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
     bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…',
     bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…',
     bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…'),
-    rikishiMeta.find(m => m.id === r.id)?.hiRank || '—',
+    (() => { const h = rikishiMeta.find(m => m.id === r.id)?.hiRank; return h ? displayRank(h, lang) : '—' })(),  /* hirank_ja_v1 */
   ]
   /* playoff_generic_v1 */
   const regularMatches = shownRecord.filter(m => (m.day || 0) <= 15)
@@ -282,7 +282,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
         <select value={selBasho} onChange={e => setSelBasho(e.target.value)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink)',background:'var(--card)',border:'1px solid var(--border)',borderRadius:2,padding:'2px 6px',marginRight:6}}>
-          {BASHO_LIST.map(b => <option key={b.id} value={b.id}>{lang === 'en' || lang === 'ja' ? b.labelEn : b.label}</option>)}
+          {BASHO_LIST.map(b => <option key={b.id} value={b.id}>{lang === 'ja' ? (b.labelJa || b.labelEn) : lang === 'en' ? b.labelEn /* basho_ja_label_v1 */ : b.label}</option>)}
         </select> — {pastLoading ? '...' : `${shownWins ?? 0}–${shownLosses ?? 0}`}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>

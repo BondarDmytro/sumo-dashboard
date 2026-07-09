@@ -76,7 +76,7 @@ export function displayName(r, lang) {  /* kanji_names_v1 */
   return r?.name || r?.shikonaEn || ''
 }
 
-const RANK_JA = { Yokozuna: '横綱', Ozeki: '大関', Sekiwake: '関脇', Komusubi: '小結', Maegashira: '前頭', Juryo: '十両' }
+const RANK_JA = { Yokozuna: '横綱', Ozeki: '大関', Sekiwake: '関脇', Komusubi: '小結', Maegashira: '前頭', Juryo: '十両' , Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' /* rank_ja_lower_v1 */ }
 export function displayRank(rank, lang) {
   // "Sekiwake 2 East" -> ja: "東 関脇 2"; інші мови — як є
   if (lang !== 'ja' || !rank) return rank
@@ -88,11 +88,11 @@ export function displayRank(rank, lang) {
 
 /* basho_list_shared_v1: spilnyi spysok bashо dlia arkhivu ta storinky rikishi; onovliuvaty pislia kozhnoho turniru */
 export const BASHO_LIST = [
-  { id: '202607', label: 'Наґоя 2026', labelEn: 'Nagoya 2026', location: 'Наґоя', locationEn: 'Nagoya' },  /* basho_list_nagoya_v1 */
-  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', location: 'Осака', locationEn: 'Osaka' },
-  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
+  { id: '202607', label: 'Наґоя 2026', labelEn: 'Nagoya 2026', labelJa: '名古屋場所 2026', location: 'Наґоя', locationEn: 'Nagoya' },  /* basho_list_nagoya_v1 */
+  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', labelJa: '夏場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', labelJa: '春場所 2026', location: 'Осака', locationEn: 'Osaka' },
+  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', labelJa: '初場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', labelJa: '九州場所 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
 ]
 
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */

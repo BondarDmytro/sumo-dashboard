@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import meta from '../lib/rikishiMeta.json'
 import { useLang } from './LangProvider'
+import { displayRank } from '../lib/bashoCalendar' /* ja_toptable_v1 */
 
 function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
 
@@ -29,7 +30,7 @@ function flagOf(shusshin) {
   if (shusshin.includes('- Russia')) return '\u{1F3F3}\u{FE0F}'
   const F = { Mongolia:'\u{1F1F2}\u{1F1F3}', Ukraine:'\u{1F1FA}\u{1F1E6}', Georgia:'\u{1F1EC}\u{1F1EA}', Bulgaria:'\u{1F1E7}\u{1F1EC}', China:'\u{1F1E8}\u{1F1F3}', Brazil:'\u{1F1E7}\u{1F1F7}', Kazakhstan:'\u{1F1F0}\u{1F1FF}', Kyrgyzstan:'\u{1F1F0}\u{1F1EC}', 'Czech Republic':'\u{1F1E8}\u{1F1FF}', Tonga:'\u{1F1F9}\u{1F1F4}', Uzbekistan:'\u{1F1FA}\u{1F1FF}', Philippines:'\u{1F1F5}\u{1F1ED}', Egypt:'\u{1F1EA}\u{1F1EC}' }
   const hit = Object.keys(F).find(c => shusshin.startsWith(c))
-  return hit ? F[hit] : (/-ken|-to|-do|-fu|Tokyo|Osaka|Hokkaido|Okinawa/.test(shusshin) ? '\u{1F1EF}\u{1F1F5}' : '\u{1F30D}')
+  return hit ? F[hit] : '\u{1F1EF}\u{1F1F5}'  /* japan_default_v1 */
 }
 function countryKey(shusshin) {
   if (!shusshin) return 'Japan'
@@ -54,8 +55,8 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
   const divisions = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
 
   const COLS = [
-    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => m.rank, sort: m => rankSortValue(m.rank), asc: true },
-    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank || '\u2014', sort: m => m.hiVal || 99999, asc: true },  /* cols_v2 + hirank_col_v1 */
+    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => displayRank(m.rank, lang), sort: m => rankSortValue(m.rank), asc: true },
+    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank ? displayRank(m.hiRank, lang) : '\u2014', sort: m => m.hiVal || 99999, asc: true },  /* cols_v2 + hirank_col_v1 */
     { key: 'winpct', label: t3(lang,'% \u043f\u0435\u0440\u0435\u043c\u043e\u0433','Win %','\u52dd\u7387'), get: m => m.matches ? Math.round(m.wins / m.matches * 100) + '%' : '\u2014', sort: m => m.matches ? m.wins / m.matches : -1 },
     { key: 'basho', label: t3(lang,'\u0422\u0443\u0440\u043d\u0456\u0440\u0438','Basho','\u5834\u6240'), get: m => m.basho || '\u2014', sort: m => m.basho || 0 },
     { key: 'debut', label: t3(lang,'\u0414\u0435\u0431\u044e\u0442','Debut','\u521d\u571f\u4ff5'), get: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4,6)}` : '\u2014', sort: m => Number(m.debut) || 0 },
@@ -99,7 +100,7 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
             </label>
             <select value={fDiv} onChange={e => setFDiv(e.target.value)} style={selStyle}>
               <option value="">{t3(lang,'\u0412\u0441\u0456 \u0434\u0438\u0432\u0456\u0437\u0456\u043e\u043d\u0438','All divisions','\u5168\u968e\u7d1a')}</option>
-              {divisions.map(d => <option key={d} value={d}>{d}</option>)}
+              {divisions.map(d => <option key={d} value={d}>{lang === 'ja' ? ({ Makuuchi: '\u5e55\u5185', Juryo: '\u5341\u4e21', Makushita: '\u5e55\u4e0b', Sandanme: '\u4e09\u6bb5\u76ee', Jonidan: '\u5e8f\u4e8c\u6bb5', Jonokuchi: '\u5e8f\u30ce\u53e3' })[d] : d}</option>)}
             </select>
             <select value={fCountry} onChange={e => setFCountry(e.target.value)} style={selStyle}>
               <option value="">{t3(lang,'\u0412\u0441\u0456 \u043a\u0440\u0430\u0457\u043d\u0438','All countries','\u5168\u56fd\u7c4d')}</option>
@@ -128,7 +129,7 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
                 {rows.map((m, i) => (
                   <tr key={m.id} onClick={() => onSelect?.(m.id)} style={{borderBottom:'1px solid var(--border)',cursor:'pointer'}}>
                     <td style={{padding:'0.45rem 0.5rem',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)'}}>{i + 1}</td>
-                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}>{flagOf(m.shusshin)} {m.name}</td>
+                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}>{flagOf(m.shusshin)} {lang === 'ja' && m.nameJp ? m.nameJp.split(/\s/)[0] : m.name}</td>
                     {COLS.map(c => (
                       <td key={c.key} style={{padding:'0.45rem 0.5rem',textAlign:'right',fontFamily:'monospace',fontSize:'0.7rem',whiteSpace:'nowrap'}}>{c.get(m)}</td>
                     ))}
