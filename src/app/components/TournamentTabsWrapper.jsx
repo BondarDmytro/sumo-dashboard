@@ -13,6 +13,7 @@ import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_fi
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
   const [tab, setTab] = useState('standings')
   const { selBasho } = useBashoFilter()  /* basho_filter_v2 */
+  const [liveView, setLiveView] = useState('list')  /* live_dynamics_v1 */
   const isCurrent = selBasho === CURRENT_BASHO
   const { lang } = useLang()
   const bios = useBios()
@@ -22,6 +23,10 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
     ...(isCurrent && !isFinished && currentDay <= 15 ? [{
       id: 'torikumi',
       label: lang === 'ja' ? `${currentDay}日目の取組` : lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
+    }] : []),
+    ...(isCurrent && !isFinished && currentDay < 15 ? [{
+      id: 'torikumi2',  /* torikumi2_v1 */
+      label: lang === 'ja' ? `${currentDay+1}日目の取組` : lang === 'en' ? `Day ${currentDay+1} schedule` : `Розклад дня ${currentDay+1}`
     }] : []),
     ...(isCurrent ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
   ]  /* basho_filter_v1 */
@@ -43,8 +48,21 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
           </button>
         ))}
       </div>
-      {isCurrent && tab === 'standings' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
+      {isCurrent && tab === 'standings' && (  /* live_dynamics_v1: peremykach Spysok | Po peremohakh dlia zhyvoho basho */
+        <>
+          <div style={{display:'flex',gap:6,marginBottom:'0.9rem'}}>
+            {['list','wins'].map(v => (
+              <button key={v} onClick={() => setLiveView(v)} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: liveView === v ? '#8a6a00' : 'var(--bg2)',color: liveView === v ? '#fff' : 'var(--mid)'}}>
+                {v === 'list' ? t3(lang,'\u0421\u043f\u0438\u0441\u043e\u043a','List','\u4e00\u89a7') : t3(lang,'\u041f\u043e \u043f\u0435\u0440\u0435\u043c\u043e\u0433\u0430\u0445','By wins','\u6210\u7e3e\u5225')}
+              </button>
+            ))}
+          </div>
+          {liveView === 'list' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
+          {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} />}
+        </>
+      )}
       {isCurrent && tab === 'torikumi' && <TorikumiView currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
+      {isCurrent && tab === 'torikumi2' && <TorikumiView currentDay={currentDay+1} bios={bios} rikishi={allRikishi} />}  {/* torikumi2_v1 */}
       {isCurrent && tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
       {!isCurrent && <PrevBashoDynamics bashoId={selBasho} />}  {/* basho_filter_v1 */}
     </>

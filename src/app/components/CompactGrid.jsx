@@ -72,13 +72,15 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
 
   const renderItem = r => {
     return (
-      <div key={r._id} style={{display:'flex',alignItems:'center',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
+      <div key={r._id} style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,flex:1}}>
           <div style={{display:'flex',alignItems:'baseline',gap:4}}>
             <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{displayRank(r.rank, lang)}</span>
             <FlagName id={r._id} name={r.name} size='0.75rem' />
           </div>
-          <div style={{display:'flex',gap:8,flexWrap:'nowrap',marginTop:4}}>
+          
+        </div>
+          <div style={{display:'flex',gap:8,flexWrap:'nowrap',marginTop:0}} className="cg-dots">
             {r.record?.slice(0, 15).map((m, idx) => {
               const isWin = RESULTS_WIN.includes(m.result)
               const isLoss = RESULTS_LOSS.includes(m.result)
@@ -93,7 +95,6 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               )
             })}
           </div>
-        </div>
         <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,
           color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>
           {r.wins}–{r.losses}

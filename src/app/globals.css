@@ -243,3 +243,13 @@ body {
   .nav-basho-slot { position:static; transform:none; flex-basis:100%; order:99; display:flex; justify-content:center; padding:4px 0 8px; }
 }
 .nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; }
+
+/* dots_inline_v1: kruzhechky poruch z imiam na vebi, pid nym na mob */
+@media (max-width: 860px) {
+  .cg-dots { flex-basis: 100%; order: 9; margin-top: 4px !important; }
+}
+
+/* tk_compact_v1: torikumi kompaktnyi - 2 kolonky na shyrokomu */
+.tk-list { columns: 2; column-gap: 20px; } .tk-match { break-inside: avoid; }  /* tk_compact_v2: hazetnyi poriadok - persha polovyna zliva */
+@media (max-width: 1100px) { .tk-list { columns: 1; } }  /* tk_compact_v2 */
+.tk-match { padding: 0.4rem 0.6rem !important; }

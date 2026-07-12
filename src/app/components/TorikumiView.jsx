@@ -96,9 +96,9 @@ const sanyaku = matches
     const hasH2H = h2h && h2h.total > 0
 
     return (
-      <div key={m.id} style={{
+      <div key={m.id} className="tk-match" style={{
         display:'grid',
-        gridTemplateColumns:'1fr 140px 1fr',
+        gridTemplateColumns:'1fr 96px 1fr',  /* tk_compact_v1 */
         gap:4,
         padding:'0.6rem 1rem',
         borderBottom:'1px solid var(--border)',
@@ -185,7 +185,7 @@ const sanyaku = matches
           <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 1rem',background:'var(--bg2)',borderLeft:'3px solid #b8860b',marginBottom:1}}>
             {t3(lang, "Сан'яку", "San'yaku", "三役")}
           </div>
-          {sanyaku.map(m => renderMatch(m))}
+          <div className="tk-list">{sanyaku.map(m => renderMatch(m))}</div>{/* tk_compact_v1 */}
         </div>
       )}
       {maegashira.length > 0 && (
@@ -193,7 +193,7 @@ const sanyaku = matches
           <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 1rem',background:'var(--bg2)',borderLeft:'3px solid var(--border)',marginBottom:1}}>
             Maegashira
           </div>
-          {maegashira.map(m => renderMatch(m))}
+          <div className="tk-list">{maegashira.map(m => renderMatch(m))}</div>
         </div>
       )}
     </div>

@@ -16,12 +16,13 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function PrevBashoDynamics({ bashoId }) {
+export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dynamics_v1 */}) {
   const { lang } = useLang()
   const bi = bashoInfo(bashoId)
   const [data, setData] = useState(null)
   const [err, setErr] = useState(null)
-  const [day, setDay] = useState(15)
+  const maxDay = liveDay || 15  /* live_dynamics_v1 */
+  const [day, setDay] = useState(liveDay || 15)
   const [view, setView] = useState('groups')  /* groups_default_v1 */      /* dyn_views_v1: list | groups */
   const [showAll, setShowAll] = useState(false)
 
@@ -70,14 +71,14 @@ export default function PrevBashoDynamics({ bashoId }) {
 
   // Хроніка лідерів по днях
   const timeline = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => {
+    return Array.from({ length: 15 }, (_, i) => {  /* days15_always_v1: zavzhdy 15, maibutni - disabled */
       const d = i + 1
       let top = -1
       rows.forEach(r => { if (r.cum[i].w > top) top = r.cum[i].w })
       const names = rows.filter(r => r.cum[i].w === top && top > 0).map(r => r.name)
       return { day: d, top, names }
     })
-  }, [rows])
+  }, [rows, maxDay])
 
   const yusho = data?.info?.yusho?.find?.(y => y.type === 'Makuuchi') || null
   const playoff = data?.info?.playoff || null
@@ -97,20 +98,20 @@ export default function PrevBashoDynamics({ bashoId }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '0.75rem', flexWrap: 'wrap' }}>
         <button onClick={() => setDay(d => Math.max(1, d - 1))} disabled={day <= 1}
           style={{ background: 'var(--bg2)', border: '1px solid var(--border)', color: 'var(--ink)', borderRadius: 2, width: 30, height: 30, cursor: day <= 1 ? 'default' : 'pointer', opacity: day <= 1 ? 0.4 : 1 }}>‹</button>
-        <input type="range" min={1} max={15} value={day} onChange={e => setDay(parseInt(e.target.value, 10))} style={{ flex: 1, minWidth: 160, accentColor: '#b8860b' }} />
-        <button onClick={() => setDay(d => Math.min(15, d + 1))} disabled={day >= 15}
+        <input type="range" min={1} max={maxDay} value={day} onChange={e => setDay(parseInt(e.target.value, 10))} style={{ flex: 1, minWidth: 160, accentColor: '#b8860b' }} />
+        <button onClick={() => setDay(d => Math.min(maxDay, d + 1))} disabled={day >= maxDay}
           style={{ background: 'var(--bg2)', border: '1px solid var(--border)', color: 'var(--ink)', borderRadius: 2, width: 30, height: 30, cursor: day >= 15 ? 'default' : 'pointer', opacity: day >= 15 ? 0.4 : 1 }}>›</button>
         <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, color: 'var(--ink)', minWidth: 90 }}>
-          {t3(lang, 'День', 'Day', '日目')} {day}/15
+          {t3(lang, 'День', 'Day', '日目')} {day}/{maxDay}
         </div>
       </div>
 
       {/* Хроніка лідерів */}
       <div style={{ display: 'flex', gap: 3, marginBottom: '1rem' }}>
         {timeline.map(tl => (
-          <div key={tl.day} onClick={() => setDay(tl.day)} title={'#' + tl.day + ': ' + tl.names.join(', ') + ' (' + tl.top + 'W)'}
-            style={{ flex: 1, height: 22, borderRadius: 2, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: tl.day === day ? '#b8860b' : 'var(--bg2)', border: '1px solid ' + (tl.day === day ? '#b8860b' : 'var(--border)'),
+          <div key={tl.day} onClick={() => tl.day <= maxDay && setDay(tl.day)} title={'#' + tl.day + ': ' + tl.names.join(', ') + ' (' + tl.top + 'W)'}
+            style={{ flex: 1, height: 22, borderRadius: 2, cursor: tl.day > maxDay ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: tl.day > maxDay ? 0.35 : 1, /* days15_styles_v1 */
+              background: tl.day === day ? '#b8860b' : tl.day <= maxDay ? 'rgba(184,134,11,0.18)' : 'var(--bg2)', border: '1px solid ' + (tl.day === day ? '#b8860b' : tl.day <= maxDay ? 'rgba(184,134,11,0.4)' : 'var(--border)'),
               fontFamily: 'monospace', fontSize: '0.55rem', color: tl.day === day ? '#1a120a' : 'var(--mid)', fontWeight: 700 }}>
             {tl.day}
           </div>
@@ -118,6 +119,7 @@ export default function PrevBashoDynamics({ bashoId }) {
       </div>
 
       {/* Перемикач візуалізації */}
+      {liveDay == null && (  /* inner_toggle_live_hide_v1: u laivi zovnishnii peremykach */
       <div style={{ display: 'flex', gap: 6, marginBottom: '1rem' }}>
         {[
           { id: 'groups', label: t3(lang, 'По перемогах', 'By wins', '勝数別') },
@@ -130,6 +132,7 @@ export default function PrevBashoDynamics({ bashoId }) {
           }}>{v.label}</button>
         ))}
       </div>
+      )}
 
       {/* Плей-оф банер на дні 15 */}
       {day === 15 && (playoff || yusho) && (
