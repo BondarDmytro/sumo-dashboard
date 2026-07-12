@@ -75,18 +75,19 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
       <div key={r._id} style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:6,padding:'0.4rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,flex:1}}>
           <div style={{display:'flex',alignItems:'baseline',gap:4}}>
-            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{displayRank(r.rank, lang)}</span>
             <FlagName id={r._id} name={r.name} size='0.75rem' />
+            <span style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',flexShrink:0}}>{displayRank(r.rank, lang)}</span>  {/* dots15_highlight_v1: imia pershe */}
           </div>
           
         </div>
           <div style={{display:'flex',gap:8,flexWrap:'nowrap',marginTop:0}} className="cg-dots">
-            {r.record?.slice(0, 15).map((m, idx) => {
+            {Array.from({ length: 15 }, (_, i) => (r.record || [])[i] || {}).map((m, idx) => {  /* dots15_highlight_v1: zavzhdy 15 */
               const isWin = RESULTS_WIN.includes(m.result)
               const isLoss = RESULTS_LOSS.includes(m.result)
               return (
                 <span key={idx} title={(lang === 'ja' ? `${idx+1}日目` : lang === 'en' ? `Day ${idx+1}` : `День ${idx+1}`) + (m.opponent?': '+m.opponent:'')} style={{
                   width:9,height:9,borderRadius:'50%',
+                  outline: idx + 1 === currentDay ? '2px solid #b8860b' : 'none', outlineOffset: 1,  /* dot_day_highlight */
                   background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
                   border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',
                   display:'inline-block',flexShrink:0,

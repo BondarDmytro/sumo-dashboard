@@ -18,7 +18,16 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
-  const cdTarget = status === 'upcoming' ? bi : (status === 'finished' || isFinished ? nextBi : null)
+  /* day_countdown_v1: u laivi - vidlik do nastupnoho dnia (08:30 JST), pislia dnia 15 - do nastupnoho basho */
+  const dayCd = (!isFinished && status !== 'upcoming' && status !== 'finished' && currentDay < 15) ? {
+    startUtcMs: bi.startUtcMs + currentDay * 86400000,
+    label: {
+      uk: `день ${currentDay + 1} — ${bi.label.uk}`,
+      en: `day ${currentDay + 1} — ${bi.label.en}`,
+      ja: `${currentDay + 1}日目 — ${bi.label.ja}`,
+    },
+  } : null
+  const cdTarget = status === 'upcoming' ? bi : (status === 'finished' || isFinished || currentDay >= 15 ? nextBi : dayCd)
   const { lang } = useLang()
   const router = useRouter()
   useEffect(() => {

@@ -7,7 +7,7 @@ import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
 
-import { BASHO_LIST as BASHOS } from '../lib/bashoCalendar' /* archive_basho_list_import_v1 */
+import { BASHO_LIST as BASHOS, currentBashoId } from '../lib/bashoCalendar' /* archive_basho_list_import_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -48,7 +48,8 @@ function MatchDots({ record }) {
 }
 
 export default function ArchivePageClient() {
-  const [selectedBasho, setSelectedBasho] = useState(BASHOS[0])
+  const ARCHIVE_BASHOS = BASHOS.filter(b => b.id !== currentBashoId())  /* archive_default_v1 */
+  const [selectedBasho, setSelectedBasho] = useState(ARCHIVE_BASHOS[0])
   const [data, setData] = useState(null)
   const [bios, setBios] = useState({})
   const [loading, setLoading] = useState(false)
@@ -148,7 +149,7 @@ export default function ArchivePageClient() {
 
         {/* Кнопки вибору басьо */}
         <div style={{display:'flex',gap:8,marginBottom:'2rem',flexWrap:'wrap'}}>
-          {BASHOS.map(b => (
+          {ARCHIVE_BASHOS.map(b => (  /* archive_no_current_v1 */
             <button key={b.id} onClick={() => setSelectedBasho(b)} style={{
               padding:'0.6rem 1.25rem',
               fontFamily:'monospace',fontSize:'0.72rem',
