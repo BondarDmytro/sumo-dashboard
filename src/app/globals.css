@@ -237,12 +237,9 @@ body {
 .rikishi-list-item { content-visibility: auto; contain-intrinsic-size: 0 58px; }
 
 /* basho_nav_v2: tsentr na desktopi, okremyi riadok pid tabamy na mob */
-.nav-basho-slot { position:absolute; left:50%; transform:translateX(-50%); }
-@media (max-width: 860px) {
-  .nav-scroll-inner { flex-wrap: wrap; }
-  .nav-basho-slot { position:static; transform:none; flex-basis:100%; order:99; display:flex; justify-content:center; padding:4px 0 8px; }
-}
-.nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; }
+
+
+.nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; font-family:monospace !important; font-size:0.62rem !important; letter-spacing:0.1em !important; text-transform:uppercase !important; padding:3px 8px !important; border-radius:2px !important; height:auto !important; line-height:1.4 !important; }
 
 /* dots_inline_v1: kruzhechky poruch z imiam na vebi, pid nym na mob */
 @media (max-width: 860px) {
@@ -253,3 +250,10 @@ body {
 .tk-list { columns: 2; column-gap: 20px; } .tk-match { break-inside: avoid; }  /* tk_compact_v2: hazetnyi poriadok - persha polovyna zliva */
 @media (max-width: 1100px) { .tk-list { columns: 1; } }  /* tk_compact_v2 */
 .tk-match { padding: 0.4rem 0.6rem !important; }
+
+/* basho_nav_right_v1: selektory pravoruch bilia temy; na mob - okremyi riadok */
+.nav-basho-slot { display:flex; gap:6px; align-items:center; margin-right:6px; }
+@media (max-width: 860px) {
+  .nav-scroll-inner { flex-wrap: wrap; }
+  .nav-basho-slot { flex-basis:100%; order:99; justify-content:center; padding:4px 0 8px; margin-right:0; }
+}

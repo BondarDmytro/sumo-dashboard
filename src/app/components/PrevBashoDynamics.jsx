@@ -16,7 +16,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dynamics_v1 */}) {
+export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dynamics_v1 */, division = null /* division_dyn_v1 */}) {
   const { lang } = useLang()
   const bi = bashoInfo(bashoId)
   const [data, setData] = useState(null)
@@ -29,12 +29,12 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
   useEffect(() => {
     let alive = true
     Promise.all([
-      fetch('https://sumo-api.com/api/basho/' + bashoId + '/banzuke/Makuuchi').then(r => r.json()),
+      fetch('https://sumo-api.com/api/basho/' + bashoId + '/banzuke/' + (division || 'Makuuchi'))  /* division_dyn_v1 */.then(r => r.json()),
       fetch('https://sumo-api.com/api/basho/' + bashoId).then(r => r.json()).catch(() => null),
     ]).then(([banzuke, info]) => { if (alive) setData({ banzuke, info }) })
       .catch(e => { if (alive) setErr(String(e)) })
     return () => { alive = false }
-  }, [bashoId])
+  }, [bashoId, division])  /* division_dyn_v1 */
 
   // Кумулятивні W-L по днях для всіх рікіші
   const rows = useMemo(() => {

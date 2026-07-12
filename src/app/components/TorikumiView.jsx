@@ -14,7 +14,7 @@ function getRankValue(rank) {
   return idx * 100 + num * 2 + side
 }
 
-export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
+export default function TorikumiView({ division = null, /* division_torikumi_v1 */ currentDay, bios = {}, rikishi = [] }) {
   const { lang } = useLang()
   const [matches, setMatches] = useState([])
   const [h2hData, setH2hData] = useState({})
@@ -23,7 +23,7 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
 
   useEffect(() => {
     if (nextDay > 15) { setLoading(false); return }
-    fetch(`/api/torikumi?day=${nextDay}`)
+    fetch(`/api/torikumi?day=${nextDay}&division=${division || 'Makuuchi'}`)  /* division_torikumi_v1 */
       .then(r => r.json())
       .then(async d => {
         setMatches(d)
@@ -40,7 +40,7 @@ export default function TorikumiView({ currentDay, bios = {}, rikishi = [] }) {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [nextDay])
+  }, [nextDay, division])
 
   if (nextDay > 15) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>

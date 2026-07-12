@@ -8,8 +8,9 @@ export const CURRENT_BASHO = currentBashoId()
 
 export function BashoFilterProvider({ children }) {
   const [selBasho, setSelBasho] = useState(CURRENT_BASHO)
-  return <Ctx.Provider value={{ selBasho, setSelBasho }}>{children}</Ctx.Provider>
+  const [division, setDivision] = useState('Makuuchi')  /* division_ctx_v1 */
+  return <Ctx.Provider value={{ selBasho, setSelBasho, division, setDivision }}>{children}</Ctx.Provider>
 }
 export function useBashoFilter() {
-  return useContext(Ctx) || { selBasho: CURRENT_BASHO, setSelBasho: () => {} }
+  return useContext(Ctx) || { selBasho: CURRENT_BASHO, setSelBasho: () => {}, division: 'Makuuchi', setDivision: () => {} }
 }

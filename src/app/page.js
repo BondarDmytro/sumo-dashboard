@@ -16,6 +16,7 @@ export const revalidate = 300  /* cpu_diet_v1: 60->300, x4 lang paths made 60s t
 import { applyBashoRules, prevBashoId } from './lib/bashoRules' /* basho_rules_v1 */
 import { currentBashoId, bashoInfo, bashoStatus, prevBashoIdOf } from './lib/bashoCalendar' /* basho_labels_v1 prev_champion_v1 */
 import { getBashoData } from './lib/bashoData' /* bashoData_v1 */
+import DivisionDataGate from './components/DivisionDataGate' /* division_gate_v1 */
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
@@ -78,23 +79,13 @@ export default async function Home() {
       )}
 
       <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 4rem'}}>
-        <TournamentStatus
-          leaders={leaders}
-          chasers={chasers}
-          currentDay={currentDay}
-          maxWins={maxWins}
-          kyujoCount={kyujo.length}
-          contendersCount={contenders.length}
-          isFinished={isFinished || showPlayoffBanner}
-        />
-        <TournamentTabsWrapper
-          contenders={contenders}
-          currentDay={currentDay}
-          allRikishi={rikishi}
-          isFinished={isFinished}
-          specialPrizes={specialPrizes}
-          yushoData={yushoData}
-        />
+        <DivisionDataGate makuuchi={{
+          leaders, chasers, currentDay, maxWins,
+          contenders, allRikishi: rikishi,
+          kyujoCount: kyujo.length,
+          isFinished: isFinished || showPlayoffBanner,
+          specialPrizes, yushoData,
+        }} />{/* division_gate_v1 */}
         <HomeGrids others={others} kyujo={kyujo} currentDay={currentDay} />
         <CurrentOnly>  {/* basho_filter_v2_fix: mobile-cards + footer тільки для поточного басьо */}
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>

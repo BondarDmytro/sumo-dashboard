@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
 import BashoSelect from './BashoSelect' /* basho_nav_v1 */
+import DivisionSelect from './DivisionSelect' /* division_select_v1 */
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -128,9 +129,6 @@ useEffect(() => {
               {tab.label}
             </Link>
           ))}
-          <div className="nav-basho-slot">{/* basho_nav_v1 */}
-            {isHome && <BashoSelect />}
-          </div>
 
           {/*navbar_games_removed_v1: кнопка ігор прибрана, ігри на /game*/}
 
@@ -141,6 +139,10 @@ useEffect(() => {
               paddingLeft: 12, flexShrink: 0,
             }}>
 
+              <div className="nav-basho-slot">{/* basho_nav_right_v1 */}
+                {isHome && <BashoSelect />}
+                {isHome && <DivisionSelect />}
+              </div>
               <IconBtn onClick={toggle} title={dark ? 'Світла тема' : 'Темна тема'} color="#b8860b">
                 <ThemeIcon dark={dark} />
               </IconBtn>
