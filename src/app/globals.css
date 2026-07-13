@@ -289,3 +289,14 @@ body {
   .tt-table { font-size: 0.78rem !important; }
   .tt-table td, .tt-table th { padding-left: 0.4rem !important; padding-right: 0.4rem !important; }
 }
+
+/* tt_mobile_chance_v1: shans-kolonka vuzhcha na mob - bez baru */
+@media (max-width: 700px) {
+  .tt-table td:nth-child(8), .tt-table th:nth-child(8) { min-width: 0 !important; }
+  .tt-chancebar { display: none; }
+}
+.tt-chancecell { min-width: 180px; }
+@media (max-width: 700px) { .tt-chancecell { min-width: 0 !important; } }
+.tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs-row::-webkit-scrollbar { display: none; }
+.tabs-row > button { white-space: nowrap; flex-shrink: 0; }

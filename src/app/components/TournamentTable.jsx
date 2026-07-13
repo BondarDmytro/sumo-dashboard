@@ -165,7 +165,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                       {statusLabel}
                     </span>
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem',minWidth:180}}>
+                  <td style={{padding:'0.35rem 0.75rem'}} className="tt-chancecell">
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <div className="tt-chancebar" style={{flex:1,height:5,background:'var(--bg2)'}}>
                         <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}} />
