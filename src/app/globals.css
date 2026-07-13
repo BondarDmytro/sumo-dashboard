@@ -285,8 +285,13 @@ body {
 /* tt_mobile_cols_v1: na mob khovaiemo Den/Matchi/Delta - tablytsia vlaze po shyryni */
 @media (max-width: 700px) {
   .tt-table th:nth-child(1), .tt-table td:nth-child(1),
-  .tt-table th:nth-child(6), .tt-table td:nth-child(6) { display: none; }
-  .tt-table { font-size: 0.78rem !important; }
+  .tt-table th:nth-child(4), .tt-table td:nth-child(4),
+  .tt-table th:nth-child(6), .tt-table td:nth-child(6) { display: none; }  /* +rank hidden on mob */
+  .tt-table td span { padding-left: 3px !important; padding-right: 3px !important; }
+  .tt-table { font-size: 0.68rem !important; }
+  .tt-table td, .tt-table th { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+  .tt-table td span { font-size: 0.62rem !important; }
+  .tt-table .tt-chancecell + td span, .tt-table td:last-child span { font-size: 0.72rem !important; }
   .tt-table td, .tt-table th { padding-left: 0.4rem !important; padding-right: 0.4rem !important; }
 }
 
@@ -300,3 +305,10 @@ body {
 .tabs-row { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .tabs-row::-webkit-scrollbar { display: none; }
 .tabs-row > button { white-space: nowrap; flex-shrink: 0; }
+
+/* h2h_mobile_v1: na mob - naturalna shyryna + horyzontalnyi skrol, zaholovky povernuti */
+@media (max-width: 700px) {
+  .h2h-table { table-layout: auto !important; width: auto !important; min-width: 100%; }
+  .h2h-table th { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 4px 2px !important; font-size: 0.6rem !important; height: 80px; vertical-align: bottom; }
+  .h2h-table th:first-child { writing-mode: initial; transform: none; height: auto; vertical-align: middle; }
+}

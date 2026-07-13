@@ -82,7 +82,7 @@ export function computeStandings(rikishiList, day, opts = {}) {
     const mx = Math.max(...scores)
     const exps = scores.map(s => s <= -1e8 ? 0 : Math.exp(s - mx))
     const Z = exps.reduce((a, b) => a + b, 0) || 1
-    const normalized = sliced.map((r, i) => ({ ...r, yushoChance: Math.round(exps[i] / Z * 1000) / 10 }))
+    const normalized = sliced.map((r, i) => { const p = exps[i] / Z; return { ...r, yushoChance: p > 0 ? Math.max(Math.round(p * 1000) / 10, 0.1) : 0 } })  /* min 0.1% dlia zhyvykh */
     normalized.sort((a, b) => b.yushoChance - a.yushoChance || b.wins - a.wins)
     const maxWins = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
     normalized.forEach(r => {

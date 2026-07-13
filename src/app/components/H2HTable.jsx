@@ -19,7 +19,7 @@ export default function H2HTable({ rikishi, h2h }) {
 
   return (
     <div style={{overflowX:'auto',marginBottom:'2rem',WebkitOverflowScrolling:'touch'}}>
-      <table style={{borderCollapse:'collapse',fontSize:'0.75rem',minWidth:400,width:'100%',tableLayout:'fixed'}}>  {/* h2h_fullwidth_v1 */}
+      <table className="h2h-table" style={{borderCollapse:'collapse',fontSize:'0.75rem',minWidth:400,width:'100%',tableLayout:'fixed'}}>  {/* h2h_fullwidth_v1 */}
         <thead>
           <tr>
             <th style={{

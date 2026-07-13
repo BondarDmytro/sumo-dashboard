@@ -9,7 +9,7 @@ export default function HomeGrids({ others, kyujo, currentDay }) {
   return (
     <>
       <CompactGrid items={others} isKyujo={false} currentDay={currentDay} />
-      <CompactGrid items={kyujo} isKyujo={true} currentDay={currentDay} />
+      {/* kyujo_dedup_v1: kiudzho-blok teper u TabsWrapper nad spyskom */}
     </>
   )
 }
