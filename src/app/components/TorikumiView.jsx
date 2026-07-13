@@ -98,12 +98,13 @@ const sanyaku = matches
     return (
       <div key={m.id} className="tk-match" style={{
         display:'grid',
-        gridTemplateColumns:'1fr 96px 1fr',  /* tk_compact_v1 */
+        gridTemplateColumns:'16px 1fr 96px 1fr',  /* tk_compact_v1 + tk_matchno_v1 */
         gap:4,
         padding:'0.6rem 1rem',
         borderBottom:'1px solid var(--border)',
         alignItems:'center',
       }}>
+        <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'left'}}>{m.matchNo}</div>{/* tk_matchno_v1 */}
         {/* East */}
         <div style={{
           display:'flex',alignItems:'center',gap:6,justifyContent:'flex-end',

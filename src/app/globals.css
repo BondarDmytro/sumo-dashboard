@@ -247,9 +247,19 @@ body {
 }
 
 /* tk_compact_v1: torikumi kompaktnyi - 2 kolonky na shyrokomu */
-.tk-list { columns: 2; column-gap: 20px; } .tk-match { break-inside: avoid; }  /* tk_compact_v2: hazetnyi poriadok - persha polovyna zliva */
-@media (max-width: 1100px) { .tk-list { columns: 1; } }  /* tk_compact_v2 */
-.tk-match { padding: 0.4rem 0.6rem !important; }
+.tk-list { columns: 2; column-gap: 20px; } .tk-match { break-inside: avoid; }  /* tk_compact_v2 */
+@media (min-width: 1600px) { .tk-list { columns: 3; } }  /* tk_dense_v1 */
+@media (max-width: 1100px) { .tk-list { columns: 1; } }
+.tk-match { padding: 0.2rem 0.5rem !important; }
+/* tk_twoline_v1: imia zverkhu, rang + rekord odnym riadkom pid nym; obydva boky zliva */
+.tk-match > div:first-child, .tk-match > div:last-child { justify-content: flex-start !important; }
+.tk-match > div:first-child > div, .tk-match > div:last-child > div { display: block; text-align: left !important; min-width: 0; }
+.tk-match > div:first-child > div > div, .tk-match > div:last-child > div > div { text-align: left !important; }
+.tk-match > div:first-child > div > div:nth-child(2), .tk-match > div:last-child > div > div:nth-child(2),
+.tk-match > div:first-child > div > div:nth-child(3), .tk-match > div:last-child > div > div:nth-child(3) {
+  display: inline-block; margin-right: 8px; margin-bottom: 0 !important; white-space: nowrap;
+}
+.tk-match > div:first-child > div > div, .tk-match > div:last-child > div > div { margin-bottom: 0 !important; }
 
 /* basho_nav_right_v1: selektory pravoruch bilia temy; na mob - okremyi riadok */
 .nav-basho-slot { display:flex; gap:6px; align-items:center; margin-right:6px; }
@@ -257,3 +267,17 @@ body {
   .nav-scroll-inner { flex-wrap: wrap; }
   .nav-basho-slot { flex-basis:100%; order:99; justify-content:center; padding:4px 0 8px; margin-right:0; }
 }
+
+/* cg_flow_v1: dynamika grup - CSS columns, hrupa tече mizh kolonkamy */
+/* cg_flow_v3: kozhna hrupa - okrema kolonka; dovhi hrupy techut u vnutrishni pidkolonky */
+.cg-flow { display: flex; gap: 8px; align-items: flex-start; }
+.cg-group { flex: 1; min-width: 0; }
+.cg-group.cg-big { flex: 2; }
+.cg-group.cg-big .cg-items { columns: 2; column-gap: 0; }
+.cg-group .cg-items > div { break-inside: avoid; }
+@media (max-width: 1100px) { .cg-flow { flex-direction: column; } .cg-group.cg-big .cg-items { columns: 1; } }
+.cg-group { break-inside: auto; }
+.cg-group > div { break-inside: avoid; }  /* kartky i zaholovky ne rizhutsia poperek */
+.cg-group-title { break-after: avoid-column; }
+.cg-glue { break-inside: avoid; }
+.cg-group { border-left: 3px solid rgba(184,134,11,0.35) !important; }
