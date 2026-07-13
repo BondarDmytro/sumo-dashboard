@@ -4,6 +4,7 @@ import { t3 } from '../i18n' /* ja_batch1 */
 import { useState } from 'react'
 import { useLang } from './LangProvider'
 import TournamentTable from './TournamentTable'
+import CompactGrid from './CompactGrid' /* list_kyujo_v1 */
 import TorikumiView from './TorikumiView'
 import PrizeMoney from './PrizeMoney'
 import { useBios } from './BiosProvider'
@@ -57,7 +58,10 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
               </button>
             ))}
           </div>
-          {liveView === 'list' && <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} />}
+          {liveView === 'list' && (<>{/* list_kyujo_v1 */}
+            {allRikishi?.some(r => r.kyujo) && <CompactGrid items={allRikishi.filter(r => r.kyujo)} isKyujo currentDay={currentDay} />}
+            <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} />
+          </>)}
           {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} division={division} />}
         </>
       )}

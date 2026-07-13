@@ -1,6 +1,8 @@
 'use client' /* ja_batch2_t */
 import { useState } from 'react' /* chart_hl_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
+import { computeStandings } from '../lib/chanceEngine' /* chart_engine_v1 */
+import { useEffect } from 'react' /* chart_mobile_v1 */
 
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -33,29 +35,32 @@ function calcChanceAtDay(record, day) {
 export default function YushoChart({ rikishi }) {
   const { lang } = useLang()
   const [hl, setHl] = useState(null)  /* chart_hl_v1 */
+  const [isMobile, setIsMobile] = useState(false)  /* chart_mobile_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   if (!rikishi?.length) return null
 
   const all = rikishi  /* chart_global_pct_v1 */
-  const top = all.filter(r => (r.yushoChance ?? 1) > 0)
+  const topAll = all.filter(r => (r.yushoChance ?? 1) > 0)
+  const top = isMobile ? [...topAll].sort((a,b) => (b.yushoChance||0) - (a.yushoChance||0)).slice(0, 8) : topAll  /* chart_mobile_v1: top-8 na mob */
   const maxDay = Math.max(...top.map(r => r.record?.filter(m => m.result).length || 0))
 
   const chartData = Array.from({ length: maxDay }, (_, i) => {
     const day = i + 1
     const point = { day: lang === 'ja' ? `${day}日目` : lang === 'en' ? `Day ${day}` : `День ${day}` }
 
-    const rawChances = {}
-    all.forEach(r => {
-      rawChances[r.name] = calcChanceAtDay(r.record || [], day)
-    })
-
-    const total = Object.values(rawChances).reduce((s, v) => s + v, 0)
+    const st = computeStandings(all, day)  /* chart_engine_v1: ta sama formula shcho v tablytsi */
     top.forEach(r => {
-      point[r.name] = total > 0
-        ? Math.round(rawChances[r.name] / total * 1000) / 10
-        : 0
+      const rr = st.rikishi.find(x => x.name === r.name)
+      point[r.name] = rr ? rr.yushoChance : 0
     })
 
-    return point
+        return point
   })
 
   return (
@@ -80,22 +85,26 @@ export default function YushoChart({ rikishi }) {
             width={40}
           />
           <Tooltip
-            contentStyle={{
-              background:'var(--card)',
-              border:'1px solid var(--border)',
-              borderRadius:2,
-              fontFamily:'monospace',
-              fontSize:11,
-              color:'var(--ink)',
+            content={({ active, payload, label }) => {  /* chart_tt5_v1: top-5 */
+              if (!active || !payload?.length) return null
+              const top5 = [...payload].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5)
+              return (
+                <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'8px 12px',fontFamily:'monospace',fontSize:12}}>
+                  <div style={{color:'var(--mid)',marginBottom:4}}>{label}</div>
+                  {top5.map(p => {
+                    const rr = top.find(x => x.name === p.dataKey)
+                    const nm = lang === 'ja' && rr?.nameJp ? rr.nameJp : p.dataKey
+                    return <div key={p.dataKey} style={{color:p.stroke}}>{nm} : {p.value}%</div>
+                  })}
+                </div>
+              )
             }}
-            formatter={(value, name) => { const rr = top.find(x => x.name === name); return [`${value}%`, lang === 'ja' && rr?.nameJp ? rr.nameJp : name] }}
-            labelStyle={{color:'var(--mid)',marginBottom:4}}
           />
-          <Legend
+          {!isMobile && <Legend
             onClick={e => setHl(h => h === e.dataKey ? null : e.dataKey)}
             wrapperStyle={{fontFamily:'monospace',fontSize:11,paddingTop:8}}
             formatter={(value) => { const rr = top.find(x => x.name === value); return <span style={{color:'var(--ink)'}}>{lang === 'ja' && rr?.nameJp ? rr.nameJp : value}</span> }}
-          />
+          />}
           {/* chart_ja_names */}
           {top.map((r, i) => (
             <Line

@@ -91,8 +91,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     t3(lang, 'Матчі', 'Matches', '取組'),
     t3(lang, 'Статус', 'Status', '状態'),
     t3(lang, 'Шанс на юшо', 'Yusho chance', '優勝確率'),
-    'Δ',
-  ]
+  ]  /* delta_col_removed_v1 */
 
   return (
     <>
@@ -174,8 +173,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                       <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>
                     </div>
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>—</td>
-                </tr>
+                             </tr>
               )
             })}
           </tbody>

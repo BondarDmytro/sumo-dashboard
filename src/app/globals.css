@@ -281,3 +281,11 @@ body {
 .cg-group-title { break-after: avoid-column; }
 .cg-glue { break-inside: avoid; }
 .cg-group { border-left: 3px solid rgba(184,134,11,0.35) !important; }
+
+/* tt_mobile_cols_v1: na mob khovaiemo Den/Matchi/Delta - tablytsia vlaze po shyryni */
+@media (max-width: 700px) {
+  .tt-table th:nth-child(1), .tt-table td:nth-child(1),
+  .tt-table th:nth-child(6), .tt-table td:nth-child(6) { display: none; }
+  .tt-table { font-size: 0.78rem !important; }
+  .tt-table td, .tt-table th { padding-left: 0.4rem !important; padding-right: 0.4rem !important; }
+}
