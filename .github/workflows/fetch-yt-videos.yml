@@ -1,0 +1,36 @@
+name: Fetch YT bout videos
+on:
+  schedule:
+    - cron: '0 11 * * *'   # 20:00 JST - ~2 hod pislia ostannoho boiu
+    - cron: '0 14 * * *'   # 23:00 JST - dohin, yakshcho video zapiznylys
+  workflow_dispatch: {}      # ruchnyi zapusk z UI
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Compute current basho id
+        id: basho
+        run: |
+          # basho-misiatsi: 01,03,05,07,09,11; berem potochnyi abo naiblyzhchyi mynulyi
+          Y=$(date -u +%Y); M=$(date -u +%m)
+          case $M in
+            01|02) B=01;; 03|04) B=03;; 05|06) B=05;;
+            07|08) B=07;; 09|10) B=09;; *) B=11;;
+          esac
+          echo "id=${Y}${B}" >> $GITHUB_OUTPUT
+      - name: Fetch videos
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: node scripts/fetch-yt-videos.mjs ${{ steps.basho.outputs.id }}
+      - name: Commit if changed
+        run: |
+          git config user.name "yt-bot"
+          git config user.email "actions@github.com"
+          git add src/app/lib/ytVideos.json
+          git diff --cached --quiet && echo "no changes" || (git commit -m "data: yt videos auto-update $(date -u +%F)" && git push)
