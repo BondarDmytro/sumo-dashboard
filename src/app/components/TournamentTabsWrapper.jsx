@@ -57,7 +57,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
               </button>
             ))}
           </div>
-          {liveView === 'list' && <TournamentTable contenders={contenders} currentDay={currentDay} />}
+          {liveView === 'list' && <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} />}
           {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} division={division} />}
         </>
       )}

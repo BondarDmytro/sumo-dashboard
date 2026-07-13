@@ -49,7 +49,8 @@ export async function getBashoData(division = 'Makuuchi') {
     const losses = record.filter(m => RESULTS_LOSS.includes(m.result)).length
     const absentCount = record.filter(m => m.result === 'absent').length
     const hasLateAbsent = record.some((m, i) => m.result === 'absent' && i >= 5)
-    const kyujo = absentCount > 5 || (absentCount > 0 && hasLateAbsent)
+    const playedCount = record.filter(m => RESULTS_PLAYED.includes(m.result)).length
+    const kyujo = absentCount > 5 || (absentCount > 0 && hasLateAbsent) || (absentCount > 0 && playedCount === 0)  /* kyujo_zensen_v1 */
     const rankValue = r.rankValue || 999
     return {
       _id: String(r.rikishiID),

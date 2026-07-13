@@ -1,8 +1,10 @@
 'use client'
+import { useState } from 'react' /* table_timetravel_v1 */
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
+import { computeStandings } from '../lib/chanceEngine' /* table_timetravel_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -69,10 +71,17 @@ function MatchDots({ record, currentDay }) {
   )
 }
 
-export default function TournamentTable({ contenders, currentDay }) {
+export default function TournamentTable({ contenders, currentDay, allRikishi = null }) {
   const { t, lang } = useLang()
+  const [viewDay, setViewDay] = useState(currentDay)  /* table_timetravel_v1 */
+  const retro = viewDay !== currentDay && allRikishi?.length
+    ? computeStandings(allRikishi, viewDay)
+    : null
+  const shown = retro
+    ? retro.rikishi.filter(r => r.yushoChance > 0)
+    : contenders
 
-  const dayLabel = t3(lang, `День ${currentDay}`, `Day ${currentDay}`, `${currentDay}日目`)
+  const dayLabel = t3(lang, `День ${viewDay}`, `Day ${viewDay}`, `${viewDay}日目`)
   const headers = [
     dayLabel,
     '#',
@@ -90,17 +99,38 @@ export default function TournamentTable({ contenders, currentDay }) {
       <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
         {t3(lang, 'Турнірна таблиця — всі рікіші макуучі', 'Standings — all Makuuchi rikishi', '幕内力士 全員成績表')}
       </div>
+      <div className="tt-slider" style={{display:'flex',alignItems:'center',gap:8,marginBottom:'0.5rem'}}>{/* table_timetravel_v1 */}
+        <button onClick={() => setViewDay(d => Math.max(1, d - 1))} disabled={viewDay <= 1}
+          style={{fontFamily:'monospace',padding:'2px 10px',cursor:'pointer',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)'}}>{'\u2039'}</button>
+        <input type="range" min={1} max={currentDay} value={viewDay} onChange={e => setViewDay(parseInt(e.target.value, 10))}
+          style={{flex:1,minWidth:120,accentColor:'#b8860b'}} />
+        <button onClick={() => setViewDay(d => Math.min(currentDay, d + 1))} disabled={viewDay >= currentDay}
+          style={{fontFamily:'monospace',padding:'2px 10px',cursor:'pointer',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)'}}>{'\u203a'}</button>
+        <span style={{fontFamily:'monospace',fontSize:'0.7rem',fontWeight:700,whiteSpace:'nowrap'}}>{t3(lang,'\u0414\u0435\u043d\u044c','Day','\u65e5\u76ee')} {viewDay}/{currentDay}</span>
+      </div>
+      <div className="tt-days" style={{display:'flex',gap:3,marginBottom:'0.6rem'}}>{/* table_timetravel_v1 */}
+        {Array.from({length:15},(_,k)=>k+1).map(d => (
+          <div key={d} onClick={() => d <= currentDay && setViewDay(d)}
+            style={{flex:1,height:20,borderRadius:2,display:'flex',alignItems:'center',justifyContent:'center',
+              cursor: d > currentDay ? 'default' : 'pointer', opacity: d > currentDay ? 0.35 : 1,
+              background: d === viewDay ? '#b8860b' : d <= currentDay ? 'rgba(184,134,11,0.18)' : 'var(--bg2)',
+              border: '1px solid ' + (d === viewDay ? '#b8860b' : d <= currentDay ? 'rgba(184,134,11,0.4)' : 'var(--border)'),
+              fontFamily:'monospace',fontSize:'0.55rem',fontWeight:700,color: d === viewDay ? '#1a120a' : 'var(--mid)'}}>
+            {d}
+          </div>
+        ))}
+      </div>
       <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
         <table className="tt-table" style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
           <thead>
             <tr style={{borderBottom:'2px solid var(--ink)'}}>
               {headers.map(h => (
-                <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.6rem 0.75rem',textAlign:'left',fontWeight:500}}>{h}</th>
+                <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.75rem',textAlign:'left',fontWeight:500 /* tt_compact_v1 */}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {contenders.map((r, i) => {
+            {shown.map((r, i) => {
               const rankColors = ['#b8860b','#888','#a0522d']
               const bgColor = i < 3 ? rankColors[i] : 'var(--bg2)'
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
@@ -112,32 +142,31 @@ export default function TournamentTable({ contenders, currentDay }) {
                 : `${r.wins}–${r.losses}`
               return (
                 <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
-                  <td style={{padding:'0.85rem 0.75rem',textAlign:'center',minWidth:90}}>
-                    <TodayCell record={r.record} currentDay={currentDay} t={t} lang={lang}/>
+                  <td style={{padding:'0.35rem 0.75rem',textAlign:'center',minWidth:90}}>
+                    <TodayCell record={r.record} currentDay={viewDay} t={t} lang={lang}/>
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem'}}>
+                  <td style={{padding:'0.35rem 0.75rem'}}>
                     <div style={{width:28,height:28,borderRadius:'50%',background:bgColor,color:textColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:500,fontFamily:'monospace'}}>{i+1}</div>
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem'}}>
+                  <td style={{padding:'0.35rem 0.75rem'}}>
                     <FlagName id={r._id} name={r.name} />
-                    <div style={{fontSize:'0.72rem',color:'var(--mid)',fontStyle:'italic',marginTop:2}}>{displayRank(r.rankFull, lang)}</div>  {/* ja_gaps_v3 */}
                     {r.editorialNote && <div style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b */}</div>} {/* badge_render_v1 */}
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem'}}>
+                  <td style={{padding:'0.35rem 0.75rem'}}>
                     <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
-                  <td style={{padding:'0.85rem 0.75rem'}}>
+                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
+                  <td style={{padding:'0.35rem 0.75rem'}}>
                     <MatchDots record={r.record} currentDay={currentDay} />
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem'}}>
+                  <td style={{padding:'0.35rem 0.75rem'}}>
                     <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,
                       background:r.status==='lead'?'#1a6b5c':r.status==='chase'?'#b8860b':'var(--bg2)',
                       color:r.status==='lead'?'#fff':r.status==='chase'?'#fff':'var(--mid)'}}>
                       {statusLabel}
                     </span>
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem',minWidth:180}}>
+                  <td style={{padding:'0.35rem 0.75rem',minWidth:180}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <div className="tt-chancebar" style={{flex:1,height:5,background:'var(--bg2)'}}>
                         <div style={{height:'100%',width:`${Math.min(r.yushoChance,100)}%`,background:barColor}} />
@@ -145,7 +174,7 @@ export default function TournamentTable({ contenders, currentDay }) {
                       <span style={{fontFamily:'Georgia,serif',fontSize:'1rem',fontWeight:600,color:barColor,minWidth:40,textAlign:'right'}}>{r.yushoChance}%</span>
                     </div>
                   </td>
-                  <td style={{padding:'0.85rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>—</td>
+                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>—</td>
                 </tr>
               )
             })}

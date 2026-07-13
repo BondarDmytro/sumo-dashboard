@@ -128,7 +128,7 @@ body {
 
 /* navbar_mobile_v1 + tstatus_mobile_v1: мобільні ущільнення */
 .ts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-.ts-num { font-size: 2.8rem; }
+.ts-num { font-size: 1.6rem; }  /* ts_compact_v1 */
 @media (max-width: 860px) {
   .nav-tab { padding: 0.7rem 0.55rem !important; font-size: 0.62rem !important; }
   /* tstatus_mobile_v2: 1 ряд з 5 блоків */

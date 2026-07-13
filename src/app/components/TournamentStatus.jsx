@@ -45,12 +45,12 @@ export default function TournamentStatus({ leaders, chasers, currentDay, maxWins
 
   return (
     <>
-      <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2.5rem'}}>
+      <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.8rem',marginTop:'1.2rem'}}>
         {t3(lang, 'Стан турніру', 'Tournament status', '場所の状況')}
       </div>
-      <div className="anim-1 ts-grid" style={{gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'2rem'}}>
+      <div className="anim-1 ts-grid" style={{gap:1,background:'var(--border)',border:'1px solid var(--border)',marginBottom:'1.2rem'}}>
         {stats.map((s, i) => (
-          <div key={i} style={{background:'var(--card)',padding:'1.25rem 1rem',textAlign:'center'}}>
+          <div key={i} style={{background:'var(--card)',padding:'0.5rem 0.75rem',textAlign:'center' /* ts_compact_v1 */}}>
             <div className="ts-num" style={{fontFamily:'Georgia,serif',fontWeight:800,lineHeight:1,color:s.color||'var(--ink)'}}>{s.num}</div>
             <div style={{fontSize:'0.72rem',color:'var(--mid)',marginTop:'0.4rem'}}>{s.label}</div>
             <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--light)',marginTop:'0.2rem'}}>{s.sub}</div>
