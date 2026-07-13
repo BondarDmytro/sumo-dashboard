@@ -21,7 +21,7 @@ export default function TournamentFooter({ contenders, h2h, allRikishi = null })
         {t3(lang, 'Очні зустрічі — цей турнір (топ претенденти)', 'Head-to-head — this tournament (top contenders)', '対戦成績 — 今場所（上位陣）')}
       </div>
       <div className="anim-5">
-        <H2HTable rikishi={contenders.slice(0,8)} h2h={h2h} />
+        <H2HTable rikishi={contenders.slice(0,10)} h2h={h2h} />  {/* h2h_top10_v1 */}
       </div>
 
       <div className="anim-6" style={{marginTop:'2.5rem',paddingTop:'1.5rem',borderTop:'1px solid var(--border)',fontSize:'0.72rem',color:'var(--mid)',lineHeight:1.7}}>

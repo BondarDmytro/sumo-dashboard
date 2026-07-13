@@ -19,7 +19,7 @@ export default function H2HTable({ rikishi, h2h }) {
 
   return (
     <div style={{overflowX:'auto',marginBottom:'2rem',WebkitOverflowScrolling:'touch'}}>
-      <table style={{borderCollapse:'collapse',fontSize:'0.75rem',minWidth:400}}>
+      <table style={{borderCollapse:'collapse',fontSize:'0.75rem',minWidth:400,width:'100%',tableLayout:'fixed'}}>  {/* h2h_fullwidth_v1 */}
         <thead>
           <tr>
             <th style={{
@@ -28,7 +28,7 @@ export default function H2HTable({ rikishi, h2h }) {
               letterSpacing:'0.1em',textTransform:'uppercase',
               color:'var(--mid)',textAlign:'left',
               borderBottom:'2px solid var(--ink)',
-              minWidth:100, position:'sticky', left:0,
+              width:180, minWidth:100, position:'sticky', left:0,
               background:'var(--bg)',zIndex:1,
             }}>
               {t3(lang, 'Рікіші', 'Rikishi', '力士')}
