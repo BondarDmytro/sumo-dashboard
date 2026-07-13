@@ -91,7 +91,7 @@ export default async function Home() {
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
-        <TournamentFooter contenders={contenders} h2h={h2h} />
+        <TournamentFooter contenders={contenders} h2h={h2h} allRikishi={rikishi} />{/* chart_global_pct_v1 */}
         </CurrentOnly>
       </div>
       </>

@@ -5,7 +5,7 @@ import { useLang } from './LangProvider'
 import ChartWrapper from './ChartWrapper'
 import H2HTable from './H2HTable'
 
-export default function TournamentFooter({ contenders, h2h }) {
+export default function TournamentFooter({ contenders, h2h, allRikishi = null }) {
   const { lang } = useLang()
 
   return (
@@ -14,7 +14,7 @@ export default function TournamentFooter({ contenders, h2h }) {
         {t3(lang, 'Графік ймовірностей юшо', 'Yusho probability chart', '優勝確率チャート')}
       </div>
       <div className="anim-4" style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1.5rem',marginBottom:'2rem'}}>
-        <ChartWrapper rikishi={contenders.slice(0,10)} />
+        <ChartWrapper rikishi={allRikishi || contenders} />{/* chart_global_pct_v1 */}
       </div>
 
       <div className="anim-5" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem',marginTop:'2rem'}}>

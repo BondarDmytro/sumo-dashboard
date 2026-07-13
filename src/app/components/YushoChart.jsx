@@ -1,4 +1,5 @@
 'use client' /* ja_batch2_t */
+import { useState } from 'react' /* chart_hl_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import {
@@ -31,9 +32,11 @@ function calcChanceAtDay(record, day) {
 
 export default function YushoChart({ rikishi }) {
   const { lang } = useLang()
+  const [hl, setHl] = useState(null)  /* chart_hl_v1 */
   if (!rikishi?.length) return null
 
-  const top = rikishi.slice(0, 8)
+  const all = rikishi  /* chart_global_pct_v1 */
+  const top = all.filter(r => (r.yushoChance ?? 1) > 0)
   const maxDay = Math.max(...top.map(r => r.record?.filter(m => m.result).length || 0))
 
   const chartData = Array.from({ length: maxDay }, (_, i) => {
@@ -41,7 +44,7 @@ export default function YushoChart({ rikishi }) {
     const point = { day: lang === 'ja' ? `${day}日目` : lang === 'en' ? `Day ${day}` : `День ${day}` }
 
     const rawChances = {}
-    top.forEach(r => {
+    all.forEach(r => {
       rawChances[r.name] = calcChanceAtDay(r.record || [], day)
     })
 
@@ -85,10 +88,11 @@ export default function YushoChart({ rikishi }) {
               fontSize:11,
               color:'var(--ink)',
             }}
-            formatter={(value, name) => [`${value}%`, name]}
+            formatter={(value, name) => { const rr = top.find(x => x.name === name); return [`${value}%`, lang === 'ja' && rr?.nameJp ? rr.nameJp : name] }}
             labelStyle={{color:'var(--mid)',marginBottom:4}}
           />
           <Legend
+            onClick={e => setHl(h => h === e.dataKey ? null : e.dataKey)}
             wrapperStyle={{fontFamily:'monospace',fontSize:11,paddingTop:8}}
             formatter={(value) => { const rr = top.find(x => x.name === value); return <span style={{color:'var(--ink)'}}>{lang === 'ja' && rr?.nameJp ? rr.nameJp : value}</span> }}
           />
@@ -99,7 +103,7 @@ export default function YushoChart({ rikishi }) {
               type="monotone"
               dataKey={r.name}
               stroke={COLORS[i % COLORS.length]}
-              strokeWidth={i < 3 ? 2.5 : 1.5}
+              strokeWidth={hl === r.name ? 3.5 : i < 3 ? 2.5 : 1.5} strokeOpacity={hl && hl !== r.name ? 0.18 : 1}
               dot={false}
               activeDot={{r:4}}
             />
