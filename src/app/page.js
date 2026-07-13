@@ -24,7 +24,7 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export default async function Home() {
   const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
   const contenders = rikishi.filter(r => r.yushoChance > 0)
-    .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
+    .sort((a,b) => b.yushoChance - a.yushoChance || b.wins - a.wins || (a.rankValue||999) - (b.rankValue||999))  /* sort_by_chance_v1 */
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
   const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)

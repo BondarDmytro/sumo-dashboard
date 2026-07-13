@@ -137,7 +137,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               const statusLabel = r.status === 'lead'
                 ? t3(lang, 'лідер', 'leader', 'トップ')
                 : r.status === 'chase'
-                ? '-1'
+                ? t3(lang, 'переслідувач', 'chaser', '追走')
                 : `${r.wins}–${r.losses}`
               return (
                 <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
