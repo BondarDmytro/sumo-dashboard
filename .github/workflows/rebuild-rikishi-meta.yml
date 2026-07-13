@@ -1,0 +1,23 @@
+name: Rebuild rikishi meta
+on:
+  schedule:
+    - cron: '30 11 * * *'   # 20:30 JST - pislia zavershennia dnia basho
+  workflow_dispatch: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Rebuild meta
+        run: node scripts/build-rikishi-meta.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "meta-bot"
+          git config user.email "actions@github.com"
+          git add src/app/lib/rikishiMeta.json
+          git diff --cached --quiet && echo "no changes" || (git commit -m "data: rikishi meta auto-rebuild $(date -u +%F)" && git push)
