@@ -33,9 +33,16 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
   const cdTarget = boutsNow ? null : (status === 'upcoming' ? bi : (status === 'finished' || isFinished || currentDay >= 15 ? nextBi : dayCd))
   const { lang } = useLang()
   const router = useRouter()
-  useEffect(() => {
+  useEffect(() => {  /* refresh_gate_v1: 60s u vikni boiv (08:00-18:45 JST), 600s poza - ne palymo Vercel unochi */
     if (isFinished) return
-    const interval = setInterval(() => { router.refresh() }, 60000)
+    let interval
+    const arm = () => {
+      const jm = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 540) % 1440
+      const inBouts = jm >= 480 && jm <= 1125
+      clearInterval(interval)
+      interval = setInterval(() => { router.refresh(); arm() }, inBouts ? 60000 : 600000)
+    }
+    arm()
     return () => clearInterval(interval)
   }, [router, isFinished])
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
 import { usePathname, useRouter } from 'next/navigation' /* live_click_v1 */
 import { currentBashoId, bashoInfo } from '../lib/bashoCalendar'
+import meta from '../lib/rikishiMeta.json' /* live_ja_v1 */
 
 const DIVS = ['Jonokuchi', 'Jonidan', 'Sandanme', 'Makushita', 'Juryo', 'Makuuchi']
 const DIV_LABEL = { Jonokuchi: '序ノ口', Jonidan: '序二段', Sandanme: '三段目', Makushita: '幕下', Juryo: '十両', Makuuchi: '幕内' }
@@ -64,13 +65,19 @@ export default function LiveNow({ currentDay: dayProp = null }) {
 
   if (!live) return null
   const divLabel = lang === 'ja' ? DIV_LABEL[live.division] : live.division
+  /* live_ja_v1: yaponski shikony z mety po id */
+  const jaName = (id, fallback) => {
+    if (lang !== 'ja') return fallback
+    const rec = meta.find(m => Number(m.id) === Number(id))
+    return (rec?.nameJp && rec.nameJp.split(/\s/)[0]) || fallback
+  }
   return (
     <div className="live-now" onClick={goLive} role="button" title="\u2192 torikumi" style={{cursor:'pointer',display:'flex',alignItems:'center',gap:7,fontFamily:'monospace',fontSize:'0.72rem',whiteSpace:'nowrap'}}>
       <span className="live-dot" />
-      <span style={{color:'#fb5050',fontWeight:700,letterSpacing:'0.08em'}}>LIVE</span>
-      <span style={{color:'#f5f0e8'}}>{live.eastShikona}</span>
-      <span style={{color:'#8a8a8a'}}>vs</span>
-      <span style={{color:'#f5f0e8'}}>{live.westShikona}</span>
+      <span style={{color:'#fb5050',fontWeight:700,letterSpacing:'0.08em'}}>{lang === 'ja' ? '\u30e9\u30a4\u30d6' : 'LIVE'}</span>
+      <span style={{color:'#f5f0e8'}}>{jaName(live.eastId, live.eastShikona)}</span>
+      <span style={{color:'#8a8a8a'}}>{lang === 'ja' ? '\u5bfe' : 'vs'}</span>
+      <span style={{color:'#f5f0e8'}}>{jaName(live.westId, live.westShikona)}</span>
       <span style={{color:'#b8860b',fontSize:'0.62rem'}}>{divLabel}</span>
     </div>
   )

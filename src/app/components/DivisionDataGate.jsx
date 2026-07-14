@@ -26,6 +26,20 @@ export default function DivisionDataGate({ makuuchi }) {
     return () => { dead = true }
   }, [division])
 
+  useEffect(() => {  /* gate_poll_v1: refetch paketa kozhni 120s u vikni boiv */
+    if (!division || division === 'Makuuchi') return
+    const tick = () => {
+      const jm = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 540) % 1440
+      if (jm < 480 || jm > 1125) return
+      fetch(`/api/basho-division?division=${division}`)
+        .then(r => r.json())
+        .then(d => { if (d && !d.error) setDivData(d) })
+        .catch(() => {})
+    }
+    const t = setInterval(tick, 120000)
+    return () => clearInterval(t)
+  }, [division])
+
   let view = makuuchi
   if (division !== 'Makuuchi' && divData && isCurrent) {
     const rikishi = divData.rikishi || []

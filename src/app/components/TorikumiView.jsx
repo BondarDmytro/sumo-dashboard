@@ -34,6 +34,19 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   }, [])
   const liveMatchId = liveWindow ? [...(matches || [])].sort((a,b) => a.matchNo - b.matchNo).find(m => !m.winnerEn)?.id : null
 
+  useEffect(() => {  /* tk_poll_v1: u vikni boiv onovliuiemo TILKY matches (bez H2H - vin statychnyi za den) kozhni 90s */
+    const tick = () => {
+      const jm = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 540) % 1440
+      if (jm < 480 || jm > 1125) return
+      fetch(`/api/torikumi?day=${nextDay}&division=${division || 'Makuuchi'}`)
+        .then(r => r.json())
+        .then(d => { if (Array.isArray(d) && d.length) setMatches(d) })
+        .catch(() => {})
+    }
+    const t = setInterval(tick, 90000)
+    return () => clearInterval(t)
+  }, [nextDay, division])
+
   useEffect(() => {
     if (nextDay > 15) { setLoading(false); return }
     fetch(`/api/torikumi?day=${nextDay}&division=${division || 'Makuuchi'}`)  /* division_torikumi_v1 */
