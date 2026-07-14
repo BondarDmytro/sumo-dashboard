@@ -3,6 +3,7 @@ import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
+import { useFavorites } from './useFavorites' /* fav_row_v1 */
 
 const RANK_ORDER = ['Yokozuna', 'Ozeki', 'Sekiwake', 'Komusubi', 'Maegashira']
 
@@ -15,6 +16,7 @@ function getRankValue(rank) {
 }
 
 export default function TorikumiView({ division = null, /* division_torikumi_v1 */ currentDay, bios = {}, rikishi = [] }) {
+  const { isFav } = useFavorites()  /* fav_row_v1 */
   const { lang } = useLang()
   const [matches, setMatches] = useState([])
   const [h2hData, setH2hData] = useState({})
@@ -122,7 +124,7 @@ const sanyaku = matches
     const hasH2H = h2h && h2h.total > 0
 
     return (
-      <div key={m.id} id={m.id === liveMatchId ? "tk-live-row" : undefined} className={"tk-match" + (m.id === liveMatchId ? " tk-live" : "")} style={{
+      <div key={m.id} id={m.id === liveMatchId ? "tk-live-row" : undefined} className={"tk-match" + (m.id === liveMatchId ? " tk-live" : "") + ((isFav(m.eastId) || isFav(m.westId)) ? " fav-row" : "")} style={{
         display:'grid',
         gridTemplateColumns:'16px 1fr 96px 1fr',  /* tk_compact_v1 + tk_matchno_v1 */
         gap:4,

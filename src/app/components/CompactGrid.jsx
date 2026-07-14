@@ -4,6 +4,7 @@ import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
+import { useFavorites } from './useFavorites' /* fav_row_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -18,6 +19,7 @@ function shortRank(rank, lang) {
 }
 
 export default function CompactGrid({ items, isKyujo, currentDay, title: titleProp }) {  /* grid_title_prop_v1 */
+  const { isFav } = useFavorites()  /* fav_row_v1 */
   const { lang } = useLang()
 
   const title = titleProp || (isKyujo
@@ -41,7 +43,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:1,background:'var(--border)'}}>
           {items.map(r => (
-            <div key={r._id} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
+            <div key={r._id} className={isFav(r._id) ? 'fav-row' : undefined} style={{background:'var(--card)',padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,opacity:0.5}}>
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
               <div style={{flex:1,minWidth:0}}>
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
@@ -81,7 +83,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
 
   const renderItem = r => {
     return (
-      <div key={r._id} className="cg-row" style={{display:'grid',gridTemplateColumns:'minmax(80px,1fr) 38px 122px 34px',alignItems:'center',gap:6,padding:'0.15rem 0.5rem',borderBottom:'1px solid var(--border)' /* cg_grid_cols_v1 */}}>
+      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns:'minmax(80px,1fr) 38px 122px 34px',alignItems:'center',gap:6,padding:'0.15rem 0.5rem',borderBottom:'1px solid var(--border)' /* cg_grid_cols_v1 */}}>
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
           <FlagName id={r._id} name={r.name} size='0.6rem' />
         </div>

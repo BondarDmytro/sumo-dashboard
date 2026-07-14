@@ -325,3 +325,12 @@ body {
 
 /* fav_col_overflow_v1: kolonka lideriv roste za vmistom - MyRikishi ne obrizaietsia */
 .th-col-leaders { height: auto !important; min-height: 300px; }
+
+/* tabs_bold_red_v1: taby zhyrni; u svitlii temi - chervoni */
+.tab-btn { font-weight: 700 !important; }
+:root .tab-btn, [data-theme="light"] .tab-btn { color: #a83232 !important; }
+[data-theme="dark"] .tab-btn { color: inherit; }
+
+/* fav_row_v1: pidsvitka riadkiv obranykh */
+.fav-row { background: rgba(184,134,11,0.22) !important; box-shadow: inset 3px 0 0 #b8860b; }
+.fav-row > td { background: transparent !important; }  /* fav_row_v2: td-fony ne perekryvaiut */

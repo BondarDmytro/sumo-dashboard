@@ -5,6 +5,7 @@ import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
 import { computeStandings } from '../lib/chanceEngine' /* table_timetravel_v1 */
+import { useFavorites } from './useFavorites' /* fav_row_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -72,6 +73,7 @@ function MatchDots({ record, currentDay }) {
 }
 
 export default function TournamentTable({ contenders, currentDay, allRikishi = null }) {
+  const { isFav } = useFavorites()  /* fav_row_v1 */
   const { t, lang } = useLang()
   const [viewDay, setViewDay] = useState(currentDay)  /* table_timetravel_v1 */
   const retro = viewDay !== currentDay && allRikishi?.length
@@ -140,7 +142,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                 ? t3(lang, 'переслідувач', 'chaser', '追走')
                 : `${r.wins}–${r.losses}`
               return (
-                <tr key={r._id} style={{borderBottom:'1px solid var(--border)'}}>
+                <tr key={r._id} className={isFav(r._id) ? 'fav-row' : undefined} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center',minWidth:90}}>
                     <TodayCell record={r.record} currentDay={viewDay} t={t} lang={lang}/>
                   </td>
