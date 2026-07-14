@@ -335,3 +335,27 @@ body {
 /* fav_row_v1: pidsvitka riadkiv obranykh */
 .fav-row { background: rgba(184,134,11,0.22) !important; box-shadow: inset 3px 0 0 #b8860b; }
 .fav-row > td { background: transparent !important; }  /* fav_row_v2: td-fony ne perekryvaiut */
+
+/* votes_v1: ticker marquee */
+.vt-track { animation: vtScroll 30s linear infinite; }
+.vt-track:hover { animation-play-state: paused; }
+@keyframes vtScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* votes_v1: tretia knopka v stetsi - nad discord */
+.fb-vote { bottom: 128px !important; }
+.fb-vote + .fb-panel, .fb-panel-vote { position: fixed; right: 16px; bottom: 184px; z-index: 151; }
+
+/* vt_single_v2: klasychnyi marquee - start za pravym kraiem, povnyi vyizd livoruch */
+@keyframes vtScroll2 { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+/* vt_style_v2: vydilennia bihuchoho riadka - zolotystyi ton + svitinnia */
+.vt-bar {
+  background: linear-gradient(90deg, rgba(184,134,11,0.14), rgba(184,134,11,0.05) 40%, rgba(184,134,11,0.12));
+  border-top: 1px solid rgba(184,134,11,0.4);
+  border-bottom: 1px solid rgba(184,134,11,0.4);
+  box-shadow: inset 0 0 18px rgba(184,134,11,0.08);
+}
+[data-theme="dark"] .vt-bar {
+  background: linear-gradient(90deg, rgba(184,134,11,0.20), rgba(184,134,11,0.07) 40%, rgba(184,134,11,0.16));
+  box-shadow: inset 0 0 22px rgba(184,134,11,0.12);
+}

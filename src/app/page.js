@@ -1,5 +1,6 @@
 /* auto_current_v3 */
 import TournamentHeader from './components/TournamentHeader'
+import VoteTicker from './components/VoteTicker' /* votes_v1 */
 import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
@@ -46,6 +47,8 @@ export default async function Home() {
         hasPlayoff={hasPlayoff}
         isFinished={isFinished}
       />
+
+      <VoteTicker />
 
       {showPlayoffBanner && (
         <div style={{maxWidth:1280,margin:'0 auto',padding:'1.25rem 1.5rem 0'}}>
