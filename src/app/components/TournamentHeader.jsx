@@ -7,6 +7,7 @@ import { useEffect } from 'react'
 import { currentBashoId, bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
 import BashoCountdown from './BashoCountdown'
 import ShareButton from './ShareButton' /* share_button_v1 */
+import MyRikishi from './MyRikishi' /* favorites_v1 */
 
 function t3(lang, uk, en, ja) {
   if (lang === 'en') return en
@@ -110,7 +111,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
       {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
         {!isFinished && top3.length > 0 && (
-          <div className="th-col" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
+          <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
             <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>
               {t3(lang, '\u041b\u0456\u0434\u0435\u0440\u0438 \u0433\u043e\u043d\u043a\u0438', 'Race leaders', '\u512a\u52dd\u4e89\u3044')} · Makuuchi
             </div>
@@ -137,6 +138,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
                 </div>
               ))}
             </>)}
+            <MyRikishi />
           </div>
         )}
         {champion && (

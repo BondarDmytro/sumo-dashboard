@@ -17,6 +17,7 @@ function directVideo(bashoId, day, myJa, oppJa) {
 import { useLang } from './LangProvider'
 import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 */
 import RikishiTopTable from './RikishiTopTable' /* rikishi_top_table_v1 */
+import FavStar from './FavStar' /* favorites_v1 */
 import rikishiMeta from '../lib/rikishiMeta.json' /* hirank_bio_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
@@ -188,7 +189,7 @@ function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
         <div style={{flex:1,minWidth:150,paddingTop:4}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
             <span style={{fontSize:'1.5rem'}}>{bio?.country?.flag || ''}</span>
-            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1}}>{displayName(r, lang)}</div>
+            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1,display:'flex',alignItems:'center',gap:8}}>{displayName(r, lang)}<FavStar id={r.id || r._id} size={20} /></div>
           </div>
           <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:4}}>{r.nameJp}</div>
           <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{displayRank(r.rank, lang)}</div>

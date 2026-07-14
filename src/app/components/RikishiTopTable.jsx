@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import meta from '../lib/rikishiMeta.json'
 import { useLang } from './LangProvider'
 import { displayRank } from '../lib/bashoCalendar' /* ja_toptable_v1 */
+import FavStar from './FavStar' /* favorites_v1 */
 
 function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
 
@@ -129,7 +130,7 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
                 {rows.map((m, i) => (
                   <tr key={m.id} onClick={() => onSelect?.(m.id)} style={{borderBottom:'1px solid var(--border)',cursor:'pointer'}}>
                     <td style={{padding:'0.45rem 0.5rem',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)'}}>{i + 1}</td>
-                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}>{flagOf(m.shusshin)} {lang === 'ja' && m.nameJp ? m.nameJp.split(/\s/)[0] : m.name}</td>
+                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}><FavStar id={m.id} size={13} /> {flagOf(m.shusshin)} {lang === 'ja' && m.nameJp ? m.nameJp.split(/\s/)[0] : m.name}</td>
                     {COLS.map(c => (
                       <td key={c.key} style={{padding:'0.45rem 0.5rem',textAlign:'right',fontFamily:'monospace',fontSize:'0.7rem',whiteSpace:'nowrap'}}>{c.get(m)}</td>
                     ))}
