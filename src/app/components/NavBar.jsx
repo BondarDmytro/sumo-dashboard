@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
 import BashoSelect from './BashoSelect' /* basho_nav_v1 */
 import DivisionSelect from './DivisionSelect' /* division_select_v1 */
+import LiveNow from './LiveNow' /* live_now_nav */
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -132,6 +133,7 @@ useEffect(() => {
 
           {/*navbar_games_removed_v1: кнопка ігор прибрана, ігри на /game*/}
 
+          {mounted && <div style={{margin:'0 auto',padding:'0 12px',flexShrink:1,minWidth:0,overflow:'hidden'}}><LiveNow /></div>}{/* live_now_center */}
           {mounted && (
             <div style={{
               marginLeft: 'auto',
@@ -139,7 +141,7 @@ useEffect(() => {
               paddingLeft: 12, flexShrink: 0,
             }}>
 
-              <div className="nav-basho-slot">{/* basho_nav_right_v1 */}
+                      <div className="nav-basho-slot">{/* basho_nav_right_v1 */}
                 {isHome && <BashoSelect />}
                 {isHome && <DivisionSelect />}
               </div>

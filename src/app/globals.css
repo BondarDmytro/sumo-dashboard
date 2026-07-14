@@ -239,7 +239,7 @@ body {
 /* basho_nav_v2: tsentr na desktopi, okremyi riadok pid tabamy na mob */
 
 
-.nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; font-family:monospace !important; font-size:0.62rem !important; letter-spacing:0.1em !important; text-transform:uppercase !important; padding:3px 8px !important; border-radius:2px !important; height:auto !important; line-height:1.4 !important; }
+.nav-basho-slot select, .nav-basho-slot button { background:#1a1712 !important; color:#e8dfd0 !important; border-color:rgba(184,134,11,0.45) !important; font-family:monospace !important; font-size:0.62rem !important; letter-spacing:0.1em !important; text-transform:uppercase !important; padding:0 8px !important; border-radius:2px !important; height:26px !important; line-height:26px !important; box-sizing:border-box !important; vertical-align:middle !important; }  /* nav_align_v1: odna liniia */
 
 /* dots_inline_v1: kruzhechky poruch z imiam na vebi, pid nym na mob */
 @media (max-width: 860px) {
@@ -312,3 +312,13 @@ body {
   .h2h-table th { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 4px 2px !important; font-size: 0.6rem !important; height: 80px; vertical-align: bottom; }
   .h2h-table th:first-child { writing-mode: initial; transform: none; height: auto; vertical-align: middle; }
 }
+
+/* live_now_v1 */
+.live-dot { width:8px;height:8px;border-radius:50%;background:#e74c3c;animation:livePulse 1.5s ease-in-out infinite; }
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+.tk-live { border-left:3px solid #e74c3c !important; background:rgba(231,76,60,0.06); }
+.tk-live .tk-live-dot { display:inline-block;width:6px;height:6px;border-radius:50%;background:#e74c3c;animation:livePulse 1.5s ease-in-out infinite;margin-right:4px; }
+
+/* cg_overlap_fix_v1: kruzhechky ne naizhdzhaiut na tekst - riadok perenosytsia */
+.cg-flow .cg-group [class*="cg-dots"], .cg-flow .cg-group > div > div { min-width: 0; }
+.cg-flow .cg-group > div { flex-wrap: wrap !important; }

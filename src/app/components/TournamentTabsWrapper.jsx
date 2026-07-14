@@ -1,7 +1,7 @@
 'use client' /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLang } from './LangProvider'
 import TournamentTable from './TournamentTable'
 import CompactGrid from './CompactGrid' /* list_kyujo_v1 */
@@ -12,7 +12,14 @@ import PrevBashoDynamics from './PrevBashoDynamics' /* prev_dynamics_tab_v1 */
 import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_filter_v2 */
 
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
+  const { setDivision } = useBashoFilter()  /* div_from_url_v1 */
   const [tab, setTab] = useState('standings')
+  useEffect(() => {  /* tab_from_url_v1: ?tab=torikumi vid LIVE-kliku v navbari */
+    const sp = new URLSearchParams(window.location.search)
+    if (sp.get('tab') === 'torikumi') setTab('torikumi')
+    const d = sp.get('div')  /* div_from_url_v1 */
+    if (['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi'].includes(d)) setDivision(d)
+  }, [])
   const { selBasho, division } = useBashoFilter()  /* basho_filter_v2 */ /* division_wire_v1 */
   const [liveView, setLiveView] = useState('list')  /* live_dynamics_v1 */
   const isCurrent = selBasho === CURRENT_BASHO

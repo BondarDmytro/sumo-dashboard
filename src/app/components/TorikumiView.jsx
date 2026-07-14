@@ -20,6 +20,15 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   const [h2hData, setH2hData] = useState({})
   const [loading, setLoading] = useState(true)
   const nextDay = currentDay
+  /* tk_live_v1: pershyi bii bez rezultatu = na dokhio zaraz (±1 bii, lah API) */
+  const jstH = (new Date().getUTCHours() + 9) % 24
+  const liveWindow = jstH >= 8 && jstH < 19
+  useEffect(() => {  /* live_scroll_v1 */
+    if (new URLSearchParams(window.location.search).get('tab') !== 'torikumi') return
+    const t = setTimeout(() => document.getElementById('tk-live-row')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    return () => clearTimeout(t)
+  }, [])
+  const liveMatchId = liveWindow ? [...(matches || [])].sort((a,b) => a.matchNo - b.matchNo).find(m => !m.winnerEn)?.id : null
 
   useEffect(() => {
     if (nextDay > 15) { setLoading(false); return }
@@ -96,7 +105,7 @@ const sanyaku = matches
     const hasH2H = h2h && h2h.total > 0
 
     return (
-      <div key={m.id} className="tk-match" style={{
+      <div key={m.id} id={m.id === liveMatchId ? "tk-live-row" : undefined} className={"tk-match" + (m.id === liveMatchId ? " tk-live" : "")} style={{
         display:'grid',
         gridTemplateColumns:'16px 1fr 96px 1fr',  /* tk_compact_v1 + tk_matchno_v1 */
         gap:4,

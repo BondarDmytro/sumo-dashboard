@@ -27,7 +27,10 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
       ja: `${currentDay + 1}日目 — ${bi.label.ja}`,
     },
   } : null
-  const cdTarget = status === 'upcoming' ? bi : (status === 'finished' || isFinished || currentDay >= 15 ? nextBi : dayCd)
+  /* cd_hide_during_bouts: pid chas boiv (08:00-18:30 JST) countdown khovaietsia - LIVE-riadok u navbari pokryvaie */
+  const jstMinNow = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes() + 540) % 1440
+  const boutsNow = status !== 'upcoming' && status !== 'finished' && !isFinished && jstMinNow >= 480 && jstMinNow <= 1110
+  const cdTarget = boutsNow ? null : (status === 'upcoming' ? bi : (status === 'finished' || isFinished || currentDay >= 15 ? nextBi : dayCd))
   const { lang } = useLang()
   const router = useRouter()
   useEffect(() => {
