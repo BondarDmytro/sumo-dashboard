@@ -23,6 +23,7 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 export default async function Home() {
   const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
+  const juryoData = await getBashoData('Juryo').catch(() => null)  /* top5_juryo_v1 */
   const contenders = rikishi.filter(r => r.yushoChance > 0)
     .sort((a,b) => b.yushoChance - a.yushoChance || b.wins - a.wins || (a.rankValue||999) - (b.rankValue||999))  /* sort_by_chance_v1 */
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
@@ -33,6 +34,8 @@ export default async function Home() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <>{/* basho_nav_v1: provider pereikhav u layout */}
       <TournamentHeader
+        top3={contenders.slice(0, 5).map(r => ({ name: r.name, nameJp: r.nameJp, chance: r.yushoChance }))}
+        top5Juryo={(juryoData?.rikishi || []).filter(r => r.yushoChance > 0).slice(0, 5).map(r => ({ name: r.name, nameJp: r.nameJp, chance: r.yushoChance }))}
         champion={!isFinished && prevYusho && bashoStatus(currentBashoId()) === 'upcoming'
           ? { id: String(prevYusho.id), name: prevYusho.name, nameJp: prevYusho.nameJp, wins: 12, losses: 3,  /* champ_prop_jp */
               label: bashoInfo(prevBashoIdOf(currentBashoId())).label.uk + ' \u2014 \u044e\u0448\u043e' }

@@ -14,7 +14,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null }) {  /* basho_filter_v2 */  /* header_v3 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [] }) {  /* basho_filter_v2 */  /* header_v3 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -43,7 +43,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
       {bashoSelect && <div className="th-basho-select" style={{zIndex:2}}>{bashoSelect}</div>}  {/* basho_select_mobile_v1 */}  {/* basho_filter_v2 */}
       <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.12,lineHeight:1,pointerEvents:'none',color:'#ff2121'}}>相撲</div>
-      <div className={champion ? 'th-grid th-grid-3' : 'th-grid th-grid-2'} style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,alignItems:'center'}}>  {/* header_mobile_v1 */}  {/* header_v10 */}
+      <div className={(champion || (!isFinished && top3.length > 0)) ? 'th-grid th-grid-3' : 'th-grid th-grid-2'} style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,alignItems:'center'}}>  {/* header_mobile_v1 */}  {/* header_v10 */}
         <div className="th-col" style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center'}}>
           <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:'100%',flex:1,minHeight:0,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
           <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : bi.city.uk)}</div>
@@ -60,7 +60,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
           )}
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{lang === 'ja' ? bi.label.ja : bi.kanji + ' ' + (lang === 'en' ? bi.label.en : bi.label.uk)}  {/* kanji_dedup_v1 */}</div>
         </div>
-        <div className="th-col" style={{minWidth:0,order:1,display:'flex',flexDirection:'column',justifyContent:'center'}}>  {/* header_v17 */}
+        <div className="th-col" style={{minWidth:0,order:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem'}}>  {/* header_v17 top_align_v1 */}
         <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>
           {t3(lang, 'Гонка за юшо', 'Yusho Race', '優勝レース')}
           <span style={{color:'#fb5050'}}>
@@ -100,8 +100,38 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             </>
           )}
         </div>
-        {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
+      {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
+        {!isFinished && top3.length > 0 && (
+          <div className="th-col" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
+            <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>
+              {t3(lang, '\u041b\u0456\u0434\u0435\u0440\u0438 \u0433\u043e\u043d\u043a\u0438', 'Race leaders', '\u512a\u52dd\u4e89\u3044')} · Makuuchi
+            </div>
+            {top3.map((r, i) => (
+              <div key={r.name} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+                <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
+                <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
+                <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
+                  <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
+                </span>
+                <span style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
+              </div>
+            ))}
+            {top5Juryo.length > 0 && (<>
+              <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',margin:'14px 0 10px'}}>Juryo · 十両</div>{/* top5_juryo_v1 */}
+              {top5Juryo.map((r, i) => (
+                <div key={r.name} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+                  <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
+                  <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
+                  <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
+                    <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
+                  </span>
+                  <span style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
+                </div>
+              ))}
+            </>)}
+          </div>
+        )}
         {champion && (
           <div className="th-col" style={{order:3,display:'flex',flexDirection:'row',gap:'1rem',alignItems:'center',justifySelf:'end'}}>
             <img src={'/rikishi/' + champion.id + '.webp'} alt={champion.name} onError={e => { e.currentTarget.style.display = 'none' }}
