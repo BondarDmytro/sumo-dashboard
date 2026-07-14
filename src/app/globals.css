@@ -327,9 +327,10 @@ body {
 .th-col-leaders { height: auto !important; min-height: 300px; }
 
 /* tabs_bold_red_v1: taby zhyrni; u svitlii temi - chervoni */
-.tab-btn { font-weight: 700 !important; }
-:root .tab-btn, [data-theme="light"] .tab-btn { color: #a83232 !important; }
-[data-theme="dark"] .tab-btn { color: inherit; }
+.tab-btn { font-weight: 700 !important; border: 1px solid rgba(184,134,11,0.5) !important; border-radius: 3px; background: transparent; margin-right: 6px; margin-bottom: 6px; color: var(--mid); transition: background .15s, color .15s; }
+.tab-btn:hover { border-color: #b8860b !important; color: var(--ink); }
+.tab-btn.tab-active { background: #b8860b !important; color: #fff !important; border-color: #b8860b !important; }
+[data-theme="dark"] .tab-btn.tab-active { color: #1a1712 !important; }
 
 /* fav_row_v1: pidsvitka riadkiv obranykh */
 .fav-row { background: rgba(184,134,11,0.22) !important; box-shadow: inset 3px 0 0 #b8860b; }

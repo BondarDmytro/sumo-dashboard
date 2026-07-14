@@ -48,14 +48,11 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
     <>
       <div className="tabs-row" style={{display:'flex',gap:1,marginBottom:'1.2rem',borderBottom:'2px solid var(--border)'}}>  {/* tabs_scroll_v1 */}
         {tabs.map(t => (
-          <button key={t.id} className="tab-btn" onClick={() => setTab(t.id)} style={{
-            padding:'0.5rem 1.25rem',
+          <button key={t.id} className={"tab-btn" + (tab === t.id ? " tab-active" : "")} onClick={() => setTab(t.id)} style={{
+            padding:'0.45rem 1.1rem',
             fontFamily:'monospace',fontSize:'0.72rem',
             letterSpacing:'0.1em',textTransform:'uppercase',
-            background:'transparent',border:'none',
-            color: tab === t.id ? 'var(--ink)' : 'var(--mid)',
-            borderBottom: tab === t.id ? '2px solid #b8860b' : '2px solid transparent',
-            marginBottom:-2,cursor:'pointer',
+            cursor:'pointer',
           }}>
             {t.label}
           </button>
