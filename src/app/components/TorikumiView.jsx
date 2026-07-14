@@ -1,4 +1,5 @@
-'use client' /* ja_batch2_t */
+'use client'
+import { shortRank } from '../lib/bashoCalendar' /* tk_shortrank */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -16,6 +17,14 @@ function getRankValue(rank) {
 }
 
 export default function TorikumiView({ division = null, /* division_torikumi_v1 */ currentDay, bios = {}, rikishi = [] }) {
+  const [isMobile, setIsMobile] = useState(false)  /* tk_shortrank */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   const { isFav } = useFavorites()  /* fav_row_v1 */
   const { lang } = useLang()
   const [matches, setMatches] = useState([])
@@ -126,7 +135,7 @@ const sanyaku = matches
     return (
       <div key={m.id} id={m.id === liveMatchId ? "tk-live-row" : undefined} className={"tk-match" + (m.id === liveMatchId ? " tk-live" : "") + ((isFav(m.eastId) || isFav(m.westId)) ? " fav-row" : "")} style={{
         display:'grid',
-        gridTemplateColumns:'16px 1fr 96px 1fr',  /* tk_compact_v1 + tk_matchno_v1 */
+        gridTemplateColumns: isMobile ? '12px 1fr 64px 1fr' : '16px 1fr 96px 1fr',  /* tk_mobile_full_v1 */  /* tk_compact_v1 + tk_matchno_v1 */
         gap:4,
         padding:'0.6rem 1rem',
         borderBottom:'1px solid var(--border)',
@@ -134,24 +143,13 @@ const sanyaku = matches
       }}>
         <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'left'}}>{m.matchNo}</div>{/* tk_matchno_v1 */}
         {/* East */}
-        <div style={{
-          display:'flex',alignItems:'center',gap:6,justifyContent:'flex-end',
-          opacity: hasResult && !eastWon ? 0.4 : 1,
-        }}>
-          <div style={{textAlign:'right'}}>
-            <div style={{fontWeight: eastWon ? 800 : 600, fontSize:'0.88rem'}}>
-              {eastFlag} {lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}  {/* ja_opponents_v1 */}
-            </div>
-            <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:2}}>{m.eastRank}</div>
-            {eastR && (
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',fontWeight:600,
-                color: eastR.wins >= 8 ? '#1a6b5c' : eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>
-                {eastR.wins}–{eastR.losses}
-              </div>
-            )}
-          </div>
-          {hasResult && eastWon && (
-            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',flexShrink:0,display:'inline-block'}} />
+        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? 'auto minmax(0,1fr) auto auto 14px' : 'auto minmax(0,1fr) auto auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1}}>{/* tk_cols_v2: rank | name | flag | score | (circle) */}
+          <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{isMobile ? shortRank(m.eastRank, lang) : m.eastRank}</span>
+          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'right'}}>{lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}</span>
+          <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{eastFlag}</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
+          {hasResult && !isMobile && (
+            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: eastWon ? 'visible' : 'hidden'}} />
           )}
         </div>
 
@@ -183,25 +181,14 @@ const sanyaku = matches
         </div>
 
         {/* West */}
-        <div style={{
-          display:'flex',alignItems:'center',gap:6,
-          opacity: hasResult && !westWon ? 0.4 : 1,
-        }}>
-          {hasResult && westWon && (
-            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',flexShrink:0,display:'inline-block'}} />
+        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? '14px auto auto minmax(0,1fr) auto' : 'auto auto minmax(0,1fr) auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !westWon ? 0.4 : 1}}>{/* tk_cols_v2: (circle) | score | flag | name | rank */}
+          {hasResult && !isMobile && (
+            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: westWon ? 'visible' : 'hidden'}} />
           )}
-          <div>
-            <div style={{fontWeight: westWon ? 800 : 600, fontSize:'0.88rem'}}>
-              {westFlag} {lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}
-            </div>
-            <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:2}}>{m.westRank}</div>
-            {westR && (
-              <div style={{fontFamily:'monospace',fontSize:'0.65rem',fontWeight:600,
-                color: westR.wins >= 8 ? '#1a6b5c' : westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>
-                {westR.wins}–{westR.losses}
-              </div>
-            )}
-          </div>
+          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
+          <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{westFlag}</span>
+          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{isMobile ? shortRank(m.westRank, lang) : m.westRank}</span>
         </div>
       </div>
     )

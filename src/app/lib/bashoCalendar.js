@@ -77,6 +77,15 @@ export function displayName(r, lang) {  /* kanji_names_v1 */
 }
 
 const RANK_JA = { Yokozuna: '横綱', Ozeki: '大関', Sekiwake: '関脇', Komusubi: '小結', Maegashira: '前頭', Juryo: '十両' , Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' /* rank_ja_lower_v1 */ }
+/* cg_shortrank_v2: universalnyi korotkyi rang "Juryo 13 West" -> "J13w" */
+const RANK_ABBR = { Yokozuna:'Y', Ozeki:'O', Sekiwake:'S', Komusubi:'K', Maegashira:'M', Juryo:'J', Makushita:'Ms', Sandanme:'Sd', Jonidan:'Jd', Jonokuchi:'Jk' }
+export function shortRank(rank, lang) {
+  if (lang === 'ja') return displayRank(rank, lang)
+  const m = String(rank || '').match(/^(\w+)\s*(\d*)\s*(East|West)?$/)
+  if (!m || !RANK_ABBR[m[1]]) return rank
+  return RANK_ABBR[m[1]] + (m[2] || '') + (m[3] ? m[3][0].toLowerCase() : '')
+}
+
 export function displayRank(rank, lang) {
   // "Sekiwake 2 East" -> ja: "東 関脇 2"; інші мови — як є
   if (lang !== 'ja' || !rank) return rank

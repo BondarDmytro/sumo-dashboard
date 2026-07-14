@@ -3,6 +3,7 @@ import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
+import { useState, useEffect } from 'react' /* cg_row_v3 */
 import FlagName from './FlagName'
 import { useFavorites } from './useFavorites' /* fav_row_v1 */
 
@@ -21,6 +22,14 @@ function shortRank(rank, lang) {
 export default function CompactGrid({ items, isKyujo, currentDay, title: titleProp }) {  /* grid_title_prop_v1 */
   const { isFav } = useFavorites()  /* fav_row_v1 */
   const { lang } = useLang()
+  const [isMobile, setIsMobile] = useState(false)  /* cg_row_v3 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
 
   const title = titleProp || (isKyujo
     ? (t3(lang, 'Кюджо — відсутні', 'Kyujo — absent', '休場'))
@@ -82,31 +91,29 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
   })
 
   const renderItem = r => {
+    const dot = isMobile ? 6 : 7  /* cg_dots_stretch_v1: krapky rozkladaiutsia space-between na vsiu kolonku */
     return (
-      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns:'minmax(80px,1fr) 38px 122px 34px',alignItems:'center',gap:6,padding:'0.15rem 0.5rem',borderBottom:'1px solid var(--border)' /* cg_grid_cols_v1 */}}>
+      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns: isMobile ? 'minmax(0,1fr) 30px 34px minmax(90px,1.1fr)' : 'minmax(0,1fr) 36px 40px minmax(140px,1.4fr)',alignItems:'center',gap: isMobile ? 4 : 6,padding: isMobile ? '0.15rem 0.3rem' : '0.15rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-          <FlagName id={r._id} name={r.name} size='0.6rem' />
+          <FlagName id={r._id} name={r.name} size='0.6rem'/>
         </div>
         <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textAlign:'center'}}>{shortRank(r.rank, lang)}</div>
-          <div style={{display:'flex',gap:2,flexWrap:'nowrap',marginTop:0,justifySelf:'center'}} className="cg-dots">
-            {Array.from({ length: 15 }, (_, i) => (r.record || [])[i] || {}).map((m, idx) => {  /* dots15_highlight_v1: zavzhdy 15 */
-              const isWin = RESULTS_WIN.includes(m.result)
-              const isLoss = RESULTS_LOSS.includes(m.result)
-              return (
-                <span key={idx} title={(lang === 'ja' ? `${idx+1}日目` : lang === 'en' ? `Day ${idx+1}` : `День ${idx+1}`) + (m.opponent?': '+m.opponent:'')} style={{
-                  width:6,height:6,borderRadius:'50%',
-                  outline: idx + 1 === currentDay ? '2px solid #b8860b' : 'none', outlineOffset: 1,  /* dot_day_highlight */
-                  background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-                  border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',
-                  display:'inline-block',flexShrink:0,
-                  opacity: m.kimarite==='fusen' ? 0.5 : 1,
-                }} />
-              )
-            })}
-          </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.68rem',fontWeight:600,flexShrink:0,textAlign:'center',
-          color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>
-          {r.wins}–{r.losses}
+        <div style={{fontFamily:'monospace',fontSize: isMobile ? '0.6rem' : '0.68rem',fontWeight:600,textAlign:'center',color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>{r.wins}–{r.losses}</div>
+        <div className="cg-dots" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'nowrap',overflow:'hidden',width:'100%'}}>
+          {Array.from({ length: 15 }, (_, i) => (r.record || [])[i] || {}).map((m, idx) => {
+            const isWin = RESULTS_WIN.includes(m.result)
+            const isLoss = RESULTS_LOSS.includes(m.result)
+            return (
+              <span key={idx} title={(lang === 'ja' ? (idx+1) + '\u65e5\u76ee' : lang === 'en' ? 'Day ' + (idx+1) : '\u0414\u0435\u043d\u044c ' + (idx+1)) + (m.opponent ? ': ' + m.opponent : '')} style={{
+                width:dot,height:dot,borderRadius:'50%',boxSizing:'border-box',
+                outline: idx + 1 === currentDay ? '2px solid #b8860b' : 'none', outlineOffset: 0,
+                background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
+                border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',
+                display:'inline-block',flexShrink:0,
+                opacity: m.kimarite==='fusen' ? 0.5 : 1,
+              }} />
+            )
+          })}
         </div>
       </div>
     )

@@ -126,7 +126,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
           <thead>
             <tr style={{borderBottom:'2px solid var(--ink)'}}>
               {headers.map(h => (
-                <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.75rem',textAlign:'left',fontWeight:500 /* tt_compact_v1 */}}>{h}</th>
+                <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.75rem',textAlign:'center',fontWeight:500 /* tt_compact_v1 tt_th_center */}}>{h}</th>
               ))}
             </tr>
           </thead>

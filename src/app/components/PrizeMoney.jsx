@@ -1,6 +1,7 @@
 'use client'
+import { useState, useEffect } from 'react'
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
-import { displayName, displayRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
+import { displayName, displayRank, shortRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
@@ -20,11 +21,27 @@ function formatYen(amount) {
   return `¥${amount.toLocaleString('en-US')}`
 }
 
+/* pm_mobile_v2: kompaktnyi format dlia vuzkykh ekraniv */
+function formatYenShort(amount) {
+  if (amount >= 1000000) return `¥${(amount / 1000000).toFixed(1).replace(/\.0$/, '')}M`
+  if (amount >= 1000) return `¥${Math.round(amount / 1000)}K`
+  return `¥${amount}`
+}
+
 function formatUSD(amount) {
   return `~$${Math.round(amount / 149).toLocaleString('en-US')}`
 }
 
 export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = [], isFinished }) {
+  const [isMobile, setIsMobile] = useState(false)  /* pm_ismobile */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
+  const fmt = isMobile ? formatYenShort : formatYen
   const { lang } = useLang()
   const bios = useBios()
 
@@ -90,7 +107,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
         {prizes.map((r, i) => (
           <div key={r._id} style={{
             display:'grid',
-            gridTemplateColumns:'40px 1fr 180px',
+            gridTemplateColumns: isMobile ? '20px 20px minmax(0,1fr) 44px 38px 60px' : '36px 28px minmax(0,1fr) 120px 56px 180px',  /* pm_6col_v1 */  /* pm_oneline_v1 */
             gap:8,
             padding:'0.6rem 0.75rem',
             borderBottom:'1px solid var(--border)',
@@ -99,37 +116,29 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',textAlign:'center'}}>
               {i + 1}
             </div>
-            <div>
-              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
-                <span>{r.flag}</span>
-                <span style={{fontWeight:600,fontSize:'0.88rem'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></span>
-                <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2}}>{displayRank(r.rank, lang)}</span>
-                <span style={{fontFamily:'monospace',fontSize:'0.65rem',color: r.wins >= 8 ? '#1a6b5c' : '#c0392b'}}>{r.wins}–{r.losses}</span>
-              </div>
-              <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+            <div style={{textAlign:'center',fontSize:'0.85rem'}}>{r.flag}</div>{/* pm_6col_v1 */}
+            <div style={{minWidth:0,overflow:'hidden'}}>
+              <div style={{fontWeight:600,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
+              {!isMobile && <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:4}}>
                 {r.breakdown.map((b, j) => (
-                  <span key={j} style={{
-                    fontFamily:'monospace',fontSize:'0.58rem',
-                    background:`${b.color}22`,
-                    color: b.color,
-                    padding:'1px 6px',borderRadius:2,
-                    border:`1px solid ${b.color}44`,
-                  }}>
-                    {b.label} · {formatYen(b.amount)}
-                  </span>
+                  <span key={j} style={{fontFamily:'monospace',fontSize:'0.58rem',background:`${b.color}22`,color: b.color,padding:'1px 6px',borderRadius:2,border:`1px solid ${b.color}44`}}>{b.label} · {fmt(b.amount)}</span>
                 ))}
-              </div>
+              </div>}
             </div>
-            <div style={{textAlign:'right'}}>
-              <div style={{fontFamily:'Georgia,serif',fontSize:'1.1rem',fontWeight:700,color:'#b8860b'}}>
-                {formatYen(r.total)}
+            <div style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
+            <div style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.65rem',fontWeight:600,color: r.wins >= 8 ? '#1a6b5c' : '#c0392b'}}>{r.wins}–{r.losses}</div>
+            <div className="pm-sum" style={{textAlign:'right',flexShrink:0}}>{/* pm_oneline_v1: suma zavzhdy, dodatky - desktop */}
+              <div style={{fontFamily:'Georgia,serif',fontSize: isMobile ? '0.82rem' : '1.1rem',fontWeight:700,color:'#b8860b'}}>
+                {fmt(r.total)}
               </div>
-              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>
-                {formatUSD(r.total)}
-              </div>
-              <div style={{marginTop:4,height:3,background:'var(--bg2)',borderRadius:1}}>
-                <div style={{height:'100%',width:`${r.total/maxTotal*100}%`,background:'#b8860b',borderRadius:1}} />
-              </div>
+              {!isMobile && (<>
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>
+                  {formatUSD(r.total)}
+                </div>
+                <div style={{marginTop:4,height:3,background:'var(--bg2)',borderRadius:1}}>
+                  <div style={{height:'100%',width:`${r.total/maxTotal*100}%`,background:'#b8860b',borderRadius:1}} />
+                </div>
+              </>)}
             </div>
           </div>
         ))}

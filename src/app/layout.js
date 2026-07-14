@@ -52,6 +52,7 @@ import GlobalSalt from './components/GlobalSalt' /* global_salt_v1 */
 import SiteFooter from './components/SiteFooter' /* site_footer_v1 */
 import FeedbackButton from './components/FeedbackButton' /* feedback_button_v1 */
 import { BashoFilterProvider } from './components/BashoFilterContext' /* basho_nav_v1 */
+import VoteTicker from './components/VoteTicker' /* ticker_layout_v1 */
 
 export default function RootLayout({ children }) {
   return (
@@ -71,6 +72,7 @@ export default function RootLayout({ children }) {
           <BiosProvider>
           <BashoFilterProvider>{/* basho_nav_v1 */}
             <NavBar />
+            <VoteTicker />{/* ticker_layout_v1 */}
             {children}<SiteFooter /><FeedbackButton /><GlobalSalt />
           </BashoFilterProvider>
           </BiosProvider>

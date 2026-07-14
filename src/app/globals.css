@@ -243,7 +243,6 @@ body {
 
 /* dots_inline_v1: kruzhechky poruch z imiam na vebi, pid nym na mob */
 @media (max-width: 860px) {
-  .cg-dots { flex-basis: 100%; order: 9; margin-top: 4px !important; }
 }
 
 /* tk_compact_v1: torikumi kompaktnyi - 2 kolonky na shyrokomu */
@@ -308,7 +307,9 @@ body {
 
 /* h2h_mobile_v1: na mob - naturalna shyryna + horyzontalnyi skrol, zaholovky povernuti */
 @media (max-width: 700px) {
-  .h2h-table { table-layout: auto !important; width: auto !important; min-width: 100%; }
+  .h2h-table { table-layout: fixed !important; width: 100% !important; min-width: 0 !important; font-size: 0.62rem !important; }
+  .h2h-table th:first-child, .h2h-table td:first-child { width: 84px !important; min-width: 84px !important; max-width: 84px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 3px 4px !important; }
+  .h2h-table td { min-width: 0 !important; padding: 3px 2px !important; font-size: 0.62rem !important; }
   .h2h-table th { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 4px 2px !important; font-size: 0.6rem !important; height: 80px; vertical-align: bottom; }
   .h2h-table th:first-child { writing-mode: initial; transform: none; height: auto; vertical-align: middle; }
 }
@@ -359,3 +360,37 @@ body {
   background: linear-gradient(90deg, rgba(184,134,11,0.20), rgba(184,134,11,0.07) 40%, rgba(184,134,11,0.16));
   box-shadow: inset 0 0 22px rgba(184,134,11,0.12);
 }
+
+/* pm_mobile_v1: pryzovi - sumy ne rozpykhaiut ekran */
+@media (max-width: 700px) {
+  .pm-sum > div:first-child { font-size: 0.85rem !important; }
+  .pm-sum > div:last-child { font-size: 0.55rem !important; }
+}
+
+/* vt_mobile_v1: korotkyi leibl tikera na mob */
+.vt-label-short { display: none; }
+@media (max-width: 700px) {
+  .vt-label-full { display: none; }
+  .vt-label-short { display: inline; }
+  .vt-label { padding: 0 8px !important; font-size: 0.6rem; letter-spacing: 0.06em !important; }
+  .vt-bar { font-size: 0.65rem; }
+}
+
+/* tabs_mobile_v1 */
+@media (max-width: 700px) {
+  .tab-btn { font-size: 0.58rem !important; padding: 0.32rem 0.7rem !important; letter-spacing: 0.05em !important; }
+}
+
+/* cg_mobile_v1: kartky dynamiky vmishchaiutsia na mob */
+@media (max-width: 700px) {
+  .cg-flow { flex-direction: column; }
+  .cg-flow > * { width: 100%; }
+}
+
+/* cg_dots_fit_v1: krapky dynamiky ne vylazyat za mezhi tablytsi */
+@media (max-width: 1024px) {
+  .cg-flow { flex-direction: column; }
+  .cg-flow > * { width: 100%; }
+}
+
+/* cg_row_v3_cleanup: vsi cg-overraidy prybrani, riadok samodostatnii inline; zalyshylysia lyshe cg-flow pravyla */

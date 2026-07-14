@@ -1,5 +1,7 @@
 'use client'
-/* division_select_v1: peremykach dyvizionu v navbari, poruch iz basho */
+/* division_select_v1 -> div_modal_v1: popover-modalka yak u BashoSelect */
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useBashoFilter } from './BashoFilterContext'
 import { useLang } from './LangProvider'
 
@@ -15,9 +17,37 @@ const DIVS = [
 export default function DivisionSelect() {
   const { division, setDivision } = useBashoFilter()
   const { lang } = useLang()
+  const [open, setOpen] = useState(false)
+  const boxRef = useRef(null)
+
+  useEffect(() => {
+    const onDoc = (e) => { if (boxRef.current && !boxRef.current.contains(e.target) && !(e.target.closest && e.target.closest('[data-division-popover]'))) setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+
+  const label = (d) => lang === 'ja' ? d.ja : d.id
+  const cur = DIVS.find(d => d.id === division) || DIVS[0]
+  const btn = { fontFamily: 'monospace', fontSize: '0.68rem', letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.06)', color: '#f5f0e8', borderWidth: 1, borderStyle: 'solid', borderColor: 'rgba(240,192,96,0.3)', borderRadius: 2, padding: '4px 10px', cursor: 'pointer' }
+  const btnActive = { ...btn, background: '#b8860b', color: '#1a120a', borderColor: '#b8860b', fontWeight: 700 }
+
   return (
-    <select value={division} onChange={e => setDivision(e.target.value)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink)',background:'var(--card)',border:'1px solid var(--border)',borderRadius:2,padding:'2px 6px'}}>
-      {DIVS.map(d => <option key={d.id} value={d.id}>{lang === 'ja' ? d.ja : d.id}</option>)}
-    </select>
+    <div ref={boxRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <button onClick={() => setOpen(o => !o)} style={{ ...btn, padding: '6px 12px', fontSize: '0.72rem' }}>
+        {label(cur)} {'\u25be'}
+      </button>
+      {open && typeof document !== 'undefined' && createPortal(
+        <div data-division-popover="1" style={{ position: 'fixed', top: 110, right: 24, zIndex: 9999, width: 240, maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',
+          background: '#161006', border: '1px solid rgba(240,192,96,0.35)', borderRadius: 4, padding: 12, boxShadow: '0 12px 34px rgba(0,0,0,0.6)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {DIVS.map(d => (
+              <button key={d.id} style={division === d.id ? btnActive : btn} onClick={() => { setDivision(d.id); setOpen(false) }}>
+                {label(d)}{lang !== 'ja' && <span style={{ marginLeft: 6, opacity: 0.55, textTransform: 'none' }}>{d.ja}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      , document.body)}
+    </div>
   )
 }
