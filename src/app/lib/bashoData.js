@@ -13,9 +13,9 @@ export async function getBashoData(division = 'Makuuchi') {
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
   const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/${division}`, { next: { revalidate: 300 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/${division}/${currentDay}`, { next: { revalidate: 300 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 300 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/${division}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/${division}/${currentDay}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 60 } }),
     fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}/banzuke/${division}`, { next: { revalidate: 3600 } }),
   ])
 
@@ -116,7 +116,7 @@ export async function getBashoData(division = 'Makuuchi') {
     try {
       const playoffRes = await fetch(
         `https://sumo-api.com/api/rikishi/${tiedCheck[0]._id}/matches?limit=20`,
-        { next: { revalidate: 300 } }
+        { next: { revalidate: 60 } }
       )
       const playoffData = await playoffRes.json()
       const playoffMatch = playoffData.records?.find(m =>
