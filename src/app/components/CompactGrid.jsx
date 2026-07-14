@@ -83,7 +83,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
     return (
       <div key={r._id} className="cg-row" style={{display:'grid',gridTemplateColumns:'minmax(80px,1fr) 38px 122px 34px',alignItems:'center',gap:6,padding:'0.15rem 0.5rem',borderBottom:'1px solid var(--border)' /* cg_grid_cols_v1 */}}>
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-          <FlagName id={r._id} name={r.name} size='0.75rem' />
+          <FlagName id={r._id} name={r.name} size='0.6rem' />
         </div>
         <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textAlign:'center'}}>{shortRank(r.rank, lang)}</div>
           <div style={{display:'flex',gap:2,flexWrap:'nowrap',marginTop:0,justifySelf:'center'}} className="cg-dots">

@@ -33,7 +33,7 @@ export default function LiveNow({ currentDay: dayProp = null }) {
         const jstMin = (utc.getUTCHours() * 60 + utc.getUTCMinutes() + 540) % 1440
         if (jstMin < 480 || jstMin > 1110) { if (!stop) setLive(null); return }  // 08:00-18:30 JST
         const results = await Promise.all(DIVS.map(d =>
-          fetch(`/api/torikumi?division=${d}&day=${currentDay}`).then(r => r.json()).catch(() => [])
+          fetch(`/api/torikumi?division=${d}&day=${currentDay}`, { cache: 'no-store' }).then(r => r.json()).catch(() => [])
         ))
         /* live_detect_v2: divizion "u rozpali" (ye i zihrani, i nezihrani) maie priorytet -
            zavysli cherez lah API boi molodshykh dyvizioniv ne blokuiut perekhid do starshykh */
