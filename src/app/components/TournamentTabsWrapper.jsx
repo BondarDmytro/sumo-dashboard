@@ -14,11 +14,16 @@ import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_fi
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
   const { setDivision } = useBashoFilter()  /* div_from_url_v1 */
   const [tab, setTab] = useState('standings')
-  useEffect(() => {  /* tab_from_url_v1: ?tab=torikumi vid LIVE-kliku v navbari */
-    const sp = new URLSearchParams(window.location.search)
-    if (sp.get('tab') === 'torikumi') setTab('torikumi')
-    const d = sp.get('div')  /* div_from_url_v1 */
-    if (['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi'].includes(d)) setDivision(d)
+  useEffect(() => {  /* url_listen_v1: chytannia na mount + slukhannia live-nav podii (push z tiiei zh storinky) */
+    const apply = () => {
+      const sp = new URLSearchParams(window.location.search)
+      if (sp.get('tab') === 'torikumi') setTab('torikumi')
+      const d = sp.get('div')
+      if (['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi'].includes(d)) setDivision(d)
+    }
+    apply()
+    window.addEventListener('livenav', apply)
+    return () => window.removeEventListener('livenav', apply)
   }, [])
   const { selBasho, division } = useBashoFilter()  /* basho_filter_v2 */ /* division_wire_v1 */
   const [liveView, setLiveView] = useState('list')  /* live_dynamics_v1 */

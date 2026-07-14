@@ -19,7 +19,10 @@ export default function LiveNow({ currentDay: dayProp = null }) {
   const router = useRouter()
   const _seg = (path || '').split('/')[1]
   const langPrefix = ['uk','en','ja'].includes(_seg) ? '/' + _seg : ''
-  const goLive = () => router.push(langPrefix + '/?tab=torikumi' + (live?.division ? '&div=' + live.division : ''))  /* live_click_v2: div matchu */
+  const goLive = () => {  /* live_click_v3: push + podiia dlia toho zh pathname */
+    router.push(langPrefix + '/?tab=torikumi' + (live?.division ? '&div=' + live.division : ''))
+    setTimeout(() => window.dispatchEvent(new Event('livenav')), 150)
+  }
 
   useEffect(() => {
     let stop = false
@@ -31,11 +34,25 @@ export default function LiveNow({ currentDay: dayProp = null }) {
         const results = await Promise.all(DIVS.map(d =>
           fetch(`/api/torikumi?division=${d}&day=${currentDay}`).then(r => r.json()).catch(() => [])
         ))
-        let found = null
-        for (let i = 0; i < DIVS.length; i++) {
+        /* live_detect_v2: divizion "u rozpali" (ye i zihrani, i nezihrani) maie priorytet -
+           zavysli cherez lah API boi molodshykh dyvizioniv ne blokuiut perekhid do starshykh */
+        let found = null, fallback = null
+        for (let i = DIVS.length - 1; i >= 0; i--) {  // vid Makuuchi vnyz
           const ms = Array.isArray(results[i]) ? results[i] : []
-          const next = [...ms].sort((a, b) => a.matchNo - b.matchNo).find(m => !m.winnerEn)
-          if (next) { found = { ...next, division: DIVS[i] }; break }
+          const sorted = [...ms].sort((a, b) => a.matchNo - b.matchNo)
+          const next = sorted.find(m => !m.winnerEn)
+          if (!next) continue
+          const hasPlayed = sorted.some(m => m.winnerEn)
+          if (hasPlayed) { found = { ...next, division: DIVS[i] }; break }  // rozpal - naistarshyi peremagaie
+          if (!fallback) fallback = { ...next, division: DIVS[i] }  // shche ne pochavsia - kandydat
+        }
+        if (!found && fallback) {
+          // zhodnoho "v rozpali": berem NAIMOLODSHYI divizion sered nepochatykh (ranok - Jonokuchi pershyi)
+          for (let i = 0; i < DIVS.length; i++) {
+            const ms = Array.isArray(results[i]) ? results[i] : []
+            const next = [...ms].sort((a, b) => a.matchNo - b.matchNo).find(m => !m.winnerEn)
+            if (next) { found = { ...next, division: DIVS[i] }; break }
+          }
         }
         if (!stop) setLive(found)
       } catch { if (!stop) setLive(null) }

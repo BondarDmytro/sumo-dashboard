@@ -23,10 +23,14 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   /* tk_live_v1: pershyi bii bez rezultatu = na dokhio zaraz (±1 bii, lah API) */
   const jstH = (new Date().getUTCHours() + 9) % 24
   const liveWindow = jstH >= 8 && jstH < 19
-  useEffect(() => {  /* live_scroll_v1 */
-    if (new URLSearchParams(window.location.search).get('tab') !== 'torikumi') return
-    const t = setTimeout(() => document.getElementById('tk-live-row')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
-    return () => clearTimeout(t)
+  useEffect(() => {  /* url_listen_v1 */
+    const scrollIf = () => {
+      if (new URLSearchParams(window.location.search).get('tab') !== 'torikumi') return
+      setTimeout(() => document.getElementById('tk-live-row')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400)
+    }
+    scrollIf()
+    window.addEventListener('livenav', scrollIf)
+    return () => window.removeEventListener('livenav', scrollIf)
   }, [])
   const liveMatchId = liveWindow ? [...(matches || [])].sort((a,b) => a.matchNo - b.matchNo).find(m => !m.winnerEn)?.id : null
 
