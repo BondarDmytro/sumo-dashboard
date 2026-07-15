@@ -26,16 +26,16 @@ function getRankShort(rank) {
   return rank
 }
 
-function MatchDots({ record }) {
+function MatchDots({ record, isMobile }) {  /* arch_table_mobile_v1 */
   return (
-    <div style={{display:'flex',gap:1,flexWrap:'nowrap'}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'nowrap',width:'100%',minWidth: isMobile ? 122 : 210}}>{/* arch_dots_big_v1 + arch_table_mobile_v1 */}
       {record.map((m, idx) => {
         const isWin = RESULTS_WIN.includes(m.result)
         const isLoss = RESULTS_LOSS.includes(m.result)
         const isFusen = m.kimarite === 'fusen'
         return (
           <span key={idx} title={`Day ${idx+1}${m.opponentShikonaEn ? ': '+m.opponentShikonaEn : ''}`} style={{
-            width:7,height:7,borderRadius:'50%',
+            width: isMobile ? 7 : 11,height: isMobile ? 7 : 11,borderRadius:'50%',boxSizing:'border-box',
             background: isWin ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
             border: isLoss ? '1.5px solid var(--ink)' : m.result==='absent' ? '1.5px solid #aaa' : isWin ? 'none' : '1px dashed var(--light)',
             display:'inline-block',flexShrink:0,
@@ -55,6 +55,14 @@ export default function ArchivePageClient() {
   const [loading, setLoading] = useState(false)
   const [biosLoaded, setBiosLoaded] = useState(false)
   const { lang } = useLang()
+  const [isMobile, setIsMobile] = useState(false)  /* arch_tabs_mobile_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
 
   useEffect(() => {
     fetch('/api/bios').then(r => r.json()).then(d => {
@@ -148,11 +156,12 @@ export default function ArchivePageClient() {
         </h1>
 
         {/* Кнопки вибору басьо */}
-        <div style={{display:'flex',gap:8,marginBottom:'2rem',flexWrap:'wrap'}}>
+        <div style={{display: isMobile ? 'grid' : 'flex',gridTemplateColumns:'repeat(2, minmax(0,1fr))',gap: isMobile ? 6 : 8,marginBottom:'2rem',flexWrap:'wrap'}}>{/* arch_tabs_mobile_v1 */}
           {ARCHIVE_BASHOS.map(b => (  /* archive_no_current_v1 */
             <button key={b.id} onClick={() => setSelectedBasho(b)} style={{
-              padding:'0.6rem 1.25rem',
-              fontFamily:'monospace',fontSize:'0.72rem',
+              padding: isMobile ? '0.45rem 0.4rem' : '0.6rem 1.25rem',
+              fontFamily:'monospace',fontSize: isMobile ? '0.6rem' : '0.72rem',
+              minWidth:0,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis',
               letterSpacing:'0.08em',
               background: selectedBasho.id === b.id ? 'var(--ink)' : 'var(--bg2)',
               color: selectedBasho.id === b.id ? 'var(--bg)' : 'var(--mid)',
@@ -263,7 +272,7 @@ export default function ArchivePageClient() {
                 <thead>
                   <tr style={{borderBottom:'2px solid var(--ink)'}}>
                     {tableHeaders.map(h => (
-                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.3rem',textAlign:'left',fontWeight:500}}>
+                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.3rem',textAlign: h === tableHeaders[1] ? 'left' : 'center',fontWeight:500}}>{/* arch_th_center_v1 */}
                         {h}
                       </th>
                     ))}
@@ -279,15 +288,15 @@ export default function ArchivePageClient() {
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
                           <span>{r.flag}</span>
                           <div>
-                            <div style={{fontWeight:700,fontSize:'0.88rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
-                            <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>
+                            <div style={{fontWeight:700,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth: isMobile ? 92 : 'none'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
+                            {!isMobile && <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>}{/* arch_table_mobile_v1 */}
                           </div>
                         </div>
                       </td>
                       <td style={{padding:'0.5rem 0.3rem'}}>
                         <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 5px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
                       </td>
-                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize:'0.88rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap'}}>
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>
                           {r.wins}–{r.losses}
                         </span>
@@ -297,8 +306,8 @@ export default function ArchivePageClient() {
                           </span>
                         )}
                       </td>
-                      <td style={{padding:'0.5rem 0.3rem'}}>
-                        <MatchDots record={r.record} />
+                      <td style={{padding:'0.5rem 0.3rem',width:'34%'}}>{/* arch_dots_big_v1: kolonka Matchi zabyraie tretynu tablytsi */}
+                        <MatchDots record={r.record} isMobile={isMobile} />
                       </td>
                     </tr>
                   ))}

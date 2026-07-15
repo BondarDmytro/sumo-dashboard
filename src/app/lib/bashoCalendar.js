@@ -102,6 +102,10 @@ export const BASHO_LIST = [
   { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', labelJa: '春場所 2026', location: 'Осака', locationEn: 'Osaka' },
   { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', labelJa: '初場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
   { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', labelJa: '九州場所 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
+  { id: '202509', label: 'Акі 2025', labelEn: 'Aki 2025', labelJa: '秋場所 2025', location: 'Токіо', locationEn: 'Tokyo' },  /* basho_list_2025_v1 */
+  { id: '202507', label: 'Наґоя 2025', labelEn: 'Nagoya 2025', labelJa: '名古屋場所 2025', location: 'Наґоя', locationEn: 'Nagoya' },
+  { id: '202505', label: 'Натсу 2025', labelEn: 'Natsu 2025', labelJa: '夏場所 2025', location: 'Токіо', locationEn: 'Tokyo' },
+  { id: '202503', label: 'Хару 2025', labelEn: 'Haru 2025', labelJa: '春場所 2025', location: 'Осака', locationEn: 'Osaka' },
 ]
 
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
