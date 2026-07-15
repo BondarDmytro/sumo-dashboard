@@ -74,8 +74,8 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
           {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} division={division} />}
         </>
       )}
-      {isCurrent && tab === 'torikumi' && <TorikumiView division={division} currentDay={currentDay} bios={bios} rikishi={allRikishi} />}
-      {isCurrent && tab === 'torikumi2' && <TorikumiView division={division} currentDay={currentDay+1} bios={bios} rikishi={allRikishi} />}  {/* torikumi2_v1 */}
+      {isCurrent && tab === 'torikumi' && <TorikumiView division={division} currentDay={currentDay} bios={bios} rikishi={allRikishi} pickemScore={true} bashoId={CURRENT_BASHO} />}{/* pickem_score_v1: potochnyi den - read-only rakhunok */}
+      {isCurrent && tab === 'torikumi2' && <TorikumiView division={division} currentDay={currentDay+1} bios={bios} rikishi={allRikishi} pickem={true} bashoId={CURRENT_BASHO} />}{/* pickem_panel_v1 */}  {/* torikumi2_v1 */}
       {isCurrent && tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
       {!isCurrent && <PrevBashoDynamics bashoId={selBasho} />}  {/* basho_filter_v1 */}
     </>

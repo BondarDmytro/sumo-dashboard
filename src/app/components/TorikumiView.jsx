@@ -1,5 +1,7 @@
 'use client'
-import { shortRank } from '../lib/bashoCalendar' /* tk_shortrank */ /* ja_batch2_t */
+import { shortRank, bashoInfo } from '../lib/bashoCalendar' /* tk_shortrank */ /* pickem_panel_v1 */
+import { usePicks, pickDeadlineUtcMs } from './usePicks'
+import PickemBoard from './PickemBoard' /* pickem_board_wire_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -16,7 +18,7 @@ function getRankValue(rank) {
   return idx * 100 + num * 2 + side
 }
 
-export default function TorikumiView({ division = null, /* division_torikumi_v1 */ currentDay, bios = {}, rikishi = [] }) {
+export default function TorikumiView({ division = null, /* division_torikumi_v1 */ currentDay, bios = {}, rikishi = [], pickem = false, pickemScore = false, bashoId = null })  /* pickem_score_v1 */  /* pickem_panel_v1 */ {
   const [isMobile, setIsMobile] = useState(false)  /* tk_shortrank */
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 700px)')
@@ -30,6 +32,41 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   const [matches, setMatches] = useState([])
   const [h2hData, setH2hData] = useState({})
   const [loading, setLoading] = useState(true)
+  /* pickem_panel_v1: shchodenni prohnozy */
+  const { uid: pickUid, myPicks, submit } = usePicks((pickem || pickemScore) ? bashoId : null, currentDay)
+  const [boardOpen, setBoardOpen] = useState(false)  /* pickem_board_wire_v1 */
+  const [draft, setDraft] = useState({})
+  const [saving, setSaving] = useState(false)
+  const locked = pickem && myPicks && Object.keys(myPicks).length > 0
+  /* pickem_score_v1: rakhunok dnia z rezultatamy */
+  const scoreMode = pickemScore && myPicks && Object.keys(myPicks).length > 0
+  const scored = scoreMode ? matches.filter(m => m.winnerId && myPicks[m.matchNo]) : []
+  const hits = scored.filter(m => Number(myPicks[m.matchNo]) === Number(m.winnerId)).length
+  const pickMark = (matchNo, rid) => {
+    if (!scoreMode) return null
+    const my = Number(myPicks[matchNo] || 0)
+    if (my !== Number(rid)) return null
+    const m2 = matches.find(x => x.matchNo === matchNo)
+    if (!m2 || !m2.winnerId) return <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{'\u25cb'}</span>
+    return Number(m2.winnerId) === my
+      ? <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'#b8860b',fontWeight:800}}>{'\u2713'}</span>
+      : <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>{'\u2717'}</span>
+  }
+  const deadlineMs = pickem && bashoId ? pickDeadlineUtcMs(bashoInfo(bashoId).startUtcMs, currentDay) : 0
+  const deadlinePast = pickem && Date.now() > deadlineMs
+  const pickOf = (matchNo) => locked ? Number(myPicks[matchNo] || 0) : Number(draft[matchNo] || 0)
+  const togglePick = (matchNo, rid) => {
+    if (!pickem || locked || deadlinePast) return
+    setDraft(d => { const n = { ...d }; if (Number(n[matchNo]) === rid) delete n[matchNo]; else n[matchNo] = rid; return n })
+  }
+  const fixPicks = async () => {
+    if (saving || !Object.keys(draft).length) return
+    if (!window.confirm(t3(lang, 'Прогноз не можна буде змінити. Фіксуємо?', 'Picks cannot be changed later. Lock in?', '予想は変更できません。確定しますか？'))) return
+    setSaving(true)
+    const res = await submit(draft)
+    setSaving(false)
+    if (!res.ok) window.alert(t3(lang, 'Не вдалося зберегти: ', 'Failed to save: ', '保存に失敗: ') + res.err)
+  }
   const nextDay = currentDay
   /* tk_live_v1: pershyi bii bez rezultatu = na dokhio zaraz (±1 bii, lah API) */
   const jstH = (new Date().getUTCHours() + 9) % 24
@@ -92,8 +129,16 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   )
 
   if (!matches.length) return (
-    <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {lang === 'ja' ? `${nextDay}日目の取組は未発表` : lang === 'en' ? `Schedule for day ${nextDay} not yet available` : `Розклад на день ${nextDay} ще не сформовано`}
+    <div>
+      {pickem && (  /* pickem_empty_v1: anons prohnoziv poky rozkladu nema */
+        <div style={{display:'flex',alignItems:'center',gap:10,padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>
+          <span>🎯</span>
+          <span>{t3(lang, "Щойно з'явиться розклад — тут можна буде вгадати переможців сан'яку", "Once the schedule is out, you can pick the san'yaku winners here", '取組発表後、ここで三役の勝者を予想できます')}</span>
+        </div>
+      )}
+      <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
+        {lang === 'ja' ? `${nextDay}日目の取組は未発表` : lang === 'en' ? `Schedule for day ${nextDay} not yet available` : `Розклад на день ${nextDay} ще не сформовано`}
+      </div>
     </div>
   )
 
@@ -131,6 +176,15 @@ const sanyaku = matches
 
     const h2h = h2hData[`${m.eastId}-${m.westId}`]
     const hasH2H = h2h && h2h.total > 0
+    const pickable = pickem && !locked && !deadlinePast  /* pickem_all_affordance_v1: vsi pary makuuchi */ /* pickem_dev_test_v1 TMP - VYDALYTY: povernuty !hasResult */  /* pickem_panel_v1 */
+    const pickedId = pickem ? pickOf(m.matchNo) : 0
+    const eMark = pickem || pickemScore ? pickMark(m.matchNo, m.eastId) : null  /* pickem_score_v1 */
+    const wMark = pickem || pickemScore ? pickMark(m.matchNo, m.westId) : null
+    const pickStyle = (rid) => pickedId === rid
+      ? { background: 'rgba(184,134,11,0.18)', boxShadow: 'inset 0 0 0 2px #b8860b', borderRadius: 3, padding: '2px 4px' }
+      : pickable
+        ? { boxShadow: 'inset 0 0 0 1px rgba(184,134,11,0.45)', background: 'rgba(184,134,11,0.04)', borderRadius: 3, padding: '2px 4px' }
+        : {}  /* pickem_all_affordance_v1: nevybrani klikabelni - punktyrno-zolota afordnist */
 
     return (
       <div key={m.id} id={m.id === liveMatchId ? "tk-live-row" : undefined} className={"tk-match" + (m.id === liveMatchId ? " tk-live" : "") + ((isFav(m.eastId) || isFav(m.westId)) ? " fav-row" : "")} style={{
@@ -143,9 +197,9 @@ const sanyaku = matches
       }}>
         <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'left'}}>{m.matchNo}</div>{/* tk_matchno_v1 */}
         {/* East */}
-        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? 'auto minmax(0,1fr) auto auto 14px' : 'auto minmax(0,1fr) auto auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1}}>{/* tk_cols_v2: rank | name | flag | score | (circle) */}
+        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? 'auto minmax(0,1fr) auto auto 14px' : 'auto minmax(0,1fr) auto auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.eastId)}} onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
           <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}{/* tk_shortrank_all_v1 */}</span>
-          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}</span>  {/* tk_name_center_v1 */}
+          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{eMark}{eMark ? ' ' : ''}{lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}</span>{/* pickem_score_v1 */}  {/* tk_name_center_v1 */}
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{eastFlag}</span>
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
           {hasResult && !isMobile && (
@@ -181,13 +235,13 @@ const sanyaku = matches
         </div>
 
         {/* West */}
-        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? '14px auto auto minmax(0,1fr) auto' : 'auto auto minmax(0,1fr) auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !westWon ? 0.4 : 1}}>{/* tk_cols_v2: (circle) | score | flag | name | rank */}
+        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? '14px auto auto minmax(0,1fr) auto' : 'auto auto minmax(0,1fr) auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !westWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.westId)}} onClick={pickable ? () => togglePick(m.matchNo, m.westId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
           {hasResult && !isMobile && (
             <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: westWon ? 'visible' : 'hidden'}} />
           )}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{westFlag}</span>
-          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}</span>  {/* tk_name_center_v1 */}
+          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}{wMark ? ' ' : ''}{wMark}</span>{/* pickem_score_v1 */}  {/* tk_name_center_v1 */}
           <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}{/* tk_shortrank_all_v1 */}</span>
         </div>
       </div>
@@ -196,6 +250,37 @@ const sanyaku = matches
 
   return (
     <div>
+      {scoreMode && (  /* pickem_score_v1: ranishnia smuha rezultatu */
+        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
+          <span>🎯</span>
+          <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Твій прогноз', 'Your picks', '予想結果')}: {hits}/{scored.length} {'\u2713'}</span>
+          {scored.length < Object.keys(myPicks).length && <span style={{color:'var(--mid)'}}>{t3(lang, '· ще не всі бої завершено', '· some bouts pending', '· 未消化の取組あり')}</span>}
+          <button onClick={() => setBoardOpen(true)} style={{marginLeft:'auto',fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'3px 12px',cursor:'pointer',borderRadius:2,border:'1px solid rgba(184,134,11,0.5)',background:'transparent',color:'#b8860b',fontWeight:700}}>
+            {t3(lang, 'Лідерборд', 'Leaderboard', '順位表')} {'\u2192'}
+          </button>
+          <PickemBoard bashoId={bashoId} currentDay={currentDay} myUid={pickUid} open={boardOpen} onClose={() => setBoardOpen(false)} />
+        </div>
+      )}
+      {pickem && (  /* pickem_panel_v1: banner staniv */
+        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
+          <span>🎯</span>
+          {locked ? (
+            <span style={{color:'#1a6b5c',fontWeight:700}}>{t3(lang, 'Твій прогноз зафіксовано · результат — після боїв', 'Your picks are locked · results after the bouts', '予想確定 · 結果は取組後')}</span>
+          ) : deadlinePast ? (
+            <span style={{color:'var(--mid)'}}>{t3(lang, 'Прийом прогнозів на цей день закрито', 'Picks for this day are closed', 'この日の予想受付は終了')}</span>
+          ) : (
+            <>
+              <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Вгадай переможців дня — клікай по стороні пари', 'Pick the day winners — tap a side', 'その日の勝者を予想 — 側をタップ')}</span>
+              <span style={{color:'var(--mid)'}}>{Object.keys(draft).length}/{matches.length}</span>{/* pickem_all_affordance_v1 */}
+              {Object.keys(draft).length > 0 && (
+                <button onClick={fixPicks} disabled={saving} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'4px 14px',cursor:'pointer',borderRadius:2,border:'1px solid #b8860b',background:'#b8860b',color:'#1a120a',fontWeight:700,opacity: saving ? 0.6 : 1}}>
+                  {saving ? '...' : t3(lang, 'Зафіксувати', 'Lock in', '確定')} ({Object.keys(draft).length})
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
       {sanyaku.length > 0 && (
         <div style={{marginBottom:'0.5rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 1rem',background:'var(--bg2)',borderLeft:'3px solid #b8860b',marginBottom:1}}>
