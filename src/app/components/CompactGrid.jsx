@@ -93,7 +93,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
   const renderItem = r => {
     const dot = isMobile ? 6 : 7  /* cg_dots_stretch_v1: krapky rozkladaiutsia space-between na vsiu kolonku */
     return (
-      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns: isMobile ? 'minmax(0,1fr) 30px 34px minmax(90px,1.1fr)' : 'minmax(0,1fr) 36px 40px minmax(140px,1.4fr)',alignItems:'center',gap: isMobile ? 4 : 6,padding: isMobile ? '0.15rem 0.3rem' : '0.15rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
+      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns: isMobile ? 'minmax(72px,1fr) 30px 34px minmax(80px,120px)' : 'minmax(96px,1fr) 36px 40px minmax(120px,170px)'  /* cg_name_min_v1: imia maie harantovanyi minimum, krapky - stelia */,alignItems:'center',gap: isMobile ? 4 : 6,padding: isMobile ? '0.15rem 0.3rem' : '0.15rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
           <FlagName id={r._id} name={r.name} size='0.6rem'/>
         </div>
