@@ -197,13 +197,17 @@ const sanyaku = matches
       }}>
         <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'left'}}>{m.matchNo}</div>{/* tk_matchno_v1 */}
         {/* East */}
-        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? 'auto minmax(0,1fr) auto auto 14px' : 'auto minmax(0,1fr) auto auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.eastId)}} onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
-          <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}{/* tk_shortrank_all_v1 */}</span>
-          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{eMark}{eMark ? ' ' : ''}{lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}</span>{/* pickem_score_v1 */}  {/* tk_name_center_v1 */}
+        <div style={{display:'grid',gridTemplateColumns: ((hasResult || eMark) ? (isMobile ? 'auto minmax(0,1fr) auto auto 12px' : 'auto minmax(0,1fr) auto auto 14px') : 'auto minmax(0,1fr) auto auto')  /* tk_mob_badge_col_v1 */,gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.eastId)}} onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
+          <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}</span>
+          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && eastR?.nameJp ? eastR.nameJp : m.eastShikona}</span>{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{eastFlag}</span>
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
-          {hasResult && !isMobile && (
-            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: eastWon ? 'visible' : 'hidden'}} />
+          {(hasResult || eMark) && (
+            eMark
+              ? <span style={{textAlign:'center'}}>{eMark}</span>
+              : (!isMobile
+                ? <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: eastWon ? 'visible' : 'hidden'}} />
+                : <span />)
           )}
         </div>
 
@@ -235,14 +239,18 @@ const sanyaku = matches
         </div>
 
         {/* West */}
-        <div style={{display:'grid',gridTemplateColumns: (hasResult && !isMobile) ? '14px auto auto minmax(0,1fr) auto' : 'auto auto minmax(0,1fr) auto',gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !westWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.westId)}} onClick={pickable ? () => togglePick(m.matchNo, m.westId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
-          {hasResult && !isMobile && (
-            <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: westWon ? 'visible' : 'hidden'}} />
+        <div style={{display:'grid',gridTemplateColumns: ((hasResult || wMark) ? (isMobile ? '12px auto auto minmax(0,1fr) auto' : '14px auto auto minmax(0,1fr) auto') : 'auto auto minmax(0,1fr) auto')  /* tk_mob_badge_col_v1 */,gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !westWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default',...pickStyle(m.westId)}} onClick={pickable ? () => togglePick(m.matchNo, m.westId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
+          {(hasResult || wMark) && (
+            wMark
+              ? <span style={{textAlign:'center'}}>{wMark}</span>
+              : (!isMobile
+                ? <span style={{width:10,height:10,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',visibility: westWon ? 'visible' : 'hidden'}} />
+                : <span />)
           )}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem'}}>{westFlag}</span>
-          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}{wMark ? ' ' : ''}{wMark}</span>{/* pickem_score_v1 */}  {/* tk_name_center_v1 */}
-          <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}{/* tk_shortrank_all_v1 */}</span>
+          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center'}}>{lang === 'ja' && westR?.nameJp ? westR.nameJp : m.westShikona}</span>{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
+          <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}</span>
         </div>
       </div>
     )

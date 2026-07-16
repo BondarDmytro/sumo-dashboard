@@ -160,8 +160,8 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                   <td style={{padding:'0.35rem 0.75rem'}}>
                     <MatchDots record={r.record} currentDay={currentDay} />
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem'}}>
-                    <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,
+                  <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_status_center_v1 */}
+                    <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,display:'inline-block',
                       background:r.status==='lead'?'#1a6b5c':r.status==='chase'?'#b8860b':'var(--bg2)',
                       color:r.status==='lead'?'#fff':r.status==='chase'?'#fff':'var(--mid)'}}>
                       {statusLabel}
