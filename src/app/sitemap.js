@@ -8,6 +8,8 @@ export default function sitemap() {
     { path: '/rikishi', changeFrequency: 'daily', priority: 0.8 },
     { path: '/archive', changeFrequency: 'weekly', priority: 0.7 },
     { path: '/sumo', changeFrequency: 'monthly', priority: 0.6 },
+    { path: '/rikishi/aonishiki', changeFrequency: 'daily', priority: 0.9 },  /* sitemap_hubs_v1 */
+    { path: '/rikishi/shishi', changeFrequency: 'daily', priority: 0.8 },
   ]
   const langs = ['en', 'ja', 'uk']
   const out = [{ url: base, lastModified: now, changeFrequency: 'daily', priority: 1 }]
