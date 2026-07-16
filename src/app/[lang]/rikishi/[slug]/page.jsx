@@ -106,6 +106,9 @@ export default async function RikishiHubPage({ params }) {
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <h1 style={{fontSize:'1.4rem',fontWeight:800,margin:'0 0 0.5rem'}}>{s.name[L]}</h1>
         <p style={{fontSize:'0.85rem',lineHeight:1.7,color:'var(--mid)',maxWidth:720,margin:'0 0 1rem'}}>{s.intro[L]}</p>
+        {m.heya && <p style={{margin:'0 0 1rem'}}><a href={`/${L}/heya/${String(m.heya).toLowerCase().replace(/[^a-z0-9]/g, '')}`} style={{fontFamily:'monospace',fontSize:'0.66rem',color:'#1a4a7a',textDecoration:'none'}}>{/* hub_heya_link_v1 */}
+          {{uk: `Стайня: ${m.heya} →`, en: `Stable: ${m.heya} →`, ja: `${m.heya}部屋 →`}[L]}
+        </a></p>}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:6,marginBottom:'1.5rem'}}>
           {facts.map(([k, v]) => (
             <div key={k} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>

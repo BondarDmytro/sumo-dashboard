@@ -412,3 +412,14 @@ body {
 [data-theme="dark"] .tab-btn.tab-board { color: #7db8e0 !important; }
 [data-theme="dark"] .tab-btn.tab-prizes { color: #6fc7b4 !important; }
 [data-theme="dark"] .tab-btn.tab-board.tab-active, [data-theme="dark"] .tab-btn.tab-prizes.tab-active { color: #fff !important; }
+
+/* heya_roster_mobile_v1: kompaktni plytky skladu staini na mob */
+@media (max-width: 700px) {
+  .heya-roster { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 4px !important; } /* heya_roster_mobile_v2 */
+  .heya-roster a { flex-direction: column !important; align-items: flex-start !important; }
+  .heya-roster a > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .heya-roster a { padding: 0.35rem 0.5rem !important; gap: 5px !important; }
+  .heya-roster a > span:first-child { font-size: 0.7rem !important; }
+  .heya-roster a > span:last-child { font-size: 0.52rem !important; padding: 1px 3px !important; }
+}
+

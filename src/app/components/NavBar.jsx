@@ -90,6 +90,7 @@ useEffect(() => {
     { href: '/', label: t?.nav?.tournament || 'Турнір' },
     { href: '/ranks', label: t?.nav?.ranks || 'Ранги' },
     { href: '/rikishi', label: t?.nav?.rikishi || 'Рікіші' },
+    { href: '/heya', label: t?.nav?.heya || (lang === 'ja' ? '部屋' : lang === 'en' ? 'Stables' : 'Стайні'), deep: true },  /* nav_heya_v1 */
     { href: '/archive', label: t?.nav?.archive || 'Архів' },
     { href: '/sumo', label: t?.nav?.sumo || 'Про сумо' },
   ]
@@ -114,16 +115,16 @@ useEffect(() => {
                 <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
               </a>  {/* navbar_cleanup_v1 */}
           {tabs.map(tab => (
-            <Link key={tab.href} href={langPrefix + tab.href} className="nav-tab" style={{
+            <Link key={tab.href} href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja'].includes(lang) ? lang : 'en') : langPrefix) + tab.href} className="nav-tab" style={{/* nav_heya_v2: deep-taby zavzhdy z movnym prefiksom */
               display: 'inline-block',
               padding: '0.7rem 0.9rem',
               fontFamily: 'monospace',
               fontSize: '0.68rem',
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: path === langPrefix + tab.href ? '#f5f0e8' : '#6b6560',
+              color: (tab.deep ? path.startsWith(langPrefix + tab.href) : path === langPrefix + tab.href) ? '#f5f0e8' : '#6b6560',  /* nav_heya_v1 */
               textDecoration: 'none',
-              borderBottom: path === langPrefix + tab.href ? '2px solid #b8860b' : '2px solid transparent',
+              borderBottom: (tab.deep ? path.startsWith(langPrefix + tab.href) : path === langPrefix + tab.href) ? '2px solid #b8860b' : '2px solid transparent',  /* nav_heya_v1 */
               whiteSpace: 'nowrap',
               flexShrink: 0,
             }}>
