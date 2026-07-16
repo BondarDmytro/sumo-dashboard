@@ -90,13 +90,14 @@ export default async function Home() {
           kyujoCount: kyujo.length,
           isFinished: isFinished || showPlayoffBanner,
           specialPrizes, yushoData,
-        }} />{/* division_gate_v1 */}
+          h2h,
+        }} />{/* division_gate_v1 + footer_division_v1 */}
         <HomeGrids others={others} kyujo={kyujo} currentDay={currentDay} />
         <CurrentOnly>  {/* basho_filter_v2_fix: mobile-cards + footer тільки для поточного басьо */}
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
-        <TournamentFooter contenders={contenders} h2h={h2h} allRikishi={rikishi} />{/* chart_global_pct_v1 */}
+        {/* footer_division_v1: TournamentFooter pereikhav u DivisionDataGate */}
         </CurrentOnly>
       </div>
       </>

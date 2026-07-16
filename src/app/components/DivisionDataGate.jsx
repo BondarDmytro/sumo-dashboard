@@ -5,6 +5,7 @@ import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext'
 import { useLang } from './LangProvider'
 import TournamentStatus from './TournamentStatus'
 import TournamentTabsWrapper from './TournamentTabsWrapper'
+import TournamentFooter from './TournamentFooter' /* footer_division_v1 */
 
 function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
 
@@ -46,6 +47,7 @@ export default function DivisionDataGate({ makuuchi }) {
     const contenders = rikishi.filter(r => r.yushoChance > 0)
       .sort((a,b) => b.wins - a.wins || b.yushoChance - a.yushoChance || (a.rankValue||999) - (b.rankValue||999))
     view = {
+      h2h: [],  /* footer_division_v1: H2H rakhuietsia serverom lyshe dlia Makuuchi */
       leaders: divData.leaders || [], chasers: divData.chasers || [],
       currentDay: divData.currentDay, maxWins: divData.maxWins,
       contenders, allRikishi: rikishi,
@@ -72,6 +74,9 @@ export default function DivisionDataGate({ makuuchi }) {
         allRikishi={view.allRikishi} isFinished={view.isFinished}
         specialPrizes={view.specialPrizes} yushoData={view.yushoData}
       />
+      {isCurrent && (  /* footer_division_v1: futer zhyve v geiti - division-aware */
+        <TournamentFooter contenders={view.contenders} h2h={view.h2h !== undefined && division !== 'Makuuchi' ? [] : makuuchi.h2h} allRikishi={view.allRikishi} />
+      )}
     </>
   )
 }

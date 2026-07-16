@@ -77,7 +77,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
     items: byWins[wins].sort((a,b) => (a.rankValue||999) - (b.rankValue||999))
   }))
 
-  const numCols = 3  /* cg_3cols_v1: zavzhdy 3 kolonky, hrupy rizhutsia mizh kolonkamy z perenosom riadkiv */
+  const numCols = isMobile ? 1 : 3  /* cg_mob_onecol_v1: na mob odna kolonka - hrupy ne rizhutsia */
   const per = Math.ceil(items.length / numCols)
   const cols = [[], [], []]
   {
@@ -148,7 +148,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
         {title}
       </div>
       <div className="cg-flow" style={{display:'grid',gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0,1fr))',gap:8,alignItems:'start'}}>{/* cg_3cols_v1 */}
-        {cols.map((segs, i) => <div key={i} style={{minWidth:0}}>{renderCol(segs)}</div>)}
+        {cols.filter(segs => segs.length).map((segs, i) => <div key={i} style={{minWidth:0}}>{renderCol(segs)}</div>)}
       </div>
     </div>
   )

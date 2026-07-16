@@ -52,7 +52,7 @@ export default function YushoChart({ rikishi }) {
 
   const chartData = Array.from({ length: maxDay }, (_, i) => {
     const day = i + 1
-    const point = { day: lang === 'ja' ? `${day}日目` : lang === 'en' ? `Day ${day}` : `День ${day}` }
+    const point = { day: isMobile ? String(day) : (lang === 'ja' ? `${day}日目` : lang === 'en' ? `Day ${day}` : `День ${day}`) }  /* chart_mobile_wide_v1 */
 
     const st = computeStandings(all, day)  /* chart_engine_v1: ta sama formula shcho v tablytsi */
     top.forEach(r => {
@@ -69,21 +69,26 @@ export default function YushoChart({ rikishi }) {
         {t3(lang, 'Динаміка шансів на юшо по днях турніру', 'Yusho chance dynamics by tournament day', '優勝確率の日別推移')}
       </div>
       <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={chartData} margin={{top:5,right:20,left:0,bottom:5}}>
+        <LineChart data={chartData} margin={isMobile ? {top:5,right:4,left:0,bottom:0} : {top:5,right:20,left:0,bottom:5}}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="day"
-            tick={{fontFamily:'monospace',fontSize:10,fill:'var(--mid)'}}
+            tick={{fontFamily:'monospace',fontSize: isMobile ? 9 : 10,fill:'var(--mid)'}}
+            height={isMobile ? 16 : undefined}
+            interval={isMobile ? 'preserveStartEnd' : 0}
+            tickMargin={isMobile ? 2 : 5}
             tickLine={false}
             axisLine={{stroke:'var(--border)'}}
-          />
+          />{/* chart_mobile_wide_v2: tsyfry horyzontalno, kut ne potriben */}
           <YAxis
-            tickFormatter={v => `${v}%`}
-            tick={{fontFamily:'monospace',fontSize:10,fill:'var(--mid)'}}
+            tickFormatter={v => v + '%'}
+            tick={{fontFamily:'monospace',fontSize: isMobile ? 8 : 10,fill:'var(--mid)'}}
             tickLine={false}
             axisLine={false}
-            width={40}
-          />
+            mirror={isMobile}
+            width={isMobile ? 4 : 40}
+            tickCount={isMobile ? 4 : undefined}
+          />{/* chart_mobile_wide_v3: mirror - pidpysy vseredyni polia, vis ne zaimaie shyryny */}
           <Tooltip
             content={({ active, payload, label }) => {  /* chart_tt5_v1: top-5 */
               if (!active || !payload?.length) return null

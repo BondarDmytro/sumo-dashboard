@@ -39,9 +39,9 @@ export default function DivisionSelect() {
       {open && typeof document !== 'undefined' && createPortal(
         <div data-division-popover="1" style={{ position: 'fixed', top: 110, right: 24, zIndex: 9999, width: 240, maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',
           background: '#161006', border: '1px solid rgba(240,192,96,0.35)', borderRadius: 4, padding: 12, boxShadow: '0 12px 34px rgba(0,0,0,0.6)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>{/* div_modal_grid_v1 */}
             {DIVS.map(d => (
-              <button key={d.id} style={division === d.id ? btnActive : btn} onClick={() => { setDivision(d.id); setOpen(false) }}>
+              <button key={d.id} style={{ ...(division === d.id ? btnActive : btn), width: '100%', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} onClick={() => { setDivision(d.id); setOpen(false) }}>
                 {label(d)}{lang !== 'ja' && <span style={{ marginLeft: 6, opacity: 0.55, textTransform: 'none' }}>{d.ja}</span>}
               </button>
             ))}

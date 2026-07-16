@@ -394,3 +394,10 @@ body {
 }
 
 /* cg_row_v3_cleanup: vsi cg-overraidy prybrani, riadok samodostatnii inline; zalyshylysia lyshe cg-flow pravyla */
+
+/* chart_no_focus_ring_v1: recharts otrymuie fokus na tap - hasymo syniu ramku */
+.recharts-wrapper, .recharts-wrapper *, .recharts-surface {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.recharts-wrapper:focus, .recharts-surface:focus { outline: none !important; }
