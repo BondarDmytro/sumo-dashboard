@@ -99,7 +99,7 @@ function RikishiListCard({ r, onClick, selected }) {
   )
 }
 
-function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) {
+export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi_hub_v1: export dlia profil-khabiv */
   /* rikishi_basho_selector_v1 */
   const [selBasho, setSelBasho] = useState(currentBashoId())
   const [pastData, setPastData] = useState(null)
