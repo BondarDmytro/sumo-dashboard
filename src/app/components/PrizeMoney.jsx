@@ -5,6 +5,8 @@ import { displayName, displayRank, shortRank } from '../lib/bashoCalendar' /* ja
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
+import rikishiMeta from '../lib/rikishiMeta.json' /* pm_career_v1 */
+const CAREER = Object.fromEntries(rikishiMeta.map(m => [String(m.id), m.wins * 70000 + (m.yusho || 0) * 10000000]))
 import { useBios } from './BiosProvider'
 
 const PRIZE_YUSHO = 10_000_000
@@ -30,6 +32,14 @@ function formatYenShort(amount) {
 
 function formatUSD(amount) {
   return `~$${Math.round(amount / 149).toLocaleString('en-US')}`
+}
+
+/* pm_career_usd_v1: korotkyi USD dlia velykykh sum */
+function formatUSDShort(amount) {
+  const usd = amount / 149
+  if (usd >= 1000000) return `~$${(usd / 1000000).toFixed(1).replace(/\.0$/, '')}M`
+  if (usd >= 1000) return `~$${Math.round(usd / 1000)}K`
+  return `~$${Math.round(usd)}`
 }
 
 export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = [], isFinished }) {
@@ -87,6 +97,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
   .sort((a, b) => b.total - a.total)
 
   const maxTotal = prizes[0]?.total || 1
+  const gridCols = isMobile ? '20px 20px minmax(0,1fr) 44px 38px 60px' : '30px 26px 130px 64px minmax(300px,1fr) 48px 118px 70px 105px 95px 72px'  /* pm_cols_tune_v2 */
 
   return (
     <div>
@@ -103,13 +114,28 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
         </div>
       )}
 
-      <div>
+      <div>{/* pm_breakdown_col_v1: povna shyryna, breakdown v okremii kolontsi */}
+        {!isMobile && (
+          <div style={{display:'grid',gridTemplateColumns:gridCols,gap:6,padding:'0.35rem 0.6rem' /* pm_cols_tune_v2 */,borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.56rem',letterSpacing:'0.08em',textTransform:'uppercase',color:'var(--mid)'}}>{/* pm_headers_v1 */}
+            <div style={{textAlign:'center'}}>#</div>
+            <div />
+            <div>{t3(lang, 'Рікіші', 'Rikishi', '力士')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>
+            <div>{t3(lang, 'Складові', 'Breakdown', '内訳')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'В–П', 'W–L', '成績')}</div>
+            <div style={{textAlign:'right'}}>{t3(lang, 'Призові', 'Prize', '賞金')}</div>
+            <div style={{textAlign:'right'}}>{t3(lang, 'USD', 'USD', '米ドル')}</div>{/* pm_career_usd_v1 */}
+            <div />
+            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'Кар\u2019єра', 'Career', '生涯')}</div>
+            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'USD', 'USD', '米ドル')}</div>
+          </div>
+        )}
         {prizes.map((r, i) => (
           <div key={r._id} style={{
             display:'grid',
-            gridTemplateColumns: isMobile ? '20px 20px minmax(0,1fr) 44px 38px 60px' : '36px 28px minmax(0,1fr) 120px 56px 180px',  /* pm_6col_v1 */  /* pm_oneline_v1 */
-            gap:8,
-            padding:'0.6rem 0.75rem',
+            gridTemplateColumns: gridCols,  /* pm_headers_v1 */
+            gap:6,  /* pm_cols_tune_v2 */
+            padding:'0.6rem 0.6rem',
             borderBottom:'1px solid var(--border)',
             alignItems:'center',
           }}>
@@ -119,27 +145,35 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div style={{textAlign:'center',fontSize:'0.85rem'}}>{r.flag}</div>{/* pm_6col_v1 */}
             <div style={{minWidth:0,overflow:'hidden'}}>
               <div style={{fontWeight:600,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
-              {!isMobile && <div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:4}}>
-                {r.breakdown.map((b, j) => (
-                  <span key={j} style={{fontFamily:'monospace',fontSize:'0.58rem',background:`${b.color}22`,color: b.color,padding:'1px 6px',borderRadius:2,border:`1px solid ${b.color}44`}}>{b.label} · {fmt(b.amount)}</span>
-                ))}
-              </div>}
             </div>
-            <div style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
+            <div /* pm_rank_after_name_v1 */ style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
+            {!isMobile && <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center'}}>{/* pm_breakdown_col_v1 */}
+              {r.breakdown.map((b, j) => (
+                <span key={j} style={{fontFamily:'monospace',fontSize:'0.58rem',background:`${b.color}22`,color: b.color,padding:'1px 6px',borderRadius:2,border:`1px solid ${b.color}44`}}>{b.label} · {fmt(b.amount)}</span>
+              ))}
+            </div>}
             <div style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.65rem',fontWeight:600,color: r.wins >= 8 ? '#1a6b5c' : '#c0392b'}}>{r.wins}–{r.losses}</div>
-            <div className="pm-sum" style={{textAlign:'right',flexShrink:0}}>{/* pm_oneline_v1: suma zavzhdy, dodatky - desktop */}
-              <div style={{fontFamily:'Georgia,serif',fontSize: isMobile ? '0.82rem' : '1.1rem',fontWeight:700,color:'#b8860b'}}>
+            <div className="pm-sum" style={{textAlign:'right',flexShrink:0}}>{/* pm_oneline_v2 */}
+              <div style={{fontFamily:'Georgia,serif',fontSize: isMobile ? '0.82rem' : '1.05rem',fontWeight:700,color:'#b8860b',whiteSpace:'nowrap'}}>
                 {fmt(r.total)}
               </div>
-              {!isMobile && (<>
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>
-                  {formatUSD(r.total)}
-                </div>
-                <div style={{marginTop:4,height:3,background:'var(--bg2)',borderRadius:1}}>
-                  <div style={{height:'100%',width:`${r.total/maxTotal*100}%`,background:'#b8860b',borderRadius:1}} />
-                </div>
-              </>)}
             </div>
+            {!isMobile && (<>
+              <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',textAlign:'right',whiteSpace:'nowrap'}}>
+                {formatUSD(r.total)}
+              </div>
+              <div style={{height:5,background:'var(--bg2)',borderRadius:1}}>
+                <div style={{height:'100%',width:`${r.total/maxTotal*100}%`,background:'#b8860b',borderRadius:1}} />
+              </div>
+            </>)}
+            {!isMobile && (<>
+              <div title={t3(lang, 'Оцінка призових за кар\u2019єру: перемоги + юшо', 'Career prize estimate: wins + yusho', '生涯賞金の推定：勝利数＋優勝')} style={{textAlign:'right',whiteSpace:'nowrap',fontFamily:'Georgia,serif',fontSize:'1.05rem',fontWeight:700,color:'#b8860b'}}>{/* pm_career_usd_col_v1 */}
+                {formatYenShort(CAREER[String(r._id)] || 0)}
+              </div>
+              <div style={{textAlign:'right',whiteSpace:'nowrap',fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>
+                {formatUSDShort(CAREER[String(r._id)] || 0)}
+              </div>
+            </>)}
           </div>
         ))}
       </div>
@@ -148,7 +182,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
         {lang === 'en'
           ? '* Base salary not included. Exchange rate ~¥149/$1. Special prizes announced after tournament.'
           : lang === 'ja' ? '* 基本給は含まず。レート約¥149/$1。三賞は場所後に発表。'
-          : '* Базова зарплата не включена. Курс ~¥149/$1. Спеціальні призи оголошуються після турніру.'}
+          : '* Базова зарплата не включена. Курс ~¥149/$1. Спеціальні призи оголошуються після турніру. Σ — оцінка за кар\u2019єру (перемоги + юшо, без санко-шо).'}
       </div>
     </div>
   )

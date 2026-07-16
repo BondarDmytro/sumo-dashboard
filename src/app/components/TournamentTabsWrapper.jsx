@@ -9,6 +9,7 @@ import TorikumiView from './TorikumiView'
 import PrizeMoney from './PrizeMoney'
 import { useBios } from './BiosProvider'
 import PrevBashoDynamics from './PrevBashoDynamics' /* prev_dynamics_tab_v1 */
+import PickemBoard from './PickemBoard' /* pickem_board_tab_v1 */
 import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_filter_v2 */
 
 export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
@@ -27,6 +28,8 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
   }, [])
   const { selBasho, division } = useBashoFilter()  /* basho_filter_v2 */ /* division_wire_v1 */
   const [liveView, setLiveView] = useState('list')  /* live_dynamics_v1 */
+  const [boardUid, setBoardUid] = useState(null)  /* pickem_board_tab_v1 */
+  useEffect(() => { try { setBoardUid(localStorage.getItem('dohyo_pickem_uid')) } catch {} }, [])
   const isCurrent = selBasho === CURRENT_BASHO
   const { lang } = useLang()
   const bios = useBios()
@@ -41,6 +44,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       id: 'torikumi2',  /* torikumi2_v1 */
       label: lang === 'ja' ? `${currentDay+1}日目の取組` : lang === 'en' ? `Day ${currentDay+1} schedule` : `Розклад дня ${currentDay+1}`
     }] : []),
+    ...(isCurrent ? [{ id: 'board', label: t3(lang, 'Лідерборд', 'Leaderboard', 'ランキング') }] : []),  /* pickem_board_tab_v1 */
     ...(isCurrent ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
   ]  /* basho_filter_v1 */
 
@@ -48,7 +52,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
     <>
       <div className="tabs-row" style={{display:'flex',gap:1,marginBottom:'1.2rem',borderBottom:'2px solid var(--border)'}}>  {/* tabs_scroll_v1 */}
         {tabs.map(t => (
-          <button key={t.id} className={"tab-btn" + (tab === t.id ? " tab-active" : "")} onClick={() => setTab(t.id)} style={{
+          <button key={t.id} className={"tab-btn" + (tab === t.id ? " tab-active" : "") + (t.id === 'board' ? " tab-board" : "") + (t.id === 'prizes' ? " tab-prizes" : "")} onClick={() => setTab(t.id)} style={{/* tabs_color_css_v1 */
             padding:'0.45rem 1.1rem',
             fontFamily:'monospace',fontSize:'0.72rem',
             letterSpacing:'0.1em',textTransform:'uppercase',
@@ -76,6 +80,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       )}
       {isCurrent && tab === 'torikumi' && <TorikumiView division={division} currentDay={currentDay} bios={bios} rikishi={allRikishi} pickemScore={true} bashoId={CURRENT_BASHO} />}{/* pickem_score_v1: potochnyi den - read-only rakhunok */}
       {isCurrent && tab === 'torikumi2' && <TorikumiView division={division} currentDay={currentDay+1} bios={bios} rikishi={allRikishi} pickem={true} bashoId={CURRENT_BASHO} />}{/* pickem_panel_v1 */}  {/* torikumi2_v1 */}
+      {isCurrent && tab === 'board' && <PickemBoard bashoId={CURRENT_BASHO} currentDay={currentDay} myUid={boardUid} inline={true} />}{/* pickem_board_tab_v1 */}
       {isCurrent && tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
       {!isCurrent && <PrevBashoDynamics bashoId={selBasho} />}  {/* basho_filter_v1 */}
     </>

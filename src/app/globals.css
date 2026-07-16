@@ -401,3 +401,14 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .recharts-wrapper:focus, .recharts-surface:focus { outline: none !important; }
+
+/* tabs_color_css_v1: syniy Liderbord i zelenyi Pryzovi - perekryvaie zolotyi .tab-active */
+.tab-btn.tab-board { background: rgba(41,128,185,0.16) !important; color: #1a4a7a !important; border-color: rgba(41,128,185,0.5) !important; }
+.tab-btn.tab-board:hover { border-color: #1a4a7a !important; }
+.tab-btn.tab-board.tab-active { background: #1a4a7a !important; color: #fff !important; border-color: #1a4a7a !important; }
+.tab-btn.tab-prizes { background: rgba(26,107,92,0.16) !important; color: #1a6b5c !important; border-color: rgba(26,107,92,0.5) !important; }
+.tab-btn.tab-prizes:hover { border-color: #1a6b5c !important; }
+.tab-btn.tab-prizes.tab-active { background: #1a6b5c !important; color: #fff !important; border-color: #1a6b5c !important; }
+[data-theme="dark"] .tab-btn.tab-board { color: #7db8e0 !important; }
+[data-theme="dark"] .tab-btn.tab-prizes { color: #6fc7b4 !important; }
+[data-theme="dark"] .tab-btn.tab-board.tab-active, [data-theme="dark"] .tab-btn.tab-prizes.tab-active { color: #fff !important; }

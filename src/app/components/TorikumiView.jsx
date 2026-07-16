@@ -49,7 +49,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
     const m2 = matches.find(x => x.matchNo === matchNo)
     if (!m2 || !m2.winnerId) return <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{'\u25cb'}</span>
     return Number(m2.winnerId) === my
-      ? <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'#b8860b',fontWeight:800}}>{'\u2713'}</span>
+      ? <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'#1a4a7a',fontWeight:800}}>{'\u2713'}</span>
       : <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>{'\u2717'}</span>
   }
   const deadlineMs = pickem && bashoId ? pickDeadlineUtcMs(bashoInfo(bashoId).startUtcMs, currentDay) : 0
@@ -131,7 +131,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   if (!matches.length) return (
     <div>
       {pickem && (  /* pickem_empty_v1: anons prohnoziv poky rozkladu nema */
-        <div style={{display:'flex',alignItems:'center',gap:10,padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>
           <span>🎯</span>
           <span>{t3(lang, "Щойно з'явиться розклад — тут можна буде вгадати переможців сан'яку", "Once the schedule is out, you can pick the san'yaku winners here", '取組発表後、ここで三役の勝者を予想できます')}</span>
         </div>
@@ -181,9 +181,9 @@ const sanyaku = matches
     const eMark = pickem || pickemScore ? pickMark(m.matchNo, m.eastId) : null  /* pickem_score_v1 */
     const wMark = pickem || pickemScore ? pickMark(m.matchNo, m.westId) : null
     const pickStyle = (rid) => pickedId === rid
-      ? { background: 'rgba(184,134,11,0.18)', boxShadow: 'inset 0 0 0 2px #b8860b', borderRadius: 3, padding: '2px 4px' }
+      ? { background: 'rgba(41,128,185,0.16)', boxShadow: 'inset 0 0 0 2px #1a4a7a', borderRadius: 3, padding: '2px 4px' } /* pickem_blue_v1 */
       : pickable
-        ? { boxShadow: 'inset 0 0 0 1px rgba(184,134,11,0.45)', background: 'rgba(184,134,11,0.04)', borderRadius: 3, padding: '2px 4px' }
+        ? { boxShadow: 'inset 0 0 0 1px rgba(41,128,185,0.45)', background: 'rgba(41,128,185,0.05)', borderRadius: 3, padding: '2px 4px' } /* pickem_blue_v1 */
         : {}  /* pickem_all_affordance_v1: nevybrani klikabelni - punktyrno-zolota afordnist */
 
     return (
@@ -259,18 +259,18 @@ const sanyaku = matches
   return (
     <div>
       {scoreMode && (  /* pickem_score_v1: ranishnia smuha rezultatu */
-        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
           <span>🎯</span>
           <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Твій прогноз', 'Your picks', '予想結果')}: {hits}/{scored.length} {'\u2713'}</span>
           {scored.length < Object.keys(myPicks).length && <span style={{color:'var(--mid)'}}>{t3(lang, '· ще не всі бої завершено', '· some bouts pending', '· 未消化の取組あり')}</span>}
-          <button onClick={() => setBoardOpen(true)} style={{marginLeft:'auto',fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'3px 12px',cursor:'pointer',borderRadius:2,border:'1px solid rgba(184,134,11,0.5)',background:'transparent',color:'#b8860b',fontWeight:700}}>
+          <button onClick={() => setBoardOpen(true)} style={{marginLeft:'auto',fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'3px 12px',cursor:'pointer',borderRadius:2,border:'1px solid rgba(41,128,185,0.6)',background:'transparent',color:'#1a4a7a',fontWeight:700}}>
             {t3(lang, 'Лідерборд', 'Leaderboard', '順位表')} {'\u2192'}
           </button>
           <PickemBoard bashoId={bashoId} currentDay={currentDay} myUid={pickUid} open={boardOpen} onClose={() => setBoardOpen(false)} />
         </div>
       )}
       {pickem && (  /* pickem_panel_v1: banner staniv */
-        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(184,134,11,0.08)',border:'1px solid rgba(184,134,11,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
           <span>🎯</span>
           {locked ? (
             <span style={{color:'#1a6b5c',fontWeight:700}}>{t3(lang, 'Твій прогноз зафіксовано · результат — після боїв', 'Your picks are locked · results after the bouts', '予想確定 · 結果は取組後')}</span>
@@ -281,7 +281,7 @@ const sanyaku = matches
               <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Вгадай переможців дня — клікай по стороні пари', 'Pick the day winners — tap a side', 'その日の勝者を予想 — 側をタップ')}</span>
               <span style={{color:'var(--mid)'}}>{Object.keys(draft).length}/{matches.length}</span>{/* pickem_all_affordance_v1 */}
               {Object.keys(draft).length > 0 && (
-                <button onClick={fixPicks} disabled={saving} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'4px 14px',cursor:'pointer',borderRadius:2,border:'1px solid #b8860b',background:'#b8860b',color:'#1a120a',fontWeight:700,opacity: saving ? 0.6 : 1}}>
+                <button onClick={fixPicks} disabled={saving} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'4px 14px',cursor:'pointer',borderRadius:2,border:'1px solid #1a4a7a',background:'#1a4a7a',color:'#fff',fontWeight:700,opacity: saving ? 0.6 : 1}}>
                   {saving ? '...' : t3(lang, 'Зафіксувати', 'Lock in', '確定')} ({Object.keys(draft).length})
                 </button>
               )}
