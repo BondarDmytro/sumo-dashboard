@@ -153,10 +153,10 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                     <FlagName id={r._id} name={r.name} />
                     {r.editorialNote && <div style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b */}</div>} {/* badge_render_v1 */}
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem'}}>
-                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
+                  <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_rank_rec_center_v1 */}
+                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)',display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontWeight:500}}>{r.wins}–{r.losses}</td>
+                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontWeight:500,textAlign:'center'}}>{r.wins}–{r.losses}</td>{/* tt_rank_rec_center_v1 */}
                   <td style={{padding:'0.35rem 0.75rem'}}>
                     <MatchDots record={r.record} currentDay={currentDay} />
                   </td>
