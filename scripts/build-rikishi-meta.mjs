@@ -48,6 +48,7 @@ for (const b of bashoList) {
           })
           if (!hist[e.rikishiID]) hist[e.rikishiID] = []
           const entry = { b, w, l, a }
+          if (e.rank) entry.r = e.rank  /* meta_v6_rank: rang na moment basho */
           if (yushoBy[`${b}:${e.rikishiID}`]) entry.y = 1  /* meta_v5_yusho_mark */
           hist[e.rikishiID].push(entry)
         }

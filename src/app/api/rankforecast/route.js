@@ -1,6 +1,8 @@
 /* countries_i18n_v1 */
 /* forecast_i18n_v1 */
 import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
+import rikishiMeta from '../../lib/rikishiMeta.json' /* rf_last9_v1 */
+const LAST9_BY_ID = Object.fromEntries(rikishiMeta.map(m => [String(m.id), m.last9 || []]))
 const SUMO_API = 'https://sumo-api.com/api'
 const COUNTRY_FLAGS = {
   'Mongolia': { flag: '🇲🇳', name: { uk: 'Монголія', en: 'Mongolia', ja: 'モンゴル' } },
@@ -128,7 +130,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
       if (needed <= 0) {
         forecasts.push({ type: 'good', text: { uk: '✓ Кадо-бан знятий — ранг Озекі збережено', en: '✓ Kadoban cleared — Ozeki rank retained', ja: '✓ 角番脱出 — 大関防衛' } })
       } else if (maxWins >= 8) {
-        forecasts.push({ type: 'warning', text: { uk: `⚠ Кадо-бан — потрібно ще ${needed} перемог`, en: `⚠ Kadoban — ${needed} more wins needed`, ja: `⚠ 角番 — あと${needed}勝必要` } })
+        forecasts.push({ type: 'warning', text: { uk: `⚠ Кадо-бан — потрібно ще ${needed} перемог`, en: `⚠ Kadoban — ${needed} more wins needed`, ja: `⚠ 角番 — あと${needed}勝必要`  }, need: needed })  /* rf_chance_v1 */
       } else {
         forecasts.push({ type: 'danger', text: { uk: `🔴 Кадо-бан — виліт неминучий (макс. ${maxWins}/8)`, en: `🔴 Kadoban — demotion inevitable (max ${maxWins}/8)`, ja: `🔴 角番 — 陥落確定（最大${maxWins}/8）` } })
       }
@@ -150,7 +152,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
       if (currentBashoWins >= 10) {
         forecasts.push({ type: 'good', text: { uk: '✓ 10 перемог — повернення рангу Озекі', en: '✓ 10 wins — Ozeki rank regained', ja: '✓ 10勝で大関復帰' } })
       } else if (max10 >= 10) {
-        forecasts.push({ type: 'info', text: { uk: `Екс-озекі: ще ${needed10} перемог до повернення рангу (10 всього)`, en: `Ex-Ozeki: ${needed10} more wins to regain rank (10 total)`, ja: `元大関: 復帰まであと${needed10}勝（合計10勝）` } })
+        forecasts.push({ type: 'info', text: { uk: `Екс-озекі: ще ${needed10} перемог до повернення рангу (10 всього)`, en: `Ex-Ozeki: ${needed10} more wins to regain rank (10 total)`, ja: `元大関: 復帰まであと${needed10}勝（合計10勝）`  }, need: needed10 })
       } else {
         forecasts.push({ type: 'warning', text: { uk: '⚠ Повернення озекі за правилом 10 перемог вже недосяжне', en: '⚠ 10-win Ozeki return no longer possible', ja: '⚠ 10勝での大関復帰は不可能' } })
       }
@@ -167,7 +169,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     if (total3 >= 33) {
       forecasts.push({ type: 'good', text: { uk: `✓ Озекі-кандидат — ${total3}/33 за 3 басьо в санʼяку`, en: `✓ Ozeki candidate — ${total3}/33 over 3 basho in san'yaku`, ja: `✓ 大関候補 — 三役で3場所${total3}/33` } })
     } else if (maxTotal >= 33) {
-      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 — потрібно ще ${needed} перемог`, en: `Ozeki test: ${total3}/33 — ${needed} more wins needed`, ja: `大関取り: ${total3}/33 — あと${needed}勝必要` } })
+      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 — потрібно ще ${needed} перемог`, en: `Ozeki test: ${total3}/33 — ${needed} more wins needed`, ja: `大関取り: ${total3}/33 — あと${needed}勝必要`  }, need: needed })
     } else {
       forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 (цей цикл недостатній)`, en: `Ozeki test: ${total3}/33 (this cycle insufficient)`, ja: `大関取り: ${total3}/33（今回は不十分）` } })
     }
@@ -262,6 +264,7 @@ export async function GET() {
             wins: history[b]?.wins || 0,
             losses: history[b]?.losses || 0,
           })),
+          last9: LAST9_BY_ID[String(r.rikishiID)] || [],  /* rf_last9_v1 */
           forecasts,
           bio: {
             age,
