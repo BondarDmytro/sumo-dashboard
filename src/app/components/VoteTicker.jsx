@@ -28,6 +28,10 @@ export default function VoteTicker() {
   }, [])
   const [barH, setBarH] = useState(30)
   const { votes, total } = useVotes()
+  const [news, setNews] = useState([])  /* ticker_split_v1 */
+  useEffect(() => {
+    fetch('/api/news?limit=6').then(r => r.json()).then(d => setNews(d.news || [])).catch(() => {})
+  }, [])
   const { lang } = useLang()
   const bios = useBios()
   if (path && path.startsWith('/studio')) return null
@@ -67,6 +71,22 @@ export default function VoteTicker() {
           {items}
         </div>
       </div>
+      {!isMobile && news.length > 0 && (  /* ticker_split_v1: prava polovyna - novyny */
+        <>
+          <span style={{flexShrink:0,padding:'0 14px',color:'var(--mid)',letterSpacing:'0.12em',textTransform:'uppercase',whiteSpace:'nowrap',borderLeft:'1px solid rgba(184,134,11,0.35)'}}>
+            {'📰 '}{t('Новини', 'News', 'ニュース')}
+          </span>
+          <div style={{flex:1,overflow:'hidden',minWidth:0}}>
+            <div style={{display:'inline-flex',whiteSpace:'nowrap',animation:'vtScroll2 60s linear infinite' /* ticker_speed_v1 */,willChange:'transform',paddingLeft:'100%'}}>
+              {news.map((n, i) => (
+                <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{marginRight:32,whiteSpace:'nowrap',textDecoration:'none',color:'var(--ink)'}}>
+                  {n.title} <span style={{color:'var(--mid)',fontSize:'0.62rem'}}>{'\u2197'}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
     </>
   )

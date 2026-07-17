@@ -12,6 +12,7 @@ export default function sitemap() {
     { path: '/rikishi/aonishiki', changeFrequency: 'daily', priority: 0.9 },  /* sitemap_hubs_v1 */
     { path: '/rikishi/shishi', changeFrequency: 'daily', priority: 0.8 },
     { path: '/heya', changeFrequency: 'weekly', priority: 0.7 },  /* sitemap_heya_v1 */
+    { path: '/news', changeFrequency: 'daily', priority: 0.7 },  /* sitemap_news_v1 */
     ...[...new Set(rikishiMeta.filter(r => r.heya).map(r => String(r.heya).toLowerCase().replace(/[^a-z0-9]/g, '')))].map(s => ({ path: `/heya/${s}`, changeFrequency: 'weekly', priority: 0.6 })),
   ]
   const langs = ['en', 'ja', 'uk']

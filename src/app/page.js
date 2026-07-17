@@ -3,6 +3,7 @@ import TournamentHeader from './components/TournamentHeader'
 import TournamentStatus from './components/TournamentStatus'
 import CompactGrid from './components/CompactGrid'
 import TournamentFooter from './components/TournamentFooter'
+import NewsBlock from './components/NewsBlock' /* news_block_mount_v1 */
 import TournamentTabsWrapper from './components/TournamentTabsWrapper'
 import { BashoFilterProvider } from './components/BashoFilterContext' /* basho_filter_v2 */
 import BashoSelect from './components/BashoSelect'
@@ -97,6 +98,7 @@ export default async function Home() {
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>
+        <NewsBlock />{/* news_block_mount_v1 */}
         {/* footer_division_v1: TournamentFooter pereikhav u DivisionDataGate */}
         </CurrentOnly>
       </div>

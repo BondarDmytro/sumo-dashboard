@@ -91,6 +91,7 @@ useEffect(() => {
     { href: '/ranks', label: t?.nav?.ranks || 'Ранги' },
     { href: '/rikishi', label: t?.nav?.rikishi || 'Рікіші' },
     { href: '/heya', label: t?.nav?.heya || (lang === 'ja' ? '部屋' : lang === 'en' ? 'Stables' : 'Стайні'), deep: true },  /* nav_heya_v1 */
+    { href: '/news', label: lang === 'ja' ? 'ニュース' : lang === 'en' ? 'News' : 'Новини', deep: true },  /* nav_news_v1 */
     { href: '/archive', label: t?.nav?.archive || 'Архів' },
     { href: '/sumo', label: t?.nav?.sumo || 'Про сумо' },
   ]
