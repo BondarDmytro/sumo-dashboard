@@ -1,4 +1,6 @@
 import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
+import rikishiMeta from '../../lib/rikishiMeta.json' /* torikumi_jp_v1 */
+const JP_BY_ID = Object.fromEntries(rikishiMeta.map(r => [r.id, r.nameJp]))
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const day = searchParams.get('day') || 14
@@ -10,5 +12,10 @@ export async function GET(request) {
     { next: { revalidate: 60 } }
   )
   const data = await res.json()
-  return Response.json(data.torikumi || [])
+  const enriched = (data.torikumi || []).map(m => ({
+    ...m,
+    eastJp: JP_BY_ID[m.eastId] || null,  /* torikumi_jp_v1 */
+    westJp: JP_BY_ID[m.westId] || null,
+  }))
+  return Response.json(enriched)
 }
