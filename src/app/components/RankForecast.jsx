@@ -155,30 +155,40 @@ export default function RankForecast() {
                 overflowX:'auto',
                 scrollbarWidth:'none',
               }}>
-                <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--light)',whiteSpace:'nowrap',flexShrink:0}}>
-                  {t3(lang, '← попер', '← prev', '← 前')}
-                </div>
-                {[...r.prevBashos].reverse().map(b => (
-                  <BashoWins key={b.bashoId} {...b} />
-                ))}
-                <div style={{width:1,height:24,background:'var(--border)',flexShrink:0}} />
-                <div style={{textAlign:'center',minWidth:44,flexShrink:0}}>
-                  <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'#1a6b5c',marginBottom:1}}>
-                    {t3(lang, 'зараз', 'now', '現在')}
-                  </div>
-                  <div style={{fontFamily:'monospace',fontSize:'0.78rem',fontWeight:700,color:'var(--ink)'}}>{r.wins}–{r.losses}</div>
-                </div>
-                {r.rank.includes('Sekiwake') && (
-                  <div style={{display:'flex',flexDirection:'column',alignItems:'center',background:'var(--bg2)',borderRadius:2,padding:'3px 8px',minWidth:60,flexShrink:0}}>
-                    <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)'}}>
-                      {t3(lang, 'Озекі-тест', 'Ozeki test', '大関取り')}
+                {(() => {  /* rf_mobile_v1: 3 ostannikh z last9 + potochne, gridom */
+                  const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 }))).slice(-3)
+                  const cur = { b: String(currentBashoId()), w: r.wins, l: r.losses }
+                  const played = r.wins + r.losses
+                  const pKachi = played > 0 ? chancePct(8 - r.wins, r.wins, r.losses, r.last9) : null
+                  return (
+                    <div style={{flex:1}}>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:4,alignItems:'start'}}>
+                        {hist.map(h => {
+                          const kyujo = (h.w + h.l) === 0
+                          const kk = !kyujo && h.w > h.l
+                          return (
+                            <div key={h.b} style={{textAlign:'center'}}>
+                              <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--light)',whiteSpace:'nowrap'}}>{String(h.b).slice(0,4)}/{String(h.b).slice(4)}</div>
+                              <div style={{fontFamily:'monospace',fontSize:'0.78rem',fontWeight:700,whiteSpace:'nowrap',color: kyujo ? 'var(--light)' : kk ? 'var(--ink)' : '#c0392b'}}>{kyujo ? '\u4f11' : h.w + '\u2013' + h.l}{h.y ? ' \ud83c\udfc6' : ''}</div>
+                              {h.r ? <div style={{fontFamily:'monospace',fontSize:'0.48rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortR(h.r)}</div> : null}
+                            </div>
+                          )
+                        })}
+                        <div style={{textAlign:'center',borderLeft:'1px solid var(--border)'}}>
+                          <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'#1a6b5c',whiteSpace:'nowrap'}}>{cur.b.slice(0,4)}/{cur.b.slice(4)}</div>
+                          <div style={{fontFamily:'monospace',fontSize:'0.78rem',fontWeight:700,whiteSpace:'nowrap',color: played === 0 ? 'var(--light)' : 'var(--ink)'}}>{played === 0 ? '\u4f11' : r.wins + '\u2013' + r.losses}</div>
+                          <div style={{fontFamily:'monospace',fontSize:'0.48rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortR(r.rank)}</div>
+                        </div>
+                      </div>
+                      {pKachi !== null && (
+                        <div style={{fontFamily:'monospace',fontSize:'0.56rem',display:'flex',gap:8,justifyContent:'center',marginTop:4}}>
+                          <span style={{color:'#1a6b5c'}}>{'\u2191'} {pKachi}%</span>
+                          <span style={{color:'#c0392b'}}>{'\u2193'} {100 - pKachi}%</span>
+                        </div>
+                      )}
                     </div>
-                    <div style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:700,color:(r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)) >= 33 ? '#1a6b5c' : 'var(--ink)'}}>
-                      {r.wins + r.prevBashos.slice(0,2).reduce((s,b)=>s+b.wins,0)}
-                      <span style={{fontSize:'0.55rem',color:'var(--mid)'}}>/33</span>
-                    </div>
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             </div>
           )
