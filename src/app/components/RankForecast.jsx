@@ -95,7 +95,7 @@ export default function RankForecast() {
       {data.rikishi.map(r => {
         const mainType = r.forecasts[0]?.type || 'info'
         const st = TYPE_STYLES[mainType] || TYPE_STYLES.info
-        const borderColor = r.rank.includes('Yokozuna') ? '#b8860b' : r.rank.includes('Ozeki') ? '#1a4a7a' : r.rank.includes('Sekiwake') ? '#1a6b5c' : r.rank.includes('Komusubi') ? '#a0522d' : 'var(--border)'  /* rf_updown_v1 */
+        const borderColor = r.rank.includes('Yokozuna') ? '#b8860b' : r.rank.includes('Ozeki') ? '#c0392b' : r.rank.includes('Sekiwake') ? '#1a4a7a' : r.rank.includes('Komusubi') ? '#1a6b5c' : '#8a8578'  /* rf_rank_colors_v2: Y-zoloto O-chervonyi S-synii K-zelenyi M-siryi */
 
         if (isMobile) {
           return (

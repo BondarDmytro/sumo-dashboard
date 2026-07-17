@@ -8,12 +8,12 @@ import { useLang } from './LangProvider'
 import { currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RANK_ORDER = ['Yokozuna', 'Ozeki', 'Sekiwake', 'Komusubi', 'Maegashira']
-const RANK_COLORS = {
+const RANK_COLORS = {  /* banzuke_rank_colors_v1: kanon = lib/rankColors */
   'Yokozuna': '#b8860b',
-  'Ozeki': '#1a6b5c',
+  'Ozeki': '#c0392b',
   'Sekiwake': '#1a4a7a',
-  'Komusubi': '#8e44ad',
-  'Maegashira': 'var(--mid)',
+  'Komusubi': '#1a6b5c',
+  'Maegashira': '#8a8578',
 }
 
 function getRankType(rank) {
