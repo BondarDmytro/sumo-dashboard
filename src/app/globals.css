@@ -423,3 +423,8 @@ body {
   .heya-roster a > span:last-child { font-size: 0.52rem !important; padding: 1px 3px !important; }
 }
 
+
+/* tt_note_mobile_v1: editorialNote kompaktnishe na mob */
+@media (max-width: 700px) {
+  .tt-note { font-size: 0.5rem !important; line-height: 1.3 !important; max-width: 120px; }
+}

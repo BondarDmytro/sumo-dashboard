@@ -114,8 +114,8 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               <span key={idx} title={(lang === 'ja' ? (idx+1) + '\u65e5\u76ee' : lang === 'en' ? 'Day ' + (idx+1) : '\u0414\u0435\u043d\u044c ' + (idx+1)) + (m.opponent ? ': ' + m.opponent : '')} style={{
                 width:dot,height:dot,borderRadius:'50%',boxSizing:'border-box',
                 outline: idx + 1 === currentDay ? '2px solid #b8860b' : 'none', outlineOffset: 0,
-                background: isLoss ? 'var(--ink)' : m.result==='absent' ? '#aaa' : 'transparent',
-                border: isWin ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : isLoss ? 'none' : '1px dashed var(--light)',
+                background: isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : m.result==='absent' ? '#aaa' : 'transparent',  /* cg_dots_canon_v1: win bila, loss chorna v obokh temakh */
+                border: (isWin || isLoss) ? '1px solid var(--ink)' : m.result==='absent' ? '1px solid #aaa' : '1px dashed var(--light)',
                 display:'inline-block',flexShrink:0,
                 opacity: m.kimarite==='fusen' ? 0.5 : 1,
               }} />
