@@ -309,7 +309,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
             }}>
               <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
                 <span style={{
-                  width:9,height:9,borderRadius:'50%',flexShrink:0,
+                  width:9,height:9,borderRadius: isFusen ? 0 : '50%',flexShrink:0,  /* rp_fusen_square_v1 */
                   background: isWin ? '#f5f0e8' : isLoss ? '#1a1a1a' : isAbsent ? '#aaa' : 'transparent',
 border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : isAbsent ? '1.5px solid #aaa' : isEmpty ? '1px dashed var(--light)' : 'none',
                   opacity: isFusen ? 0.5 : 1,

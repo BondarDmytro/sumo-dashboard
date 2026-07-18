@@ -54,12 +54,11 @@ function MatchDots({ record, currentDay }) {
         const isToday = m?.day === currentDay
         return (
           <span key={idx} style={{
-            width:11,height:11,borderRadius:'50%',
+            width:11,height:11,borderRadius: isFusen ? 0 : '50%',  /* fusen_squares_v1 */
             background: noResult ? 'transparent' : isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : isAbsent ? '#888' : 'transparent',
             border: noResult ? '1px dashed var(--light)' : '1.5px solid var(--ink)',
             boxSizing:'border-box',
             display:'inline-block',flexShrink:0,
-            opacity: isFusen ? 0.5 : 1,
             outline: isToday ? '2px solid #b8860b' : 'none',
             outlineOffset: 1,
           }} />

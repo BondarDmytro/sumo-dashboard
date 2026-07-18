@@ -35,11 +35,10 @@ function MatchDots({ record, isMobile }) {  /* arch_table_mobile_v1 */
         const isFusen = m.kimarite === 'fusen'
         return (
           <span key={idx} title={`Day ${idx+1}${m.opponentShikonaEn ? ': '+m.opponentShikonaEn : ''}`} style={{
-            width: isMobile ? 7 : 11,height: isMobile ? 7 : 11,borderRadius:'50%',boxSizing:'border-box',
+            width: isMobile ? 7 : 11,height: isMobile ? 7 : 11,borderRadius: isFusen ? 0 : '50%',boxSizing:'border-box',  /* fusen_squares_v1 */
             background: isWin ? '#f5f0e8' : isLoss ? '#0f0e0c' : m.result==='absent' ? '#aaa' : 'transparent', /* arch_dots_canon_v1 */
             border: (isWin || isLoss) ? '1.5px solid var(--ink)' : m.result==='absent' ? '1.5px solid #aaa' : '1px dashed var(--light)',
             display:'inline-block',flexShrink:0,
-            opacity: isFusen ? 0.5 : 1,
           }} />
         )
       })}

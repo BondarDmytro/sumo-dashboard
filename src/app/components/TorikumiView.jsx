@@ -206,7 +206,7 @@ const sanyaku = matches
             eMark
               ? <span style={{textAlign:'center'}}>{eMark}</span>
               : (!isMobile
-                ? <span style={{width:10,height:10,borderRadius:'50%',background: eastWon ? '#f5f0e8' : '#0f0e0c',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',margin:'0 auto'}} />
+                ? <span title={m.kimarite === 'fusen' ? 'fusen' : undefined} style={{width:10,height:10,borderRadius: m.kimarite === 'fusen' ? 0 : '50%',background: eastWon ? '#f5f0e8' : '#0f0e0c',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',margin:'0 auto'}} />
                 : <span />)
           )}
         </div>
@@ -244,7 +244,7 @@ const sanyaku = matches
             wMark
               ? <span style={{textAlign:'center'}}>{wMark}</span>
               : (!isMobile
-                ? <span style={{width:10,height:10,borderRadius:'50%',background: westWon ? '#f5f0e8' : '#0f0e0c',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',margin:'0 auto'}} />
+                ? <span title={m.kimarite === 'fusen' ? 'fusen' : undefined} style={{width:10,height:10,borderRadius: m.kimarite === 'fusen' ? 0 : '50%',background: westWon ? '#f5f0e8' : '#0f0e0c',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',margin:'0 auto'}} />
                 : <span />)
           )}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
