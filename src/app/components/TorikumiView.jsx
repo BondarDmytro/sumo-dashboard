@@ -59,8 +59,9 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
     if (!pickem || locked || deadlinePast) return
     setDraft(d => { const n = { ...d }; if (Number(n[matchNo]) === rid) delete n[matchNo]; else n[matchNo] = rid; return n })
   }
+  const isSynthetic = matches.length > 0 && !!matches[0].synthetic  /* pickem_synth_guard_v1 */
   const fixPicks = async () => {
-    if (saving || !Object.keys(draft).length) return
+    if (saving || isSynthetic || !Object.keys(draft).length) return
     if (!window.confirm(t3(lang, 'Прогноз не можна буде змінити. Фіксуємо?', 'Picks cannot be changed later. Lock in?', '予想は変更できません。確定しますか？'))) return
     setSaving(true)
     const res = await submit(draft)
@@ -280,7 +281,8 @@ const sanyaku = matches
             <>
               <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Вгадай переможців дня — клікай по стороні пари', 'Pick the day winners — tap a side', 'その日の勝者を予想 — 側をタップ')}</span>
               <span style={{color:'var(--mid)'}}>{Object.keys(draft).length}/{matches.length}</span>{/* pickem_all_affordance_v1 */}
-              {Object.keys(draft).length > 0 && (
+              {isSynthetic && <span style={{color:'#b8860b'}}>{t3(lang, '· попередні пари — фіксація відкриється з офіційним розкладом', '· preliminary pairs — lock opens with the official schedule', '· 暫定取組 — 正式発表後に確定可能')}</span>}{/* synth_badge_v1 */}
+              {Object.keys(draft).length > 0 && !isSynthetic && (
                 <button onClick={fixPicks} disabled={saving} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'4px 14px',cursor:'pointer',borderRadius:2,border:'1px solid #1a4a7a',background:'#1a4a7a',color:'#fff',fontWeight:700,opacity: saving ? 0.6 : 1}}>
                   {saving ? '...' : t3(lang, 'Зафіксувати', 'Lock in', '確定')} ({Object.keys(draft).length})
                 </button>

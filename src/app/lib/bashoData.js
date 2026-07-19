@@ -7,9 +7,9 @@ const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 export async function getBashoData(division = 'Makuuchi') {
-  const bashoStart = new Date('2026-07-12') /*nagoya_switch_v1*/
-  const today = new Date()
-  const diffDays = Math.floor((today - bashoStart) / (1000 * 60 * 60 * 24))
+  const bashoStart = Date.UTC(2026, 6, 12) /*nagoya_switch_v1*/
+  const nowJst = Date.now() + 9 * 3600 * 1000  /* jst_day_v1: den basho zhyve za yaponskym chasom */
+  const diffDays = Math.floor((nowJst - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
 
   const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
