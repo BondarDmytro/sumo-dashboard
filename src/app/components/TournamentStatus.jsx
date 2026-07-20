@@ -7,7 +7,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount, isFinished }) {
+export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount, eliminatedCount = 0, isFinished }) {  /* ts_eliminated_v1 */
   const { lang } = useLang()
   if (isFinished) return null
 
@@ -41,6 +41,12 @@ export default function TournamentStatus({ leaders, chasers, currentDay, maxWins
       label: t3(lang, 'Претендентів', 'Contenders', '優勝候補'),
       sub: t3(lang, 'шанс > 0%', 'chance > 0%', '確率 > 0%'),
     },
+    ...(eliminatedCount > 0 ? [{
+      num: eliminatedCount,
+      label: t3(lang, 'Вибули', 'Eliminated', '脱落'),
+      sub: t3(lang, 'шанс 0%', 'chance 0%', '確率 0%'),
+      color: '#c0392b'
+    }] : []),
   ]
 
   return (

@@ -79,7 +79,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     ? computeStandings(allRikishi, viewDay)
     : null
   const shown = retro
-    ? retro.rikishi.filter(r => r.yushoChance > 0)
+    ? retro.rikishi.filter(r => !r.kyujo)  /* retro_all_v1 */
     : contenders
 
   const dayLabel = t3(lang, `День ${viewDay}`, `Day ${viewDay}`, `${viewDay}日目`)
@@ -139,7 +139,12 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                 ? t3(lang, 'лідер', 'leader', 'トップ')
                 : r.status === 'chase'
                 ? t3(lang, 'переслідувач', 'chaser', '追走')
+                : (!r.kyujo && (r.yushoChance ?? 1) <= 0)
+                ? (r.eliminatedDay
+                    ? t3(lang, `вибув (д. ${r.eliminatedDay})`, `out (d. ${r.eliminatedDay})`, `脱落（${r.eliminatedDay}日目）`)
+                    : t3(lang, 'вибув', 'out', '脱落'))  /* tt_elim_day_v1 */
                 : `${r.wins}–${r.losses}`
+              const isOut = !r.kyujo && (r.yushoChance ?? 1) <= 0 && r.status !== 'lead' && r.status !== 'chase'
               return (
                 <tr key={r._id} className={isFav(r._id) ? 'fav-row' : undefined} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center',minWidth:90}}>
@@ -160,7 +165,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                     <MatchDots record={r.record} currentDay={currentDay} />
                   </td>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_status_center_v1 */}
-                    <span style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,display:'inline-block',
+                    <span className={isOut ? 'status-out' : undefined} style={{fontFamily:'monospace',fontSize:'0.6rem',padding:'3px 8px',borderRadius:2,display:'inline-block',
                       background:r.status==='lead'?'#1a6b5c':r.status==='chase'?'#b8860b':'var(--bg2)',
                       color:r.status==='lead'?'#fff':r.status==='chase'?'#fff':'var(--mid)'}}>
                       {statusLabel}

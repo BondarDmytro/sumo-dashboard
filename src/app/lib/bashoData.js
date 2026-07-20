@@ -77,6 +77,24 @@ export async function getBashoData(division = 'Makuuchi') {
   /* server_engine_v1: shansy rakhuie chanceEngine - odne dzherelo pravdy z tablytseiu/chartom/retro */
   const engineOut = computeStandings(processedEd, currentDay, { todayOpponent })
   const normalized = engineOut.rikishi.map(r => ({ ...r, chanceDelta: 0 }))
+  /* eliminated_day_v1: pershyi den, koly wins_d + (15-d) < maxWins_d */
+  {
+    const cum = new Map(normalized.map(r => [r.name, 0]))
+    const elim = new Map()
+    for (let d = 1; d <= currentDay; d++) {
+      let dayMax = 0
+      normalized.forEach(r => {
+        const m = r.record[d - 1]
+        if (m && RESULTS_WIN.includes(m.result)) cum.set(r.name, cum.get(r.name) + 1)
+        if (!r.kyujo && cum.get(r.name) > dayMax) dayMax = cum.get(r.name)
+      })
+      normalized.forEach(r => {
+        if (r.kyujo || elim.has(r.name)) return
+        if (cum.get(r.name) + (15 - d) < dayMax) elim.set(r.name, d)
+      })
+    }
+    normalized.forEach(r => { if (elim.has(r.name)) r.eliminatedDay = elim.get(r.name) })
+  }
   const maxWins = engineOut.maxWins
   const leaders = engineOut.leaders
   const chasers = engineOut.chasers

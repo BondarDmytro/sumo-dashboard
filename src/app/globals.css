@@ -428,3 +428,7 @@ body {
 @media (max-width: 700px) {
   .tt-note { font-size: 0.5rem !important; line-height: 1.3 !important; max-width: 120px; }
 }
+
+/* tt_elim_day_v1: beidzh vybuvshykh - zalyvka pid temu */
+.status-out { background: #0f0e0c !important; color: #f5f0e8 !important; }
+[data-theme="dark"] .status-out { background: #f5f0e8 !important; color: #0f0e0c !important; }
