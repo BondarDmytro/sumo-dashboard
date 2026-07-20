@@ -67,7 +67,7 @@ export default function DivisionDataGate({ makuuchi }) {
       <TournamentStatus
         leaders={view.leaders} chasers={view.chasers} currentDay={view.currentDay}
         maxWins={view.maxWins} kyujoCount={view.kyujoCount}
-        contendersCount={view.contenders.length} isFinished={view.isFinished}
+        contendersCount={(view.allRikishi || view.contenders || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) > 0).length} isFinished={view.isFinished}  /* gate_contenders_fix_v1 */
         eliminatedCount={(view.allRikishi || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length}  /* gate_eliminated_v1 */
       />
       <TournamentTabsWrapper
