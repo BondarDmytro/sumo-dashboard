@@ -28,7 +28,7 @@ function Avatar({ m, tall, mirror, big }) {  /* compare_v14 compare_mobile_v1 */
 const dispName = (m, lang) => lang === 'ja' && m?.nameJp ? trimJp(m.nameJp) : (m?.name || '')
 const ageOf = (bd) => bd ? Math.floor((Date.now() - new Date(bd)) / (365.25 * 24 * 3600 * 1000)) : null
 
-function BashoMini({ hist, cur }) {  /* compare_v13 */
+function BashoMini({ hist, cur, dimNonMak, lang }) {  /* compare_v13 compare_scope_last9_v1 */
   const cells = (hist || []).slice(-9)
   return (
     <div style={{display:'flex',gap:4,justifyContent:'space-between',flexWrap:'wrap',width:'100%'}}>{/* compare_v11 */}
@@ -36,9 +36,10 @@ function BashoMini({ hist, cur }) {  /* compare_v13 */
         const kyujo = (h.w + h.l) === 0
         const kk = !kyujo && h.w > h.l
         return (
-          <div key={h.b} style={{textAlign:'center',minWidth:34}}>
+          <div key={h.b} style={{textAlign:'center',minWidth:34,opacity: dimNonMak && !(h.r && ['Yokozuna','Ozeki','Sekiwake','Komusubi','Maegashira'].some(p => String(h.r).startsWith(p))) ? 0.35 : 1}}>
             <div style={{fontFamily:'monospace',fontSize:'0.46rem',color:'var(--light)'}}>{String(h.b).slice(2,4)}/{String(h.b).slice(4)}</div>
             <div style={{fontFamily:'monospace',fontSize:'0.66rem',fontWeight:600,color: kyujo ? 'var(--light)' : kk ? 'var(--ink)' : '#c0392b'}}>{kyujo ? '\u4f11' : h.w + '\u2013' + h.l}{h.y ? '\ud83c\udfc6' : ''}</div>
+            {h.r ? <div style={{fontFamily:'monospace',fontSize:'0.44rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{shortRank(h.r, lang)}</div> : null}
           </div>
         )
       })}
@@ -235,9 +236,9 @@ export default function RikishiCompare() {
               ]
             })}
             {!isMobile && <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>}
-            <div style={{gridColumn: isMobile ? 1 : '1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}
+            <div style={{gridColumn: isMobile ? 1 : '1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini lang={lang} dimNonMak={scope === 'makuuchi'} hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}
             <div style={{gridColumn: isMobile ? 2 : 3,borderTop:'1px solid var(--border)'}} />
-            <div style={{gridColumn: isMobile ? 3 : '4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
+            <div style={{gridColumn: isMobile ? 3 : '4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini lang={lang} dimNonMak={scope === 'makuuchi'} hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
           </div>
 
           {boutsOpen && h2hView && h2hView.bouts && h2hView.bouts.length > 0 && (  /* compare_v7_matrix */
