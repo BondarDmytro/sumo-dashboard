@@ -17,7 +17,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-function TodayCell({ record, currentDay, t, lang }) {
+function TodayCell({ record, currentDay, t, lang }) {  /* today_opponent_jp_v1 */
   const todayMatch = record.find(m => m.day === currentDay)
   const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
   const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
@@ -28,14 +28,14 @@ function TodayCell({ record, currentDay, t, lang }) {
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
       <span style={{width:16,height:16,borderRadius:'50%',background:'#f5f0e8',border:'1.5px solid #0f0e0c',display:'inline-block'}} />
       <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>
-        {todayMatch.kimarite==='fusen'?'✦ ':''}{todayMatch.opponent}
+        {todayMatch.kimarite==='fusen'?'✦ ':''}{lang === 'ja' ? String(todayMatch.opponentJp || todayMatch.opponent || '').split('(')[0] : todayMatch.opponent}
       </span>
     </div>
   )
   if (todayLoss) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
       <span style={{width:16,height:16,borderRadius:'50%',background:'#0f0e0c',border:'1.5px solid #f5f0e8',display:'inline-block'}} />
-      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{todayMatch.opponent}</span>
+      <span style={{fontSize:'0.6rem',fontFamily:'monospace',color:'var(--mid)',whiteSpace:'nowrap'}}>{lang === 'ja' ? String(todayMatch.opponentJp || todayMatch.opponent || '').split('(')[0] : todayMatch.opponent}</span>
     </div>
   )
   return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>—</span>

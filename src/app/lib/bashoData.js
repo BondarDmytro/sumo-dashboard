@@ -71,6 +71,7 @@ export async function getBashoData(division = 'Makuuchi') {
         day: i + 1,
         result: m.result,
         opponent: m.opponentShikonaEn,
+        opponentJp: m.opponentShikonaJp || null,  /* opponent_jp_v1 */
         kimarite: m.kimarite,
       }))
     }

@@ -1,5 +1,6 @@
 'use client'
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import { HEYA_JA } from '../lib/heyaJa'
 import { displayName, displayRank, currentBashoId } from '../lib/bashoCalendar' /* ja_names_sweep_v1 rf_polish_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -53,15 +54,7 @@ function chancePct(need, wins, losses, hist) {  /* rf_chance_client_v1 */
   return Math.min(99, Math.max(1, pct))  /* rf_clamp_v1: 0/100 lyshe dlia determinovanykh vypadkiv (rannie return vyshche) */
 }
 
-const HEYA_JA = {  /* ja_gaps_v2: основні стайні */
-  'Tatsunami': '立浪', 'Nishonoseki': '二所ノ関', 'Otowayama': '音羽山', 'Sadogatake': '佐渡ヶ嚆',
-  'Isegahama': '伊勢ヶ濱', 'Oshiogawa': '押尾川', 'Kokonoe': '九重', 'Takasago': '高砂',
-  'Kasugano': '春日野', 'Oitekaze': '追手風', 'Tokitsukaze': '時津風', 'Dewanoumi': '出羽海',
-  'Hakkaku': '八角', 'Kise': '木瀬', 'Minato': '渊', 'Naruto': '鳴戸',
-  'Asakayama': '浅香山', 'Tamanoi': '玉ノ井', 'Fujishima': '藤島', 'Miyagino': '宮城野',
-  'Onomatsu': '阿武松', 'Shikoroyama': '錆山', 'Ajigawa': '安治川', 'Takadagawa': '高田川',
-  'Arashio': '荒汐', 'Ikazuchi': '雷', 'Hanaregoma': '放駒', 'Nishikido': '錦戸',
-}
+/* heya_ja_lib_rf_v1: slovnyk -> lib/heyaJa */
 export default function RankForecast() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

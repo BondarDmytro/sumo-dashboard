@@ -6,7 +6,9 @@ import HeyaClient from '../../../components/HeyaClient'
 export const revalidate = 3600
 const BASE = 'https://sumo.dohyo-legends.com'
 
-import { heyaSlug, rankVal } from '../../../lib/heya' /* heya_lib_v1 */
+import { heyaSlug, rankVal } from '../../../lib/heya' /* heya_lib_v1 heya_slug_ja_full_v1 */
+import { heyaJa } from '../../../lib/heyaJa'
+import { displayRank } from '../../../lib/bashoCalendar'
 
 function heyaMap() {
   const map = {}
@@ -33,12 +35,12 @@ export async function generateMetadata({ params }) {
   const title = {
     uk: `Стайня ${h.name} — рікіші, ранги, результати | Сумо`,
     en: `${h.name} stable — rikishi, ranks & results | Sumo`,
-    ja: `${h.name}部屋 — 所属力士・番付・成績`,
+    ja: `${heyaJa(h.name)}部屋 — 所属力士・番付・成績`,
   }[L]
   const description = {
     uk: `Стайня ${h.name}: ${h.members.length} рікіші. Найвищий ранг — ${top?.rank || '—'} (${top?.name || ''}). Профілі, статистика, живі результати басьо.`,
     en: `${h.name} stable: ${h.members.length} rikishi. Top rank — ${top?.rank || '—'} (${top?.name || ''}). Profiles, stats and live basho results.`,
-    ja: `${h.name}部屋の所属力士${h.members.length}名。最高位は${top?.rank || ''}の${top?.nameJp || top?.name || ''}。プロフィール・成績・場所の結果。`,
+    ja: `${heyaJa(h.name)}部屋の所属力士${h.members.length}名。最高位は${top?.rank ? displayRank(top.rank, 'ja') : ''}の${String(top?.nameJp || top?.name || '').split('\u3000')[0].split('(')[0]}。プロフィール・成績・場所の結果。`,
   }[L]
   return {
     title, description,
@@ -63,7 +65,7 @@ export default async function HeyaPage({ params }) {
   const intro = {
     uk: `Стайня ${h.name} (${h.name}-бея) — ${h.members.length} рікіші у професійному сумо. Сумарно ${totWins.toLocaleString('en-US')} кар'єрних перемог і ${totYusho} юшо. Найвищий поточний ранг — ${top?.rank || '—'}.`,
     en: `${h.name} stable (${h.name}-beya) has ${h.members.length} rikishi in professional sumo, with a combined ${totWins.toLocaleString('en-US')} career wins and ${totYusho} yusho. Highest current rank: ${top?.rank || '—'}.`,
-    ja: `${h.name}部屋には${h.members.length}名の力士が所属。通算${totWins.toLocaleString('en-US')}勝、優勝${totYusho}回。現在の最高位は${top?.rank || ''}。`,
+    ja: `${heyaJa(h.name)}部屋には${h.members.length}名の力士が所属。通算${totWins.toLocaleString('en-US')}勝、優勝${totYusho}回。現在の最高位は${top?.rank ? displayRank(top.rank, 'ja') : ''}。`,
   }[L]
   const label = {
     uk: { members: 'Рікіші', top: 'Топ-ранг', wins: 'Кар\u2019єрні перемоги', yusho: 'Юшо', list: 'Склад стайні', backAll: '← Всі стайні' },
@@ -72,7 +74,7 @@ export default async function HeyaPage({ params }) {
   }[L]
   const facts = [
     [label.members, String(h.members.length)],
-    [label.top, top?.rank || '—'],
+    [label.top, top?.rank ? (L === 'ja' ? displayRank(top.rank, 'ja') : top.rank) : '—'],
     [label.wins, totWins.toLocaleString('en-US')],
     [label.yusho, totYusho ? `\ud83c\udfc6 ${totYusho}` : '0'],  /* heya_visual_v1 */
   ]
@@ -89,7 +91,7 @@ export default async function HeyaPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd)}} />
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <a href={`/${L}/heya`} style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',textDecoration:'none'}}>{label.backAll}</a>
-        <h1 style={{fontSize:'1.4rem',fontWeight:800,margin:'0.4rem 0 0.5rem'}}>{L === 'ja' ? `${h.name}部屋` : `${h.name}`}</h1>
+        <h1 style={{fontSize:'1.4rem',fontWeight:800,margin:'0.4rem 0 0.5rem'}}>{L === 'ja' ? `${heyaJa(h.name)}部屋` : `${h.name}`}</h1>
         <p style={{fontSize:'0.85rem',lineHeight:1.7,color:'var(--mid)',maxWidth:720,margin:'0 0 1rem'}}>{intro}</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:6,marginBottom:'1.5rem'}}>
           {facts.map(([k, v]) => (
@@ -114,8 +116,8 @@ export default async function HeyaPage({ params }) {
               return (
             <a key={r.id} href={hubSlugs[r.id] ? `/${L}/rikishi/${hubSlugs[r.id]}` : `/${L}/rikishi?id=${r.id}`}
               style={{display:'flex',alignItems:'center',gap:8,...st,padding:'0.5rem 0.7rem',borderRadius:2,textDecoration:'none',color:'var(--ink)'}}>
-              <span style={{flex:1,fontWeight: isMak ? 800 : 600,fontSize:'0.8rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(r.yusho || 0) > 0 ? '\ud83c\udfc6 ' : ''}{L === 'ja' && r.nameJp ? r.nameJp.split('\u3000')[0] : r.name}</span>
-              <span style={{fontFamily:'monospace',fontSize:'0.58rem',color: isMak ? '#8a6a00' : 'var(--mid)',background: isMak ? 'rgba(184,134,11,0.16)' : 'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap',fontWeight: isMak ? 700 : 400}}>{r.rank}</span>
+              <span style={{flex:1,fontWeight: isMak ? 800 : 600,fontSize:'0.8rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{(r.yusho || 0) > 0 ? '\ud83c\udfc6 ' : ''}{L === 'ja' && r.nameJp ? r.nameJp.split('\u3000')[0].split('(')[0] : r.name}</span>
+              <span style={{fontFamily:'monospace',fontSize:'0.58rem',color: isMak ? '#8a6a00' : 'var(--mid)',background: isMak ? 'rgba(184,134,11,0.16)' : 'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap',fontWeight: isMak ? 700 : 400}}>{L === 'ja' ? displayRank(r.rank, 'ja') /* heya_tile_rank_ja_v1 */ : r.rank}</span>
             </a>
               )
             })()

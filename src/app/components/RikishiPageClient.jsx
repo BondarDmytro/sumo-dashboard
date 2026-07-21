@@ -1,6 +1,7 @@
 /* auto_current_v3 */
 'use client' /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
+import { HEYA_JA } from '../lib/heyaJa' /* heya_ja_lib_v1 */
 
 import { useEffect, useState, useRef } from 'react'  /* useref_fix_v1 */
 import YT_VIDEOS from '../lib/ytVideos.json' /* yt_direct_videos_v1 */
@@ -69,7 +70,7 @@ function WinRate({ wins, total }) {
   )
 }
 
-const HEYA_JA = { 'Tatsunami': '立浪', 'Nishonoseki': '二所ノ関', 'Otowayama': '音羽山', 'Sadogatake': '佐渡ヶ嚆', 'Isegahama': '伊勢ヶ濱', 'Oshiogawa': '押尾川', 'Kokonoe': '九重', 'Takasago': '高砂', 'Kasugano': '春日野', 'Oitekaze': '追手風', 'Tokitsukaze': '時津風', 'Dewanoumi': '出羽海', 'Hakkaku': '八角', 'Kise': '木瀬', 'Minato': '渊', 'Naruto': '鳴戸', 'Asakayama': '浅香山', 'Tamanoi': '玉ノ井', 'Fujishima': '藤島', 'Miyagino': '宮城野', 'Onomatsu': '阿武松', 'Shikoroyama': '錆山', 'Ajigawa': '安治川', 'Takadagawa': '高田川', 'Arashio': '荒汐', 'Ikazuchi': '雷', 'Hanaregoma': '放駒', 'Nishikido': '錦戸' }
+/* heya_ja_lib_v1: import perenesenyi uhoru */
 const SANSHO_JA = { 'Gino-sho': '技能賞', 'Kanto-sho': '敢闘賞', 'Shukun-sho': '殊勲賞' }  /* ja_gaps_v4 */
 const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' }  /* ja_gaps_v1 */
 function RikishiListCard({ r, onClick, selected }) {
