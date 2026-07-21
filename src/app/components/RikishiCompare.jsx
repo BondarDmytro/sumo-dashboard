@@ -60,6 +60,10 @@ export default function RikishiCompare() {
   const [boutsOpen, setBoutsOpen] = useState(false)  /* compare_v6 */
   const [liveRec, setLiveRec] = useState({})  /* compare_v13: potochne basho z rikishi-list */
   const [isMobile, setIsMobile] = useState(false)  /* compare_mobile_v1 */
+  const [scope, setScope] = useState('career')  /* compare_scope_v1 */
+  const [mkStats, setMkStats] = useState({})
+  /* compare_scope_v2_moved: effect pereikhav nyzhche r1/r2 */
+  const eff = (m, key, careerVal) => scope === 'makuuchi' ? (mkStats[String(m.id)]?.[key] ?? null) : careerVal
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 700px)')
     setIsMobile(mq.matches)
@@ -83,6 +87,15 @@ export default function RikishiCompare() {
   const byId = useMemo(() => new Map(meta.map(m => [String(m.id), m])), [])
   const r1 = byId.get(String(id1))
   const r2 = byId.get(String(id2))
+  useEffect(() => {
+    if (!r1 || !r2 || scope !== 'makuuchi') return
+    ;[r1.id, r2.id].forEach(id => {
+      if (mkStats[String(id)]) return
+      fetch(`/api/rikishi-stats?id=${id}`).then(x => x.json()).then(d => {
+        if (d.makuuchi) setMkStats(s => ({ ...s, [String(id)]: d.makuuchi }))
+      }).catch(() => {})
+    })
+  }, [scope, r1?.id, r2?.id])
 
   useEffect(() => {
     setH2h(null)
@@ -141,7 +154,10 @@ export default function RikishiCompare() {
     )
   }
 
-  const winPct = (m) => m?.matches ? Math.round((m.wins / m.matches) * 100) : null
+  const winPct = (m) => {
+    if (scope === 'makuuchi') { const s = mkStats[String(m.id)]; return s?.bouts ? Math.round((s.wins / s.bouts) * 100) : null }
+    return m?.matches ? Math.round((m.wins / m.matches) * 100) : null
+  }
   const rows = (r1 && r2) ? [
     { l: t3(lang, 'Ранг', 'Rank', '番付'), v: m => lang === 'ja' ? displayRank(m.rank, 'ja') : (m.rank || '—'), cmp: null },
     { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位'), v: m => lang === 'ja' ? displayRank(m.hiRank, 'ja') : (m.hiRank || '—'), cmp: m => -(m.hiVal || 9999) },
@@ -150,11 +166,11 @@ export default function RikishiCompare() {
     { l: t3(lang, 'Вага', 'Weight', '体重'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
     { l: t3(lang, 'Стайня', 'Stable', '部屋'), v: m => lang === 'ja' ? (HEYA_JA[m.heya] || m.heya || '—') : (m.heya || '—'), cmp: null },
     { l: t3(lang, 'Дебют', 'Debut', '初土俵'), v: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4)}` : '—', cmp: null },
-    { l: t3(lang, 'Басьо', 'Basho', '場所数'), v: m => m.basho ?? '—', cmp: m => m.basho || 0 },
-    { l: t3(lang, 'Боїв', 'Bouts', '取組数'), v: m => m.matches ?? '—', cmp: m => m.matches || 0 },
-    { l: t3(lang, 'Перемог', 'Wins', '勝利数'), v: m => m.wins ?? '—', cmp: m => m.wins || 0 },
+    { l: t3(lang, 'Басьо', 'Basho', '場所数'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
+    { l: t3(lang, 'Боїв', 'Bouts', '取組数'), v: m => eff(m, 'bouts', m.matches) ?? '—', cmp: m => eff(m, 'bouts', m.matches) || 0 },
+    { l: t3(lang, 'Перемог', 'Wins', '勝利数'), v: m => eff(m, 'wins', m.wins) ?? '—', cmp: m => eff(m, 'wins', m.wins) || 0 },
     { l: t3(lang, 'Вінрейт', 'Win rate', '勝率'), v: m => winPct(m) !== null ? winPct(m) + '%' : '—', cmp: m => winPct(m) || 0 },
-    { l: t3(lang, 'Юшо', 'Yusho', '優勝'), v: m => m.yusho || 0, cmp: m => m.yusho || 0 },
+    { l: t3(lang, 'Юшо', 'Yusho', '優勝'), v: m => eff(m, 'yusho', m.yusho || 0) ?? 0, cmp: m => eff(m, 'yusho', m.yusho || 0) || 0 },
   ] : []
 
   return (
@@ -163,6 +179,15 @@ export default function RikishiCompare() {
         <Sel val={id1} set={setId1} other={id2} />
         <Sel val={id2} set={setId2} other={id1} />
       </div>
+      {r1 && r2 && (
+        <div style={{display:'flex',gap:8,marginBottom:'0.8rem'}}>
+          {['career','makuuchi'].map(s => (
+            <button key={s} onClick={() => setScope(s)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'0.3rem 0.8rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: scope === s ? '#8a6a00' : 'var(--bg2)',color: scope === s ? '#fff' : 'var(--mid)'}}>
+              {s === 'career' ? t3(lang, 'Вся кар\u2019єра', 'Full career', '全キャリア') : t3(lang, 'Макуучі', 'Makuuchi', '幕内')}
+            </button>
+          ))}
+        </div>
+      )}
       {r1 && r2 && (
         <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:2}}>{/* compare_v7: foto vseredyni riadkovoi zony */}
           <div style={{minWidth:0}}>
