@@ -87,6 +87,17 @@ export default function RikishiCompare() {
   const byId = useMemo(() => new Map(meta.map(m => [String(m.id), m])), [])
   const r1 = byId.get(String(id1))
   const r2 = byId.get(String(id2))
+  const h2hView = (() => {  /* compare_scope_h2h_v1: h2h u scope-rezhymi */
+    if (!h2h) return null
+    if (scope !== 'makuuchi') return h2h
+    const bouts = (h2h.bouts || []).filter(b => b.division === 'Makuuchi')
+    return {
+      bouts,
+      total: bouts.length,
+      wins1: bouts.filter(b => b.winnerId === Number(id1)).length,
+      wins2: bouts.filter(b => b.winnerId === Number(id2)).length,
+    }
+  })()
   useEffect(() => {
     if (!r1 || !r2 || scope !== 'makuuchi') return
     ;[r1.id, r2.id].forEach(id => {
@@ -196,11 +207,11 @@ export default function RikishiCompare() {
             <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>vs</div>
             <div style={{fontWeight:800,fontSize:'1.05rem'}}>{dispName(r2, lang)}</div>
           </div>
-          {h2h && h2h.total > 0 && (
+          {h2hView && h2hView.total > 0 && (
             <div onClick={() => setBoutsOpen(o => !o)} title={t3(lang, 'клік — історія зустрічей', 'click — bout history', 'クリックで対戦履歴')} style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8,padding:'0.6rem 1rem',borderBottom:'1px solid var(--border)',alignItems:'center',background:'rgba(184,134,11,0.06)',cursor:'pointer'}}>
-              <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',textAlign:'right',color: h2h.wins1 > h2h.wins2 ? '#1a6b5c' : 'var(--ink)'}}>{h2h.wins1}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)'}}>{t3(lang, 'очні зустрічі', 'head-to-head', '対戦成績')} ({h2h.total}) {boutsOpen ? '\u25be' : '\u25b8'}  {/* compare_v6_chevron */}</div>
-              <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',color: h2h.wins2 > h2h.wins1 ? '#1a6b5c' : 'var(--ink)'}}>{h2h.wins2}</div>
+              <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',textAlign:'right',color: h2hView.wins1 > h2hView.wins2 ? '#1a6b5c' : 'var(--ink)'}}>{h2hView.wins1}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)'}}>{t3(lang, 'очні зустрічі', 'head-to-head', '対戦成績')} ({h2hView.total}) {boutsOpen ? '\u25be' : '\u25b8'}  {/* compare_v6_chevron */}</div>
+              <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',color: h2hView.wins2 > h2hView.wins1 ? '#1a6b5c' : 'var(--ink)'}}>{h2hView.wins2}</div>
             </div>
           )}
           {isMobile && (
@@ -229,15 +240,15 @@ export default function RikishiCompare() {
             <div style={{gridColumn: isMobile ? 3 : '4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
           </div>
 
-          {boutsOpen && h2h && h2h.bouts && h2h.bouts.length > 0 && (  /* compare_v7_matrix */
+          {boutsOpen && h2hView && h2hView.bouts && h2hView.bouts.length > 0 && (  /* compare_v7_matrix */
             <div style={{borderTop:'1px solid var(--border)',padding:'0.7rem 1rem',overflowX:'auto'}}>
               <div style={{fontFamily:'monospace',fontSize:'0.56rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',marginBottom:8}}>
-                {t3(lang, 'Очні зустрічі', 'Head-to-head bouts', '対戦履歴')} ({h2h.total})
+                {t3(lang, 'Очні зустрічі', 'Head-to-head bouts', '対戦履歴')} ({h2hView.total})
               </div>
               {(() => {
                 const byBasho = []
                 const seen = new Map()
-                for (const b of [...h2h.bouts].reverse()) {
+                for (const b of [...h2hView.bouts].reverse()) {
                   if (!seen.has(b.b)) { seen.set(b.b, []); byBasho.push({ b: b.b, list: seen.get(b.b) }) }
                   seen.get(b.b).push(b)
                 }
