@@ -11,13 +11,13 @@ const RANK_ORD = { Yokozuna: 0, Ozeki: 1, Sekiwake: 2, Komusubi: 3, Maegashira: 
 const rankSortVal = (r) => { const s = String(r || ''); const div = Object.keys(RANK_ORD).find(k => s.startsWith(k)); const num = parseInt((s.match(/\d+/) || [99])[0], 10); return (div !== undefined ? RANK_ORD[div] : 99) * 1000 + num * 2 + (s.includes('West') ? 1 : 0) }
 
 const trimJp = (s) => String(s || '').split('\u3000')[0].split('(')[0]
-function Avatar({ m, tall }) {  /* compare_photo_v1: foto z /public/rikishi, kandzi-kolo yak folbek */
+function Avatar({ m, tall, mirror }) {  /* compare_v14 */  /* compare_photo_v1: foto z /public/rikishi, kandzi-kolo yak folbek */
   const [imgOk, setImgOk] = useState(true)
   const ch = String(m?.nameJp || m?.name || '?').split('\u3000')[0].split('(')[0].charAt(0)
   if (imgOk) return (
     <img src={`/rikishi/${m?.id}.webp`} alt={m?.name || ''}
       onError={() => setImgOk(false)}
-      style={tall ? {width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'} : {width:52,height:70,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0,display:'block'}} />
+      style={tall ? {width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block',transform: mirror ? 'scaleX(-1)' : 'none'} : {width:52,height:70,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0,display:'block'}} />
   )
   return (
     <span style={{width:44,height:44,borderRadius:'50%',flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',background:rankColor(m?.rank),color:'#f5f0e8',fontSize:'1.25rem',fontWeight:700,fontFamily:"'Noto Sans JP',sans-serif"}}>
@@ -184,7 +184,7 @@ export default function RikishiCompare() {
                 <div key={i + 'c'} style={{...cell,gridColumn:4,fontFamily:'monospace',fontSize:'0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{v2}</div>,
               ]
             })}
-            <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall /></div>
+            <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>
             <div style={{gridColumn:'1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}
             <div style={{gridColumn:3,borderTop:'1px solid var(--border)'}} />
             <div style={{gridColumn:'4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
