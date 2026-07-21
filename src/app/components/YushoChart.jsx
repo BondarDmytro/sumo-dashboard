@@ -47,6 +47,24 @@ export default function YushoChart({ rikishi }) {
   const [raceDay, setRaceDay] = useState(null)
   const [racePlaying, setRacePlaying] = useState(false)
   const prevPosRef = useRef({})  /* race_smooth_v2 */
+  const [raceTick, setRaceTick] = useState(0)  /* race_dir_v4: kadr rakhuiemo v efekti, ne v renderi */
+  const raceViewRef = useRef(null)
+  useEffect(() => {
+    if (mode !== 'race' || !rikishi?.length) return
+    const maxD = Math.max(...rikishi.map(r => r.record?.filter(m => m.result).length || 0), 1)
+    const dayNow = raceDay ?? maxD
+    const st = computeStandings(rikishi, dayNow)
+    const frame = (st.rikishi || []).filter(r => !r.kyujo && (r.yushoChance || 0) > 0).sort((a, b) => (b.yushoChance || 0) - (a.yushoChance || 0) || b.wins - a.wins || (a.rankValue || 999) - (b.rankValue || 999))  /* race_sort_chance_v1 race_drop_eliminated_v1 */
+    const dirs = {}
+    frame.forEach((r, idx) => {
+      const k = String(r._id || r.name)
+      const prev = prevPosRef.current[k]
+      dirs[k] = prev === undefined || prev === idx ? '' : idx < prev ? 'race-up' : 'race-down'
+    })
+    frame.forEach((r, idx) => { prevPosRef.current[String(r._id || r.name)] = idx })
+    raceViewRef.current = { frame, dirs, dayNow }
+    setRaceTick(t => t + 1)
+  }, [mode, raceDay, rikishi])
   useEffect(() => {  /* race_tick_v1 */
     if (!racePlaying) return
     const t = setInterval(() => {
@@ -100,9 +118,9 @@ export default function YushoChart({ rikishi }) {
         {t3(lang, 'Динаміка шансів на юшо по днях турніру', 'Yusho chance dynamics by tournament day', '優勝確率の日別推移')}
       </div>
       {mode === 'race' ? (() => {  /* chart_race_v2: honka - vsi ne-kyujo, № + bar + rekord + % */
-        const dayNow = raceDay ?? maxDay
-        const st = computeStandings(all, dayNow)
-        const frame = (st.rikishi || []).filter(r => !r.kyujo).sort((a, b) => b.wins - a.wins || (b.yushoChance || 0) - (a.yushoChance || 0) || (a.rankValue || 999) - (b.rankValue || 999))
+        const rv = raceViewRef.current
+        if (!rv) return null
+        const { frame, dirs, dayNow } = rv
         const ROW_H = 24
         const maxC = Math.max(1, ...frame.map(r => r.yushoChance || 0))  /* race_smooth_v1: shkala vid % shansu */
         return (
@@ -116,8 +134,13 @@ export default function YushoChart({ rikishi }) {
               <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',minWidth:60,textAlign:'right'}}>{t3(lang,'день','day','')} {dayNow}{lang === 'ja' ? '日目' : ''}</span>
             </div>
             <div style={{position:'relative',height: frame.length * ROW_H}}>
-              {frame.map((r, idx) => (
-                <div key={r._id || r.name} className={'race-row ' + (() => { const k = String(r._id || r.name); const prev = prevPosRef.current[k]; prevPosRef.current[k] = idx; return prev === undefined || prev === idx ? '' : idx < prev ? 'race-up' : 'race-down' })()} style={{position:'absolute',left:0,right:0,top:0,transform:`translateY(${idx * ROW_H}px)`,height:ROW_H,display:'flex',alignItems:'center',gap:8,willChange:'transform'}}>
+              {(() => {  /* race_stable_dom_v5: DOM u poriadku za id - transition zhyve, pozytsiia lyshe transformom */
+                const posById = {}
+                frame.forEach((r, idx) => { posById[String(r._id || r.name)] = idx })
+                return [...frame].sort((a, b) => String(a._id || a.name).localeCompare(String(b._id || b.name))).map((r) => {
+                  const idx = posById[String(r._id || r.name)]
+                  return (
+                <div key={r._id || r.name} className={'race-row ' + dirs[String(r._id || r.name)]} style={{position:'absolute',left:0,right:0,top:0,transform:`translateY(${idx * ROW_H}px)`,height:ROW_H,display:'flex',alignItems:'center',gap:8,willChange:'transform'}}>
                   <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',minWidth:22,textAlign:'right'}}>{idx + 1}</span>
                   <span style={{fontFamily:'monospace',fontSize:'0.64rem',fontWeight: idx === 0 ? 700 : 500,minWidth:105,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{displayName(r, lang)}</span>
                   <div style={{flex:1,height:12,background:'var(--bg2)',borderRadius:2,overflow:'hidden'}}>
@@ -126,7 +149,9 @@ export default function YushoChart({ rikishi }) {
                   <span style={{fontFamily:'monospace',fontSize:'0.62rem',minWidth:32,textAlign:'right'}}>{r.wins}{'\u2013'}{r.losses}</span>
                   <span style={{fontFamily:'monospace',fontSize:'0.6rem',color: (r.yushoChance || 0) > 0 ? '#1a6b5c' : 'var(--light)',minWidth:44,textAlign:'right'}}>{(r.yushoChance ?? 0)}%</span>
                 </div>
-              ))}
+                  )
+                })
+              })()}
             </div>
           </div>
         )
