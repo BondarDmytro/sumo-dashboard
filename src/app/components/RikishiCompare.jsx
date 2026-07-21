@@ -11,13 +11,13 @@ const RANK_ORD = { Yokozuna: 0, Ozeki: 1, Sekiwake: 2, Komusubi: 3, Maegashira: 
 const rankSortVal = (r) => { const s = String(r || ''); const div = Object.keys(RANK_ORD).find(k => s.startsWith(k)); const num = parseInt((s.match(/\d+/) || [99])[0], 10); return (div !== undefined ? RANK_ORD[div] : 99) * 1000 + num * 2 + (s.includes('West') ? 1 : 0) }
 
 const trimJp = (s) => String(s || '').split('\u3000')[0].split('(')[0]
-function Avatar({ m, tall, mirror }) {  /* compare_v14 */  /* compare_photo_v1: foto z /public/rikishi, kandzi-kolo yak folbek */
+function Avatar({ m, tall, mirror, big }) {  /* compare_v14 compare_mobile_v1 */  /* compare_photo_v1: foto z /public/rikishi, kandzi-kolo yak folbek */
   const [imgOk, setImgOk] = useState(true)
   const ch = String(m?.nameJp || m?.name || '?').split('\u3000')[0].split('(')[0].charAt(0)
   if (imgOk) return (
     <img src={`/rikishi/${m?.id}.webp`} alt={m?.name || ''}
       onError={() => setImgOk(false)}
-      style={tall ? {width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block',transform: mirror ? 'scaleX(-1)' : 'none'} : {width:52,height:70,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0,display:'block'}} />
+      style={tall ? {width:'100%',height:'100%',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block',transform: mirror ? 'scaleX(-1)' : 'none'} : big ? {width:96,height:134,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block',transform: mirror ? 'scaleX(-1)' : 'none'} : {width:52,height:70,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0,display:'block'}} />
   )
   return (
     <span style={{width:44,height:44,borderRadius:'50%',flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',background:rankColor(m?.rank),color:'#f5f0e8',fontSize:'1.25rem',fontWeight:700,fontFamily:"'Noto Sans JP',sans-serif"}}>
@@ -59,6 +59,14 @@ export default function RikishiCompare() {
   const [h2h, setH2h] = useState(null)
   const [boutsOpen, setBoutsOpen] = useState(false)  /* compare_v6 */
   const [liveRec, setLiveRec] = useState({})  /* compare_v13: potochne basho z rikishi-list */
+  const [isMobile, setIsMobile] = useState(false)  /* compare_mobile_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   useEffect(() => {
     fetch('/api/rikishi-list').then(x => x.json()).then(d => {
       const map = {}
@@ -151,7 +159,7 @@ export default function RikishiCompare() {
 
   return (
     <div style={{marginTop:'1rem'}}>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:'1rem'}}>
+      <div style={{display:'grid',gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',gap:12,marginBottom:'1rem'}}>
         <Sel val={id1} set={setId1} other={id2} />
         <Sel val={id2} set={setId2} other={id1} />
       </div>
@@ -170,8 +178,14 @@ export default function RikishiCompare() {
               <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',color: h2h.wins2 > h2h.wins1 ? '#1a6b5c' : 'var(--ink)'}}>{h2h.wins2}</div>
             </div>
           )}
-          <div style={{display:'grid',gridTemplateColumns:'minmax(140px,240px) 1fr auto 1fr minmax(140px,240px)',columnGap:10,alignItems:'stretch'}}>{/* compare_v9: 5-kolonkovyi hrid, foto = koloni z row-span */}
-            <div style={{gridRow: `1 / span ${rows.length}`,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0 0.6rem 0.75rem'}}><Avatar key={r1.id} m={r1} tall /></div>
+          {isMobile && (
+            <div style={{display:'flex',justifyContent:'center',gap:12,padding:'0.7rem 0.75rem 0',alignItems:'flex-start'}}>
+              <Avatar key={'m1' + r1.id} m={r1} tall={false} big />
+              <Avatar key={'m2' + r2.id} m={r2} tall={false} big mirror />
+            </div>
+          )}
+          <div style={{display:'grid',gridTemplateColumns: isMobile ? '1fr auto 1fr' : 'minmax(140px,240px) 1fr auto 1fr minmax(140px,240px)',columnGap:10,alignItems:'stretch'}}>
+            {!isMobile && <div style={{gridRow: `1 / span ${rows.length}`,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0 0.6rem 0.75rem'}}><Avatar key={r1.id} m={r1} tall /></div>}
             {rows.map((row, i) => {
               const v1 = row.v(r1), v2 = row.v(r2)
               const c1 = row.cmp ? row.cmp(r1) : null, c2 = row.cmp ? row.cmp(r2) : null
@@ -179,15 +193,15 @@ export default function RikishiCompare() {
               const b2 = row.cmp && c1 !== c2 && c2 > c1
               const cell = { display:'flex',alignItems:'center',borderBottom:'1px solid var(--border)',padding:'0.45rem 0' }
               return [
-                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn:2,fontFamily:'monospace',fontSize:'0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{v1}</div>,
-                <div key={i + 'b'} style={{...cell,justifyContent:'center',gridColumn:3,fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',minWidth:100}}>{row.l}</div>,
-                <div key={i + 'c'} style={{...cell,gridColumn:4,fontFamily:'monospace',fontSize:'0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{v2}</div>,
+                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn: isMobile ? 1 : 2,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{v1}</div>,
+                <div key={i + 'b'} style={{...cell,justifyContent:'center',gridColumn: isMobile ? 2 : 3,fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',minWidth:100}}>{row.l}</div>,
+                <div key={i + 'c'} style={{...cell,gridColumn: isMobile ? 3 : 4,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{v2}</div>,
               ]
             })}
-            <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>
-            <div style={{gridColumn:'1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}
-            <div style={{gridColumn:3,borderTop:'1px solid var(--border)'}} />
-            <div style={{gridColumn:'4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
+            {!isMobile && <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>}
+            <div style={{gridColumn: isMobile ? 1 : '1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}
+            <div style={{gridColumn: isMobile ? 2 : 3,borderTop:'1px solid var(--border)'}} />
+            <div style={{gridColumn: isMobile ? 3 : '4 / 6',padding:'0.7rem 0.75rem 0.7rem 0',borderTop:'1px solid var(--border)'}}><BashoMini hist={r2.last9} cur={liveRec[String(r2.id)] ? { b: currentBashoId(), ...liveRec[String(r2.id)] } : null} /></div>
           </div>
 
           {boutsOpen && h2h && h2h.bouts && h2h.bouts.length > 0 && (  /* compare_v7_matrix */
