@@ -1,4 +1,5 @@
 'use client'
+/* live_pulse_v1 */
 /* live_now_v2: potochnyi bii bud-yakoho dyvizionu. Khronolohiia dnia: Jonokuchi -> ... -> Makuuchi.
    Pershyi dyvizion iz nezihranym boiem = na dokhio zaraz. Polling 60s, vikno 08:00-18:30 JST. */
 import { useEffect, useState } from 'react'
@@ -73,7 +74,7 @@ export default function LiveNow({ currentDay: dayProp = null }) {
   }
   return (
     <div className="live-now" onClick={goLive} role="button" title="\u2192 torikumi" style={{cursor:'pointer',display:'flex',alignItems:'center',gap:7,fontFamily:'monospace',fontSize:'0.72rem',whiteSpace:'nowrap'}}>
-      <span className="live-dot" />
+      <span className="live-dot live-dot-pulse" />
       <span style={{color:'#fb5050',fontWeight:700,letterSpacing:'0.08em'}}>{lang === 'ja' ? '\u30e9\u30a4\u30d6' : 'LIVE'}</span>
       <span style={{color:'#f5f0e8'}}>{jaName(live.eastId, live.eastShikona)}</span>
       <span style={{color:'#8a8a8a'}}>{lang === 'ja' ? '\u5bfe' : 'vs'}</span>

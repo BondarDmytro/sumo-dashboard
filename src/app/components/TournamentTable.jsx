@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react' /* table_timetravel_v1 */
+import { useState, useEffect, useRef } from 'react' /* table_timetravel_v1 result_wave_v1 */
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 
 import { useLang } from './LangProvider'
@@ -72,6 +72,25 @@ function MatchDots({ record, currentDay }) {
 }
 
 export default function TournamentTable({ contenders, currentDay, allRikishi = null }) {
+  /* result_wave_v1: khvylia na riadku pry novomu rezultati */
+  const [waveIds, setWaveIds] = useState(new Set())
+  const prevPlayedRef = useRef({})
+  useEffect(() => {
+    const next = {}
+    const fresh = new Set()
+    ;(contenders || []).forEach(r => {
+      const played = (r.record || []).filter(m => m && m.result).length
+      next[r._id] = played
+      const prev = prevPlayedRef.current[r._id]
+      if (prev !== undefined && played > prev) fresh.add(r._id)
+    })
+    prevPlayedRef.current = next
+    if (fresh.size) {
+      setWaveIds(fresh)
+      const t = setTimeout(() => setWaveIds(new Set()), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [contenders])
   const { isFav } = useFavorites()  /* fav_row_v1 */
   const { t, lang } = useLang()
   const [viewDay, setViewDay] = useState(currentDay)  /* table_timetravel_v1 */
@@ -146,7 +165,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                 : `${r.wins}–${r.losses}`
               const isOut = !r.kyujo && (r.yushoChance ?? 1) <= 0 && r.status !== 'lead' && r.status !== 'chase'
               return (
-                <tr key={r._id} className={isFav(r._id) ? 'fav-row' : undefined} style={{borderBottom:'1px solid var(--border)'}}>
+                <tr key={r._id} className={[isFav(r._id) ? 'fav-row' : '', waveIds.has(r._id) ? 'result-wave' : ''].filter(Boolean).join(' ') || undefined} style={{borderBottom:'1px solid var(--border)'}}>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center',minWidth:90}}>
                     <TodayCell record={r.record} currentDay={viewDay} t={t} lang={lang}/>
                   </td>

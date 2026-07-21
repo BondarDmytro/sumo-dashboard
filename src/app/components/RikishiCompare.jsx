@@ -1,6 +1,6 @@
 'use client'
 /* rikishi_compare_v1: porivniannia dvokh rikishi - bio, kariera, forma, h2h */
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react' /* compare_anim_v1 */
 import { useLang } from './LangProvider'
 import { t3 } from '../i18n'
 import meta from '../lib/rikishiMeta.json'
@@ -11,6 +11,55 @@ const RANK_ORD = { Yokozuna: 0, Ozeki: 1, Sekiwake: 2, Komusubi: 3, Maegashira: 
 const rankSortVal = (r) => { const s = String(r || ''); const div = Object.keys(RANK_ORD).find(k => s.startsWith(k)); const num = parseInt((s.match(/\d+/) || [99])[0], 10); return (div !== undefined ? RANK_ORD[div] : 99) * 1000 + num * 2 + (s.includes('West') ? 1 : 0) }
 
 const trimJp = (s) => String(s || '').split('\u3000')[0].split('(')[0]
+
+function CountUp({ value }) {  /* compare_anim_v1 */
+  const [disp, setDisp] = useState(value)
+  const fromRef = useRef(value)
+  useEffect(() => {
+    const from = fromRef.current
+    if (from === value || typeof value !== 'number') { setDisp(value); fromRef.current = value; return }
+    const t0 = performance.now()
+    let raf
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / 500)
+      const e = 1 - Math.pow(1 - p, 3)
+      setDisp(Math.round(from + (value - from) * e))
+      if (p < 1) raf = requestAnimationFrame(tick)
+      else fromRef.current = value
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+  return <>{disp}</>
+}
+
+function numPart(v) {
+  const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''))
+  return isNaN(n) ? null : n
+}
+
+/* indicator_final_v1: gunbai znialy, tug-rope yedynyi */
+
+function TugLine({ c1, c2 }) {  /* tug_rope_v1 tug_cmp_v1: syla z cmp-znachen riadka (napriamok i semantyka korektni) */
+  if (typeof c1 !== 'number' || typeof c2 !== 'number' || (c1 === 0 && c2 === 0)) return null
+  const span = Math.abs(c1) + Math.abs(c2)
+  if (!span) return null
+  const shift = Math.max(-40, Math.min(40, ((c2 - c1) / span) * 100))
+  return (
+    <div style={{position:'relative',width:'100%',height:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <svg width="80%" height="7" viewBox="0 0 100 7" preserveAspectRatio="none" style={{opacity:0.55}}>
+        <defs>
+          <pattern id="ropeWeave" width="7" height="7" patternUnits="userSpaceOnUse">
+            <path d="M0 5.5 Q1.75 1 3.5 3.5 T7 1.5" fill="none" stroke="#8a8578" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M0 1.5 Q1.75 6 3.5 3.5 T7 5.5" fill="none" stroke="#a89f8d" strokeWidth="1.5" strokeLinecap="round" />
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="100" height="7" fill="url(#ropeWeave)" />
+      </svg>
+      <div style={{position:'absolute',left:'50%',top:0,width:3,height:10,borderRadius:2,background:'#b8860b',boxShadow:'0 0 3px rgba(184,134,11,0.6)',transform:`translateX(${shift}px)`,transition:'transform 0.7s cubic-bezier(0.34,1.56,0.64,1)'}} />
+    </div>
+  )
+}
 function Avatar({ m, tall, mirror, big }) {  /* compare_v14 compare_mobile_v1 */  /* compare_photo_v1: foto z /public/rikishi, kandzi-kolo yak folbek */
   const [imgOk, setImgOk] = useState(true)
   const ch = String(m?.nameJp || m?.name || '?').split('\u3000')[0].split('(')[0].charAt(0)
@@ -229,11 +278,13 @@ export default function RikishiCompare() {
               const b1 = row.cmp && c1 !== c2 && c1 > c2
               const b2 = row.cmp && c1 !== c2 && c2 > c1
               const cell = { display:'flex',alignItems:'center',borderBottom:'1px solid var(--border)',padding:'0.45rem 0' }
+              const n1c = numPart(v1), n2c = numPart(v2)
+              const canCount = row.cmp && typeof n1c === 'number' && String(v1).match(/^[0-9]/)
               return [
-                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn: isMobile ? 1 : 2,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{v1}</div>,
-                <div key={i + 'b'} style={{...cell,justifyContent:'center',gridColumn: isMobile ? 2 : 3,fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',minWidth:100}}>{row.l}</div>,
-                <div key={i + 'c'} style={{...cell,gridColumn: isMobile ? 3 : 4,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{v2}</div>,
-              ]
+                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn: isMobile ? 1 : 2,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{canCount ? <><CountUp value={n1c} />{String(v1).replace(/^[0-9.\-]+/, '')}</> : v1}</div>,
+                <div key={i + 'b'} style={{...cell,justifyContent:'center',gridColumn: isMobile ? 2 : 3,fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',minWidth:100,flexDirection:'column',gap:3}}><span>{row.l}</span>{row.cmp ? <TugLine c1={c1} c2={c2} /> : null}</div>,  /* ratio_in_label_v1 */
+                <div key={i + 'c'} style={{...cell,gridColumn: isMobile ? 3 : 4,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{canCount ? <><CountUp value={n2c} />{String(v2).replace(/^[0-9.\-]+/, '')}</> : v2}</div>,
+              ]  /* compare_anim_v2 */
             })}
             {!isMobile && <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>}
             <div style={{gridColumn: isMobile ? 1 : '1 / 3',padding:'0.7rem 0 0.7rem 0.75rem',borderTop:'1px solid var(--border)'}}><BashoMini lang={lang} dimNonMak={scope === 'makuuchi'} hist={r1.last9} cur={liveRec[String(r1.id)] ? { b: currentBashoId(), ...liveRec[String(r1.id)] } : null} /></div>{/* compare_v12 */}

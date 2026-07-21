@@ -432,3 +432,22 @@ body {
 /* tt_elim_day_v1: beidzh vybuvshykh - zalyvka pid temu */
 .status-out { background: #0f0e0c !important; color: #f5f0e8 !important; }
 [data-theme="dark"] .status-out { background: #f5f0e8 !important; color: #0f0e0c !important; }
+
+/* anim_pack_v1: live-pulse, result-wave, race-transitions */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+.live-dot-pulse { animation: livePulse 2.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .live-dot-pulse { animation: none; } }
+
+@keyframes resultWave {
+  0% { background-color: rgba(184,134,11,0.28); }
+  100% { background-color: transparent; }
+}
+.result-wave { animation: resultWave 1.8s ease-out 1; }
+
+.race-bar { transition: width 1.8s cubic-bezier(0.45, 0.05, 0.25, 1); }
+.race-row { transition: transform 1.8s cubic-bezier(0.45, 0.05, 0.25, 1); }  /* race_smooth_v2 */
+.race-row.race-up { transition-delay: 0s; z-index: 2; }
+.race-row.race-down { transition-delay: 0.15s; z-index: 1; }
