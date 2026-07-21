@@ -70,6 +70,7 @@ function WinRate({ wins, total }) {
   )
 }
 
+import RikishiCompare from './RikishiCompare' /* rikishi_compare_tab_v1 */
 /* heya_ja_lib_v1: import perenesenyi uhoru */
 const SANSHO_JA = { 'Gino-sho': '技能賞', 'Kanto-sho': '敢闘賞', 'Shukun-sho': '殊勲賞' }  /* ja_gaps_v4 */
 const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' }  /* ja_gaps_v1 */
@@ -415,6 +416,7 @@ export default function RikishiPageClient() {
   }, [])
 
   /* div_sections_v1: sektsii dyvizioniv, nyzhni zghornuti; poshuk rozghortaie vse */
+  const [pageView, setPageView] = useState('list')  /* rikishi_compare_tab_v1 */
   const [openDivs, setOpenDivs] = useState({ Makuuchi: true, Juryo: true })
   useEffect(() => {  /* divs_mobile_collapsed_v2: mob - vse zghorneno pislia mauntu, bez hidratsiinoho mismatchu */
     if (window.innerWidth <= 860) setOpenDivs({})
@@ -458,7 +460,17 @@ export default function RikishiPageClient() {
           {(lang === 'ja' ? '力士 — ' : lang === 'en' ? 'Rikishi — ' : 'Рікіші — ') + bashoInfo(currentBashoId()).label[lang]}
         </div>
 
-        {loading ? (
+        <div style={{display:'flex',gap:8,marginBottom:'1.2rem'}}>
+          {['list','compare'].map(v => (
+            <button key={v} onClick={() => setPageView(v)} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: pageView === v ? '#8a6a00' : 'var(--bg2)',color: pageView === v ? '#fff' : 'var(--mid)'}}>
+              {v === 'list' ? t3(lang, 'Список', 'List', '一覧') : t3(lang, 'Порівняти', 'Compare', '比較')}
+            </button>
+          ))}
+        </div>
+
+        {pageView === 'compare' ? (
+          <RikishiCompare />
+        ) : loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
             {t3(lang, 'Завантаження даних...', 'Loading...', '読み込み中...')}
           </div>

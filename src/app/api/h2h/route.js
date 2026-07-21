@@ -16,7 +16,15 @@ export async function GET(request) {
     )
     const wins1 = vsMatches.filter(m => m.winnerId === parseInt(id1)).length
     const wins2 = vsMatches.filter(m => m.winnerId === parseInt(id2)).length
-    return Response.json({ wins1, wins2, total: vsMatches.length })
+    const bouts = vsMatches
+      .map(m => {
+        const r1IsEast = m.eastId === parseInt(id1)  /* h2h_ranks_v1 */
+        return { b: m.bashoId, day: m.day, division: m.division || '', kimarite: m.kimarite || '', winnerId: m.winnerId,
+          r1Rank: r1IsEast ? m.eastRank : m.westRank, r2Rank: r1IsEast ? m.westRank : m.eastRank }
+      })
+      .sort((x, y) => String(y.b).localeCompare(String(x.b)) || (y.day - x.day))
+      .slice(0, 30)  /* h2h_bouts_v1 */
+    return Response.json({ wins1, wins2, total: vsMatches.length, bouts })
   } catch {
     return Response.json({ wins1: 0, wins2: 0, total: 0 })
   }
