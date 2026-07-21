@@ -70,7 +70,8 @@ for (const r of recs) {
     try {
       const ranks = await (await fetch(`${API}/ranks?rikishiId=${r.id}`)).json()
       if (Array.isArray(ranks) && ranks.length) {
-        const best = ranks.reduce((a, b) => (b.rankValue && (!a || b.rankValue < a.rankValue)) ? b : a, null)
+        const ewScore = (x) => (x.rankValue || 9999) * 2 + (String(x.rank || '').includes('East') ? 0 : 1)  /* meta_v7_hirank_ew: East vyshchyi za West pry rivnomu value */
+        const best = ranks.reduce((a, b) => (b.rankValue && (!a || ewScore(b) < ewScore(a))) ? b : a, null)
         if (best) { hiRank = best.rank; hiVal = best.rankValue }
       }
     } catch (e) {}
