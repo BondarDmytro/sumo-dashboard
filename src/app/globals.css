@@ -560,3 +560,56 @@ body {
   .top5-row > span[style*="flex"] { display: none !important; }  /* progres-bar */
   .top5-pct { min-width: 0 !important; text-align: left !important; }
 }
+
+/* mob_nav_center_v1: pershyi riadok navbaru po tsentru */
+@media (max-width: 700px) {
+  .nav-scroll-inner { justify-content: center !important; }
+}
+
+/* mob_header_tight_v1: header bez porozhnoho khvosta na mob */
+@media (max-width: 700px) {
+  .anim-header { padding: 1rem 1rem 0.75rem !important; min-height: 0 !important; }
+  .th-grid { align-items: start !important; gap: 12px !important; }
+  .th-grid > div { min-height: 0 !important; }
+  .anim-header img[alt] { max-height: 180px; }
+}
+
+/* mob_nav_center_v2: obydva riady navbaru po tsentru */
+@media (max-width: 700px) {
+  .nav-scroll-inner > * { margin-left: 0; }
+  .nav-burger { position: absolute; left: 0.5rem; top: 0.55rem; }
+  .live-now { order: -1 !important; }
+}
+
+/* top5_center_v1: kolonky z pidpysamy po tsentru svoikh polovyn */
+@media (max-width: 700px) {
+  .top5-wrap { justify-items: center; }
+  .top5-wrap .top5-col { width: fit-content; }
+}
+
+/* mob_nav_center_v3: sylove tsentruvannia riadu peremykachiv */
+@media (max-width: 700px) {
+  .nav-scroll-inner > *:not(.live-now):not(.nav-burger) { flex: 0 0 auto !important; }
+  .nav-scroll-inner > *:not(.live-now):not(.nav-burger):first-of-type { margin-left: auto !important; }
+  .nav-scroll-inner > select:last-of-type, .nav-scroll-inner > *:last-child { margin-right: auto !important; }
+}
+
+
+/* share_desktop_stack_v1: veb - share pid zagolovkom yak bulo; mob - inline sprava */
+@media (min-width: 701px) {
+  .th-title-row { flex-direction: column; align-items: flex-start !important; gap: 8px !important; }
+}
+/* stats_mob_smaller_v1 */
+@media (max-width: 700px) {
+  .th-stats-row { font-size: 0.54rem !important; gap: 0.55rem !important; }
+}
+
+/* stats_final_v2: veb - zvychainyi wrap bez obrizky; mob - odyn riadok po tsentru */
+.th-stats-row { overflow: visible; }
+@media (min-width: 701px) {
+  .th-stats-row { flex-wrap: wrap !important; white-space: normal !important; }
+}
+@media (max-width: 700px) {
+  .th-stats-row { font-size: 0.62rem !important; gap: 0.7rem !important; justify-content: center !important; flex-wrap: nowrap !important; white-space: nowrap !important; }
+  .th-stats-row * { font-size: inherit !important; }
+}

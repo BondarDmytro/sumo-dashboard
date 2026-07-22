@@ -70,14 +70,16 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{lang === 'ja' ? bi.label.ja : bi.kanji + ' ' + (lang === 'en' ? bi.label.en : bi.label.uk)}  {/* kanji_dedup_v1 */}</div>
         </div>
         <div className="th-col" style={{minWidth:0,order:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem'}}>  {/* header_v17 top_align_v1 */}
-        <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0,marginBottom:'0.75rem'}}>
+        <div className="th-title-row" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:'0.75rem'}}>{/* share_inline_v1 share_row_class_v1 */}
+        <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0}}>
           {t3(lang, 'Гонка за юшо', 'Yusho Race', '優勝レース')}
           <span style={{color:'#fb5050'}}>
             {t3(lang, ' — наживо', ' — Live', '・ライブ')}
           </span>
         </h1>
-        <div style={{marginBottom:'0.6rem'}}><ShareButton /></div>  {/* share_button_v1 */}
-        <div style={{display:'flex',gap:'1.5rem',flexWrap:'wrap',fontSize:'1rem',color:'#b8c7c8'}}>
+        <ShareButton />
+        </div>
+        <div className="th-stats-row" style={{display:'flex',gap:'1.2rem',flexWrap:'nowrap',whiteSpace:'nowrap',fontSize:'1rem',color:'#b8c7c8'}}>
           {isFinished ? (
             <span style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'4px 14px',borderRadius:2}}>
               <span>🏆</span>
