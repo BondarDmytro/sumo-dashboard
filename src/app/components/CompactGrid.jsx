@@ -1,5 +1,6 @@
 'use client'
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
+import { rankColor } from '../lib/rankColors' /* rank_text_color_v1 rank_pill_cg_v2 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
@@ -56,7 +57,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
               <div style={{flex:1,minWidth:0}}>
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{displayRank(r.rank, lang)} · {r.wins}–{r.losses}</div>
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2}}>{displayRank(r.rank, lang)}</span> · {r.wins}–{r.losses}</div>{/* rank_text_color_v1 */}
               </div>
               
             </div>

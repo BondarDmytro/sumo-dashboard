@@ -1,5 +1,7 @@
 'use client'
+/* rank_color_pm_v1 */
 import { useState, useEffect } from 'react'
+import { rankColor } from '../lib/rankColors' /* rank_color_pm_v1 */
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { displayName, displayRank, shortRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
@@ -146,7 +148,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div style={{minWidth:0,overflow:'hidden'}}>
               <div style={{fontWeight:600,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
             </div>
-            <div /* pm_rank_after_name_v1 */ style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
+            <div /* pm_rank_after_name_v1 */ style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:rankColor(r.rank),fontWeight:600,background:rankColor(r.rank)+'2e',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
             {!isMobile && <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center'}}>{/* pm_breakdown_col_v1 */}
               {r.breakdown.map((b, j) => (
                 <span key={j} style={{fontFamily:'monospace',fontSize:'0.58rem',background:`${b.color}22`,color: b.color,padding:'1px 6px',borderRadius:2,border:`1px solid ${b.color}44`}}>{b.label} · {fmt(b.amount)}</span>

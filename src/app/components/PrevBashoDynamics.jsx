@@ -1,5 +1,6 @@
-'use client' /* ja_batch2_t */
+'use client' /* ja_batch2_t rank_color_dyn_v1 */
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import { rankColor } from '../lib/rankColors' /* rank_color_dyn_v1 */
 // Динаміка попереднього басьо по днях: слайдер дня 1-15 (+плей-оф),
 // повна таблиця всіх учасників зі станом W-L на обраний день. prev_dynamics_v1
 import { useEffect, useState, useMemo } from 'react'
@@ -167,7 +168,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
                   <td style={{ padding: '6px 8px', fontWeight: isLeader ? 800 : 500, color: 'var(--ink)' }}>
                     <RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink>{isLeader && ' ★'}
                   </td>
-                  <td style={{ padding: '6px 8px', color: 'var(--mid)' }}>{displayRank(r.rank, lang)}</td>
+                  <td style={{ padding: '6px 8px' }}><span style={{color:rankColor(r.rank),fontWeight:600,background:rankColor(r.rank)+'2e',padding:'1px 5px',borderRadius:2,fontSize:'0.72rem'}}>{displayRank(r.rank, lang)}</span></td>
                   <td style={{ padding: '6px 8px', fontWeight: 700, color: isLeader ? '#b8860b' : 'var(--ink)' }}>{r.w}–{r.l}</td>
                   <td style={{ padding: '6px 8px' }}>
                     {r.res === 'w' ? <span style={{ color: '#1a6b5c' }}>○</span> : r.res === 'l' ? <span style={{ color: '#c0392b' }}>●</span> : r.res === 'a' ? <span style={{ color: 'var(--light)' }}>{t3(lang, 'кюджо', 'kyujo', '休')}</span> : <span style={{ color: 'var(--light)' }}>—</span>}

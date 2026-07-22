@@ -1,6 +1,8 @@
 'use client'
+/* rank_badge_color_v1 */
 import { useState, useEffect, useRef } from 'react' /* table_timetravel_v1 result_wave_v1 */
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
+import { rankColor } from '../lib/rankColors' /* rank_badge_color_v1 */
 
 import { useLang } from './LangProvider'
 import FlagName from './FlagName'
@@ -177,7 +179,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                     {r.editorialNote && <div className="tt-note" style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b tt_note_mobile_v1 */}</div>} {/* badge_render_v1 */}
                   </td>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_rank_rec_center_v1 */}
-                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:'var(--bg2)',padding:'2px 6px',borderRadius:2,color:'var(--mid)',display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
+                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:rankColor(r.rankFull || r.rank) + '2e',padding:'2px 6px',borderRadius:2,color:rankColor(r.rankFull || r.rank),fontWeight:600,display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
                   </td>
                   <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontWeight:500,textAlign:'center',whiteSpace:'nowrap'}}>{r.wins}–{r.losses}</td>{/* tt_rank_rec_center_v1 tt_rec_nowrap_v1 */}
                   <td style={{padding:'0.35rem 0.75rem'}}>

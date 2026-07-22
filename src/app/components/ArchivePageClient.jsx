@@ -1,5 +1,6 @@
 'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import { rankColor } from '../lib/rankColors' /* rank_badge_color_v1 */
 import { kimariteKanji } from '../lib/kimarite' /* ja_kimarite_ui_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { displayName, displayRank, bashoInfo } from '../lib/bashoCalendar' /* ja_batch3_fix2 */
@@ -293,7 +294,7 @@ export default function ArchivePageClient() {
                         </div>
                       </td>
                       <td style={{padding:'0.5rem 0.3rem'}}>
-                        <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 5px',borderRadius:2,color:'var(--mid)'}}>{displayRank(r.rank, lang)}</span>
+                        <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:rankColor(r.rank) + '2e',padding:'2px 5px',borderRadius:2,color:rankColor(r.rank),fontWeight:600}}>{displayRank(r.rank, lang)}</span>
                       </td>
                       <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap'}}>
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>
