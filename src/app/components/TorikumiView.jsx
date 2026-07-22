@@ -182,10 +182,10 @@ const sanyaku = matches
     const hasH2H = h2h && h2h.total > 0
     const pickable = pickem && !locked && !deadlinePast  /* pickem_all_affordance_v1: vsi pary makuuchi */ /* pickem_dev_test_v1 TMP - VYDALYTY: povernuty !hasResult */  /* pickem_panel_v1 */
     const pickedId = pickem ? pickOf(m.matchNo) : 0
-    const eMark = pickem || pickemScore ? pickMark(m.matchNo, m.eastId) : null  /* pickem_score_v1 */
-    const wMark = pickem || pickemScore ? pickMark(m.matchNo, m.westId) : null
+    const eMark = hasResult && (pickem || pickemScore) ? pickMark(m.matchNo, m.eastId) : null  /* pickem_mark_postresult_v1 */  /* pickem_score_v1 */
+    const wMark = hasResult && (pickem || pickemScore) ? pickMark(m.matchNo, m.westId) : null  /* pickem_mark_postresult_v1 */
     const pickStyle = (rid) => pickedId === rid
-      ? { background: 'rgba(41,128,185,0.16)', boxShadow: 'inset 0 0 0 2px #1a4a7a', borderRadius: 3, padding: '2px 4px' } /* pickem_blue_v1 */
+      ? { background: 'rgba(41,128,185,0.16)', boxShadow: 'inset 0 0 0 2px #1a4a7a', borderRadius: 3, padding: '2px 4px', fontWeight: 800 } /* pickem_blue_v1 */
       : pickable
         ? { boxShadow: 'inset 0 0 0 1px rgba(41,128,185,0.45)', background: 'rgba(41,128,185,0.05)', borderRadius: 3, padding: '2px 4px' } /* pickem_blue_v1 */
         : {}  /* pickem_all_affordance_v1: nevybrani klikabelni - punktyrno-zolota afordnist */
