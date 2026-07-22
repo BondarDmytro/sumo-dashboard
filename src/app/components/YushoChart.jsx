@@ -126,7 +126,7 @@ export default function YushoChart({ rikishi }) {
         return (
           <div>
             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-              <button onClick={() => { if (!racePlaying) setRaceDay(1); setRacePlaying(p => !p) }}
+              <button onClick={() => { if (!racePlaying && (raceDay === null || raceDay >= maxDay)) setRaceDay(1); setRacePlaying(p => !p) }}  /* race_resume_v1 */
                 style={{fontFamily:'monospace',fontSize:'0.62rem',padding:'0.26rem 0.75rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: racePlaying ? 'var(--bg2)' : '#8a6a00',color: racePlaying ? 'var(--mid)' : '#fff'}}>
                 {racePlaying ? '\u23f8' : '\u25b6'}
               </button>
