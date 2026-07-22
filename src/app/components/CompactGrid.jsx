@@ -57,7 +57,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
               <div style={{flex:1,minWidth:0}}>
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2}}>{displayRank(r.rank, lang)}</span> · {r.wins}–{r.losses}</div>{/* rank_text_color_v1 */}
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2}}>{shortRank(r.rank, lang)}</span> · {r.wins}–{r.losses}{/* cg_shortrank_v2 */}</div>{/* rank_text_color_v1 */}
               </div>
               
             </div>
@@ -105,7 +105,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
           <FlagName id={r._id} name={r.name} size='0.6rem'/>
         </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textAlign:'center'}}>{shortRank(r.rank, lang)}</div>
+        <div style={{fontFamily:'monospace',fontSize:'0.55rem',textAlign:'center'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2,display:'inline-block'}}>{shortRank(r.rank, lang)}</span></div>{/* cg_rank_pill_desktop_v1 */}
         <div style={{fontFamily:'monospace',fontSize: isMobile ? '0.6rem' : '0.68rem',fontWeight:600,textAlign:'center',color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>{r.wins}–{r.losses}</div>
         <div className="cg-dots" style={{display:'flex',gap:dgap,alignItems:'center',flexWrap:'nowrap',width:dotsW,flexShrink:0}}>
           {Array.from({ length: 15 }, (_, i) => (r.record || [])[i] || {}).map((m, idx) => {

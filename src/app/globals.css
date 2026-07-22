@@ -613,3 +613,7 @@ body {
   .th-stats-row { font-size: 0.62rem !important; gap: 0.7rem !important; justify-content: center !important; flex-wrap: nowrap !important; white-space: nowrap !important; }
   .th-stats-row * { font-size: inherit !important; }
 }
+
+/* tk_row_equal_v1: riady odnakovoi vysoty - h2h-riadok rezervuietsia zavzhdy */
+.tk-match { min-height: 48px; }
+@media (max-width: 700px) { .tk-match { min-height: 42px; } }

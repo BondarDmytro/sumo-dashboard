@@ -45,7 +45,7 @@ function TodayCell({ record, currentDay, t, lang }) {  /* today_opponent_jp_v1 *
 
 function MatchDots({ record, currentDay }) {
   return (
-    <div className="tt-dots" style={{display:'flex',alignItems:'center',gap:2,flexWrap:'nowrap',maxWidth:240}}>
+    <div className="tt-dots" style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'nowrap',width:'100%'}}>{/* dots_stretch_v1 */}
       {Array.from({length:15}).map((_, idx) => {
         const m = record[idx]
         const isWin = m && RESULTS_WIN.includes(m.result)
@@ -66,15 +66,13 @@ function MatchDots({ record, currentDay }) {
           }} />
         )
       })}
-      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginLeft:4}}>
-        {record.filter(m => RESULTS_WIN.concat(RESULTS_LOSS).includes(m.result)).length}/15
-      </span>
+
     </div>
   )
 }
 
 export default function TournamentTable({ contenders, currentDay, allRikishi = null }) {
-  /* result_wave_v1: khvylia na riadku pry novomu rezultati */
+  /* result_wave_v1 kk_mk_color_v1 kk_mk_v2 */
   const [waveIds, setWaveIds] = useState(new Set())
   const prevPlayedRef = useRef({})
   useEffect(() => {
@@ -181,7 +179,9 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_rank_rec_center_v1 */}
                     <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:rankColor(r.rankFull || r.rank) + '2e',padding:'2px 6px',borderRadius:2,color:rankColor(r.rankFull || r.rank),fontWeight:600,display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
                   </td>
-                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',fontWeight:500,textAlign:'center',whiteSpace:'nowrap'}}>{r.wins}–{r.losses}</td>{/* tt_rank_rec_center_v1 tt_rec_nowrap_v1 */}
+                  <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',textAlign:'center',whiteSpace:'nowrap',
+                    fontWeight: (r.wins >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) || r.losses >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8)) ? 700 : 500,
+                    color: r.wins >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) ? '#1a6b5c' : r.losses >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) ? '#c0392b' : 'var(--ink)'}}>{r.wins}–{r.losses}</td>{/* tt_rank_rec_center_v1 tt_rec_nowrap_v1 */}
                   <td style={{padding:'0.35rem 0.75rem'}}>
                     <MatchDots record={r.record} currentDay={currentDay} />
                   </td>
