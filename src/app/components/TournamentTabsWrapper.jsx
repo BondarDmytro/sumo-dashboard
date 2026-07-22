@@ -72,7 +72,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
             ))}
           </div>
           {liveView === 'list' && (<>{/* list_kyujo_v1 */}
-            {allRikishi?.some(r => r.kyujo) && <CompactGrid items={allRikishi.filter(r => r.kyujo)} isKyujo currentDay={currentDay} />}
+            {allRikishi?.some(r => r.kyujo) && <div className="kyujo-strip"><CompactGrid items={allRikishi.filter(r => r.kyujo)} isKyujo currentDay={currentDay} /></div>}{/* kyujo_hscroll_v1 */}
             <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} />
           </>)}
           {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} division={division} />}

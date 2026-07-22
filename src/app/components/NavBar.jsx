@@ -7,6 +7,7 @@ import { useLang } from './LangProvider'
 import BashoSelect from './BashoSelect' /* basho_nav_v1 */
 import DivisionSelect from './DivisionSelect' /* division_select_v1 */
 import LiveNow from './LiveNow' /* live_now_nav */
+import BurgerMenu from './BurgerMenu' /* burger_v1 */
 
 function ThemeIcon({ dark }) {
   if (dark) return (
@@ -115,6 +116,8 @@ useEffect(() => {
               <a href="https://dohyo-legends.com" title="Dohyo Legends" style={{display:'flex',alignItems:'center',marginRight:6,textDecoration:'none'}}> {/*navbar_home_v1 navbar_social_removed_v1*/}
                 <img src="https://dohyo-legends.com/images/dohyo-logo.webp" alt="Dohyo Legends" style={{height:26,width:'auto',objectFit:'contain',filter:'drop-shadow(0 0 6px rgba(200,149,10,0.4))'}}/>
               </a>  {/* navbar_cleanup_v1 */}
+          <button className="nav-burger" onClick={() => window.dispatchEvent(new CustomEvent('nav-burger-toggle'))} aria-label="menu" style={{display:'none',background:'none',border:'1px solid rgba(255,255,255,0.25)',borderRadius:3,color:'#f5f0e8',fontSize:'1rem',padding:'0.2rem 0.5rem',cursor:'pointer',marginRight:6}}>{'\u2630'}</button>
+          <span className="nav-tabs-inline" style={{display:'contents'}}>
           {tabs.map(tab => (
             <Link key={tab.href} href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja'].includes(lang) ? lang : 'en') : langPrefix) + tab.href} className="nav-tab" style={{/* nav_heya_v2: deep-taby zavzhdy z movnym prefiksom */
               display: 'inline-block',
@@ -132,6 +135,7 @@ useEffect(() => {
               {tab.label}
             </Link>
           ))}
+          </span>
 
           {/*navbar_games_removed_v1: кнопка ігор прибрана, ігри на /game*/}
 
@@ -190,6 +194,7 @@ useEffect(() => {
           )}
         </div>
       </nav>
+      <BurgerMenu tabs={tabs} langPrefix={langPrefix} lang={lang} />
 
       
     </>

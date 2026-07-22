@@ -50,7 +50,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
         <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--light)',padding: isMobile ? '0.35rem 0.5rem' : '0.5rem 0.75rem',background:'var(--bg2)',borderTop:'2px solid var(--border)',marginBottom:1}}>{/* kyujo_mobile_v1 */}
           {title}
         </div>
-        <div style={{display:'grid',gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(140px,1fr))',gap:1,background:'var(--border)'}}>{/* kyujo_mobile_v1 */}
+        <div style={(isMobile && isKyujo) ? {display:'flex',flexWrap:'nowrap',overflowX:'auto',WebkitOverflowScrolling:'touch',gap:1,background:'var(--border)'} : {display:'grid',gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(140px,1fr))',gap:1,background:'var(--border)'}}>{/* kyujo_mobile_v1 kyujo_strip_v2 */}
           {items.map(r => (
             <div key={r._id} className={isFav(r._id) ? 'fav-row' : undefined} style={{background:'var(--card)',padding: isMobile ? '0.3rem 0.5rem' : '0.5rem 0.75rem',display:'flex',alignItems:'center',gap: isMobile ? 6 : 8,opacity:0.5}}>
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />

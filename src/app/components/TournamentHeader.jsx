@@ -9,6 +9,7 @@ import BashoCountdown from './BashoCountdown'
 import ShareButton from './ShareButton' /* share_button_v1 */
 import MyRikishi from './MyRikishi' /* favorites_v1 */
 
+/* top5_classes_v1 */
 function t3(lang, uk, en, ja) {
   if (lang === 'en') return en
   if (lang === 'ja') return ja
@@ -112,32 +113,36 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
         {!isFinished && top3.length > 0 && (
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
+            <div className="top5-wrap"><div className="top5-col">{/* top5_sbs_v1 top5_sbs_v2: zagolovok useredyni kolonky */}
             <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>
-              {t3(lang, '\u041b\u0456\u0434\u0435\u0440\u0438 \u0433\u043e\u043d\u043a\u0438', 'Race leaders', '\u512a\u52dd\u4e89\u3044')} · Makuuchi
+              Makuuchi · 幕内{/* top5_hdr_short_v1 */}
             </div>
             {top3.map((r, i) => (
-              <div key={r.name} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+              <div key={r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
                 <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
                 <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
                 <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
                   <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
                 </span>
-                <span style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
+                <span className="top5-pct" style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
               </div>
             ))}
+            </div>{/* top5_sbs_v1: mak-grupa zakryta */}
+            <div className="top5-col">
             {top5Juryo.length > 0 && (<>
               <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',margin:'14px 0 10px'}}>Juryo · 十両</div>{/* top5_juryo_v1 */}
               {top5Juryo.map((r, i) => (
-                <div key={r.name} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+                <div key={r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
                   <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
                   <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
                   <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
                     <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
                   </span>
-                  <span style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
+                  <span className="top5-pct" style={{color:'#f0c060',fontWeight:700,minWidth:52,textAlign:'right'}}>{r.chance}%</span>
                 </div>
               ))}
             </>)}
+            </div></div>{/* top5_sbs_v1: juryo-grupa i wrap zakryti */}
             <MyRikishi />
           </div>
         )}

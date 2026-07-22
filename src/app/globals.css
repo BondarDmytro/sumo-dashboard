@@ -451,3 +451,112 @@ body {
 .race-row { transition: transform 1.8s cubic-bezier(0.45, 0.05, 0.25, 1); }  /* race_smooth_v2 */
 .race-row.race-up { transition-delay: 0s; z-index: 2; }
 .race-row.race-down { transition-delay: 0.15s; z-index: 1; }
+
+/* mob_status_5col_v1: stan turniru - vsi kartky v odyn riadok na mob */
+@media (max-width: 700px) {
+  .ts-grid { display: grid !important; grid-template-columns: repeat(5, 1fr) !important; }
+  .ts-grid > div { padding: 0.35rem 0.2rem !important; }
+  .ts-num { font-size: 1.05rem !important; }
+  .ts-grid > div > div:nth-child(2) { font-size: 0.5rem !important; margin-top: 0.2rem !important; }
+  .ts-grid > div > div:nth-child(3) { font-size: 0.44rem !important; }
+}
+
+
+/* mob_table_fit_v1: tablytsia spysku bez h-skrolu na mob */
+@media (max-width: 700px) {
+  .tt-table { font-size: 0.6rem !important; }
+  .tt-table td, .tt-table th { padding: 0.28rem 0.25rem !important; }
+  .tt-table td[style*="min-width"], .tt-table td { min-width: 0 !important; }
+  .tt-table .tt-note { display: none; }
+}
+
+/* top5_sbs_v1: mak zliva, juryo sprava na mob */
+@media (max-width: 700px) {
+  .top5-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .top5-wrap .top5-col { min-width: 0; }
+  .top5-wrap .top5-col > div { font-size: 0.6rem !important; }
+  .top5-wrap .top5-col span[style*="minWidth:52"] { min-width: 36px !important; font-size: 0.58rem; }
+}
+
+/* burger_v1: taby v burger na mob, live+filtry+knopky lyshaiutsia */
+@media (max-width: 700px) {
+  .nav-tabs-inline { display: none !important; }
+  .nav-burger { display: inline-block !important; }
+}
+
+/* mob_nav_row_v1: burger zliva, bez logo, odyn riadok */
+@media (max-width: 700px) {
+  .nav-scroll-inner { flex-wrap: nowrap !important; overflow-x: hidden !important; }
+  .nav-scroll-inner > a[title="Dohyo Legends"] { display: none !important; }
+  .nav-burger { order: -1; }
+}
+/* mob_status_6col_v1: shosta kartka Vybuli v tomu zh riadku */
+@media (max-width: 700px) {
+  .ts-grid { grid-template-columns: repeat(6, 1fr) !important; }
+}
+
+/* mob_fix_round2_v1: kyujo strip universalno + top5 kolonky vyrivniani */
+@media (max-width: 700px) {
+  .kyujo-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .kyujo-strip [class*="grid"], .kyujo-strip > div > div:last-child { display: flex !important; flex-wrap: nowrap !important; gap: 8px !important; }
+  .kyujo-strip [class*="grid"] > *, .kyujo-strip > div > div:last-child > * { flex: 0 0 auto !important; min-width: 146px; max-width: 170px; }
+  .top5-wrap { align-items: start; }
+  .top5-wrap .top5-col > div[style*="margin:14px"], .top5-wrap .top5-col > div[style*="margin: 14px"] { margin-top: 0 !important; }
+}
+
+/* kyujo_strip_v2_css: kartky ne styskaiutsia u strichtsi */
+@media (max-width: 700px) {
+  .kyujo-strip > div > div:last-child > div { flex: 0 0 auto; min-width: 150px; }
+}
+
+/* mob_nav_compact_v1: live pomitnyi, filtry/knopky menshi */
+@media (max-width: 700px) {
+  .nav-scroll-inner { gap: 4px; padding: 0 0.4rem !important; }
+  .nav-scroll-inner select { font-size: 0.56rem !important; padding: 0.25rem 0.3rem !important; max-width: 108px; }
+  .nav-scroll-inner button:not(.nav-burger) { padding: 0.2rem 0.35rem !important; }
+  .live-now { font-size: 0.6rem !important; gap: 4px !important; min-width: 0; overflow: hidden; }
+  .live-now > span:nth-child(n+3) { display: none; }  /* imena khovaiemo - lyshaietsia ● LIVE */
+}
+@media (min-width: 480px) and (max-width: 700px) {
+  .live-now > span:nth-child(n+3) { display: inline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+}
+
+/* mob_nav_live_fix_v1: live ne styskaietsia; top5 kompaktni riadky */
+@media (max-width: 700px) {
+  .live-now { flex-shrink: 0 !important; min-width: 64px !important; }
+  .nav-scroll-inner select { flex-shrink: 1; }
+  .top5-wrap .top5-col > div { margin-bottom: 3px !important; gap: 5px !important; }
+  .top5-wrap .top5-col span[style*="minWidth:52"] { min-width: 30px !important; }
+  .top5-wrap .top5-col span[style*="flex:1"] { display: none; }  /* progres-bar khovaiemo - imena i % blyzhche */
+}
+
+/* mob_nav_select_w_v1: zhorstki shyryny selektiv - live zavzhdy vydymyi */
+@media (max-width: 700px) {
+  .nav-scroll-inner select { width: 86px !important; max-width: 86px !important; flex: 0 0 86px !important; text-overflow: ellipsis; }
+  .live-now { min-width: 88px !important; }
+  .live-now > span:nth-child(2) { display: inline !important; }  /* slovo LIVE zavzhdy */
+}
+@media (max-width: 420px) {
+  .nav-scroll-inner select { width: 72px !important; max-width: 72px !important; flex: 0 0 72px !important; }
+}
+
+/* top5_tight_v2: % vprytul do imeni - bez roztiazhky riadka */
+@media (max-width: 700px) {
+  .top5-wrap .top5-col > div[style*="alignItems"] { justify-content: flex-start !important; }
+  .top5-wrap .top5-col span[style*="minWidth:52"], .top5-wrap .top5-col span[style*="minWidth: 52"] { min-width: 0 !important; text-align: left !important; flex: 0 0 auto !important; }
+  .top5-wrap .top5-col span[style*="ellipsis"] { flex: 0 1 auto !important; }
+}
+
+/* mob_live_row2_v1: live okremym riadkom po tsentru */
+@media (max-width: 700px) {
+  .nav-scroll-inner { flex-wrap: wrap !important; }
+  .live-now { order: 10; flex: 1 1 100% !important; justify-content: center !important; min-width: 100% !important; padding: 0.25rem 0 0.45rem; font-size: 0.7rem !important; }
+  .live-now > span:nth-child(n+3) { display: inline !important; }
+}
+
+/* top5_classes_css_v1: imia+% vprytul, bez roztiazhky */
+@media (max-width: 700px) {
+  .top5-row { justify-content: flex-start !important; gap: 5px !important; margin-bottom: 3px !important; font-size: 0.62rem !important; }
+  .top5-row > span[style*="flex"] { display: none !important; }  /* progres-bar */
+  .top5-pct { min-width: 0 !important; text-align: left !important; }
+}

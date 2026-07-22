@@ -200,7 +200,7 @@ const sanyaku = matches
         {/* East */}
         <div style={{display:'grid',gridTemplateColumns: ((hasResult || eMark) ? (isMobile ? 'auto minmax(0,1fr) auto auto 12px' : '42px minmax(0,1fr) 22px 40px 14px') : (isMobile ? 'auto minmax(0,1fr) auto auto' : '42px minmax(0,1fr) 22px 40px'))  /* tk_cols_v4 */,gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default'}} /* pickem_name_frame_v1 */ onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
           <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:'var(--mid)',whiteSpace:'nowrap',textAlign:'center'}}>{shortRank(m.eastRank, lang)}</span>
-          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center',...pickStyle(m.eastId)}}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
+          <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.54rem' : '0.88rem',whiteSpace:'nowrap' /* tk_name_fit_v1 */,textAlign:'center',...pickStyle(m.eastId)}}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{eastFlag}</span>
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
           {(hasResult || eMark) && (
@@ -250,7 +250,7 @@ const sanyaku = matches
           )}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{westFlag}</span>
-          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.62rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',textAlign:'center',...pickStyle(m.westId)}}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
+          <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.54rem' : '0.88rem',whiteSpace:'nowrap' /* tk_name_fit_v1 */,textAlign:'center',...pickStyle(m.westId)}}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
           <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:'var(--mid)',whiteSpace:'nowrap',textAlign:'center'}}>{shortRank(m.westRank, lang)}</span>
         </div>
       </div>
