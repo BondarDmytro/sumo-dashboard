@@ -7,6 +7,7 @@ import meta from '../lib/rikishiMeta.json'
 import { HEYA_JA } from '../lib/heyaJa'
 import { displayRank, shortRank, currentBashoId } from '../lib/bashoCalendar' /* compare_v3 compare_v13 */
 import { rankColor } from '../lib/rankColors' /* compare_v4 */
+import eloData from '../lib/eloRatings.json' /* compare_ovr_v1 */
 const RANK_ORD = { Yokozuna: 0, Ozeki: 1, Sekiwake: 2, Komusubi: 3, Maegashira: 4, Juryo: 5, Makushita: 6, Sandanme: 7, Jonidan: 8, Jonokuchi: 9 }
 const rankSortVal = (r) => { const s = String(r || ''); const div = Object.keys(RANK_ORD).find(k => s.startsWith(k)); const num = parseInt((s.match(/\d+/) || [99])[0], 10); return (div !== undefined ? RANK_ORD[div] : 99) * 1000 + num * 2 + (s.includes('West') ? 1 : 0) }
 
@@ -38,6 +39,22 @@ function numPart(v) {
   return isNaN(n) ? null : n
 }
 
+/* ovr_bar_v1: progres-bar 0-100 z podilkamy po 10 */
+function OvrBar({ val, mirror, better }) {
+  const ticks = []
+  for (let t = 10; t < 100; t += 10) ticks.push(t)
+  return (
+    <div style={{display:'flex',flexDirection: mirror ? 'row' : 'row-reverse',gap:8,alignItems:'center',minWidth:0,width:'100%'}}>  {/* ovr_bar_v3_inline */}  {/* ovr_bar_v2_fullwidth */}
+      <span style={{fontWeight:800,fontSize:'0.95rem',fontFamily:'monospace',color: better === true ? '#1a6b5c' : better === false ? '#c0392b' : 'var(--ink)',flexShrink:0}}>{val}</span>
+      <div style={{position:'relative',width:'100%',height:8  /* ovr_bar_v2_fullwidth */,background:'var(--bg2)',border:'1px solid #b8860b',borderRadius:2,overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,bottom:0,[mirror ? 'right' : 'left']:0,width:val+'%',background:'linear-gradient(90deg,#b8860b,#d4a017)'}} />
+        {ticks.map(t => (
+          <div key={t} style={{position:'absolute',top:0,bottom:0,[mirror ? 'right' : 'left']:t+'%',width:1,background:'rgba(0,0,0,0.25)'}} />
+        ))}
+      </div>
+    </div>
+  )
+}
 /* indicator_final_v1: gunbai znialy, tug-rope yedynyi */
 
 function TugLine({ c1, c2 }) {  /* tug_rope_v1 tug_cmp_v1: syla z cmp-znachen riadka (napriamok i semantyka korektni) */
@@ -222,6 +239,11 @@ export default function RikishiCompare() {
   const rows = (r1 && r2) ? [
     { l: t3(lang, 'Ранг', 'Rank', '番付'), v: m => lang === 'ja' ? displayRank(m.rank, 'ja') : (m.rank || '—'), cmp: null },
     { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位'), v: m => lang === 'ja' ? displayRank(m.hiRank, 'ja') : (m.hiRank || '—'), cmp: m => -(m.hiVal || 9999) },
+    { l: t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング'),  /* dohyo_rating_wire_v1 */ v: m => {
+        const e = eloData.ratings[String(m.id)]
+        if (e === undefined || e.bouts === 0) return '—'
+        return e.ovr  /* compare_ovr_v2_plainnum: delta vynesena z compare - lamala CountUp-parsing */
+      }, cmp: m => (eloData.ratings[String(m.id)] || {}).ovr || 0, hl: true },  /* compare_ovr_v1 */
     { l: t3(lang, 'Вік', 'Age', '年齢'), v: m => ageOf(m.birthDate) ?? '—', cmp: m => -(ageOf(m.birthDate) ?? 99) },  /* compare_v2: menshyi vik = krashchyi */
     { l: t3(lang, 'Зріст', 'Height', '身長'), v: m => m.height ? m.height + ' cm' : '—', cmp: m => m.height || 0 },
     { l: t3(lang, 'Вага', 'Weight', '体重'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
@@ -281,9 +303,9 @@ export default function RikishiCompare() {
               const n1c = numPart(v1), n2c = numPart(v2)
               const canCount = row.cmp && typeof n1c === 'number' && String(v1).match(/^[0-9]/)
               return [
-                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn: isMobile ? 1 : 2,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{canCount ? <><CountUp value={n1c} />{String(v1).replace(/^[0-9.\-]+/, '')}</> : v1}</div>,
+                <div key={i + 'a'} style={{...cell,justifyContent:'flex-end',gridColumn: isMobile ? 1 : 2,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b1 ? '#1a6b5c' : b2 ? '#c0392b' : 'var(--ink)'}}>{row.hl ? <OvrBar val={typeof n1c === 'number' ? n1c : 0} mirror={true} better={b1 ? true : b2 ? false : null} /> : canCount ? <><CountUp value={n1c} />{String(v1).replace(/^[0-9.\-]+/, '')}</> : v1}</div>,  /* ovr_bar_v1 */
                 <div key={i + 'b'} style={{...cell,justifyContent:'center',gridColumn: isMobile ? 2 : 3,fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',minWidth:100,flexDirection:'column',gap:3}}><span>{row.l}</span>{row.cmp ? <TugLine c1={c1} c2={c2} /> : null}</div>,  /* ratio_in_label_v1 */
-                <div key={i + 'c'} style={{...cell,gridColumn: isMobile ? 3 : 4,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{canCount ? <><CountUp value={n2c} />{String(v2).replace(/^[0-9.\-]+/, '')}</> : v2}</div>,
+                <div key={i + 'c'} style={{...cell,gridColumn: isMobile ? 3 : 4,fontFamily:'monospace',fontSize: isMobile ? '0.72rem' : '0.78rem',fontWeight: (b1 || b2) ? 700 : 400,color: b2 ? '#1a6b5c' : b1 ? '#c0392b' : 'var(--ink)'}}>{row.hl ? <OvrBar val={typeof n2c === 'number' ? n2c : 0} mirror={false} better={b2 ? true : b1 ? false : null} /> : canCount ? <><CountUp value={n2c} />{String(v2).replace(/^[0-9.\-]+/, '')}</> : v2}</div>,  /* ovr_bar_v1 */
               ]  /* compare_anim_v2 */
             })}
             {!isMobile && <div style={{gridRow: `1 / span ${rows.length}`,gridColumn:5,display:'flex',alignItems:'center',justifyContent:'center',padding:'0.6rem 0.75rem 0.6rem 0'}}><Avatar key={r2.id} m={r2} tall mirror /></div>}

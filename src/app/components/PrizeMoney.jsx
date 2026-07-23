@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { rankColor } from '../lib/rankColors' /* rank_color_pm_v1 */
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import OvrBadge from './OvrBadge' /* ovr_round4b_v1 */
 import { displayName, displayRank, shortRank } from '../lib/bashoCalendar' /* ja_names_sweep_v1 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -99,7 +100,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
   .sort((a, b) => b.total - a.total)
 
   const maxTotal = prizes[0]?.total || 1
-  const gridCols = isMobile ? '20px 20px minmax(0,1fr) 44px 38px 60px' : '30px 26px 130px 64px minmax(300px,1fr) 48px 118px 70px 105px 95px 72px'  /* pm_cols_tune_v2 */
+  const gridCols = isMobile ? '20px 20px minmax(0,1fr) 44px 34px 38px 60px' : '30px 26px 130px 64px 44px minmax(300px,1fr) 48px 118px 70px 105px 95px 72px'  /* ovr_round4b_v1 */  /* pm_cols_tune_v2 */
 
   return (
     <div>
@@ -123,6 +124,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
             <div />
             <div>{t3(lang, 'Рікіші', 'Rikishi', '力士')}</div>
             <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'Бал', 'Score', '点')}</div>
             <div>{t3(lang, 'Складові', 'Breakdown', '内訳')}</div>
             <div style={{textAlign:'center'}}>{t3(lang, 'В–П', 'W–L', '成績')}</div>
             <div style={{textAlign:'right'}}>{t3(lang, 'Призові', 'Prize', '賞金')}</div>
@@ -149,6 +151,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
               <div style={{fontWeight:600,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={r._id}>{displayName(r, lang)}</RikishiLink></div>
             </div>
             <div /* pm_rank_after_name_v1 */ style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.58rem',color:rankColor(r.rank),fontWeight:600,background:rankColor(r.rank)+'2e',padding:'1px 5px',borderRadius:2,whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : displayRank(r.rank, lang)}</span></div>
+            <div style={{textAlign:'center'}}><OvrBadge id={r._id} /></div>
             {!isMobile && <div style={{display:'flex',gap:4,flexWrap:'wrap',alignItems:'center'}}>{/* pm_breakdown_col_v1 */}
               {r.breakdown.map((b, j) => (
                 <span key={j} style={{fontFamily:'monospace',fontSize:'0.58rem',background:`${b.color}22`,color: b.color,padding:'1px 6px',borderRadius:2,border:`1px solid ${b.color}44`}}>{b.label} · {fmt(b.amount)}</span>

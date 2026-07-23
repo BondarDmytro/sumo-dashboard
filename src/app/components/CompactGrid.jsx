@@ -1,4 +1,5 @@
 'use client'
+import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 import { rankColor } from '../lib/rankColors' /* rank_text_color_v1 rank_pill_cg_v2 */
 import { t3 } from '../i18n' /* ja_batch1 */
@@ -57,7 +58,7 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
               <div style={{width:8,height:8,borderRadius:'50%',background:'#c0392b',flexShrink:0}} />
               <div style={{flex:1,minWidth:0}}>
                 <FlagName id={r._id} name={r.name} size='0.78rem' />
-                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2}}>{shortRank(r.rank, lang)}</span> · {r.wins}–{r.losses}{/* cg_shortrank_v2 */}</div>{/* rank_text_color_v1 */}
+                <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',display:'flex',alignItems:'center',gap:6}}><span style={{whiteSpace:'nowrap'}}><span style={{color:rankColor(r.rankFull || r.rank)  /* cg_ovr_v2_inline */,fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2}}>{shortRank(r.rank, lang)}</span> · {r.wins}–{r.losses}{/* cg_shortrank_v2 */}</span><OvrBadge id={r._id} /></div>{/* rank_text_color_v1 */}{/* ovr_round4_v1 */}
               </div>
               
             </div>
@@ -101,11 +102,12 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
     const dgap = isMobile ? 2 : 3
     const dotsW = 15 * dot + 14 * dgap
     return (
-      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns: 'minmax(0,1fr) ' + (isMobile ? '30px 34px ' : '36px 40px ') + dotsW + 'px',alignItems:'center',gap: isMobile ? 4 : 6,padding: isMobile ? '0.15rem 0.3rem' : '0.15rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
+      <div key={r._id} className={"cg-row" + (isFav(r._id) ? " fav-row" : "")} style={{display:'grid',gridTemplateColumns: 'minmax(0,1fr) ' + (isMobile ? '30px 30px 34px ' : '36px 34px 40px ') + dotsW + 'px'  /* cg_ovr_v3_gridcol */,alignItems:'center',gap: isMobile ? 4 : 6,padding: isMobile ? '0.15rem 0.3rem' : '0.15rem 0.5rem',borderBottom:'1px solid var(--border)'}}>
         <div style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
           <FlagName id={r._id} name={r.name} size='0.6rem'/>
         </div>
-        <div style={{fontFamily:'monospace',fontSize:'0.55rem',textAlign:'center'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2,display:'inline-block'}}>{shortRank(r.rank, lang)}</span></div>{/* cg_rank_pill_desktop_v1 */}
+        <div style={{fontFamily:'monospace',fontSize:'0.55rem',textAlign:'center'}}><span style={{color:rankColor(r.rankFull || r.rank),fontWeight:700,background:rankColor(r.rankFull || r.rank)+'2e',padding:'1px 4px',borderRadius:2,display:'inline-block'}}>{shortRank(r.rank, lang)}</span></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%' /* cg_ovr_v4_vcenter */}}><OvrBadge id={r._id} /></div>{/* cg_rank_pill_desktop_v1 */}
         <div style={{fontFamily:'monospace',fontSize: isMobile ? '0.6rem' : '0.68rem',fontWeight:600,textAlign:'center',color: r.wins >= 8 ? '#1a6b5c' : r.losses >= 8 ? '#c0392b' : 'var(--mid)'}}>{r.wins}–{r.losses}</div>
         <div className="cg-dots" style={{display:'flex',gap:dgap,alignItems:'center',flexWrap:'nowrap',width:dotsW,flexShrink:0}}>
           {Array.from({ length: 15 }, (_, i) => (r.record || [])[i] || {}).map((m, idx) => {

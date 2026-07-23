@@ -71,6 +71,9 @@ function WinRate({ wins, total }) {
 }
 
 import RikishiCompare from './RikishiCompare' /* rikishi_compare_tab_v1 */
+import OvrBadge from './OvrBadge' /* ovr_profile_v1 */
+import eloData from '../lib/eloRatings.json' /* ovr_hero_v1 */
+import DohyoRating from './DohyoRating' /* dohyo_rating_wire_v1 */
 /* heya_ja_lib_v1: import perenesenyi uhoru */
 const SANSHO_JA = { 'Gino-sho': '技能賞', 'Kanto-sho': '敢闘賞', 'Shukun-sho': '殊勲賞' }  /* ja_gaps_v4 */
 const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' }  /* ja_gaps_v1 */
@@ -173,86 +176,100 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
         </button>
       )}
 
-      {/* Верхній блок: фото + ім'я + біо */}
-      <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1rem',flexWrap:'wrap'}}>
-        <img
-          src={`/rikishi/${r.id}.webp`}
-          alt={r.name}
-          style={{
-            width: isMobile ? 90 : 108,
-            height: isMobile ? 158 : 189,
-            objectFit:'cover',objectPosition:'top',
-            borderRadius:4,border:'2px solid var(--border)',
-            flexShrink:0,display:'block',
-          }}
-          onError={e => { e.target.style.display = 'none' }}
-          onLoad={e => { e.target.style.display = 'block' }}
-        />
-
-        <div style={{flex:1,minWidth:150,paddingTop:4}}>
-          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-            <span style={{fontSize:'1.5rem'}}>{bio?.country?.flag || ''}</span>
-            <div style={{fontWeight:800,fontSize: isMobile ? '1.1rem' : '1.4rem',lineHeight:1,display:'flex',alignItems:'center',gap:8}}>{displayName(r, lang)}<FavStar id={r.id || r._id} size={20} /><VoteButton id={r.id || r._id} /></div>
-          </div>
-          <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:4}}>{r.nameJp}</div>
-          <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)',marginBottom:8}}>{displayRank(r.rank, lang)}</div>
-
-          {(bio?.stats?.yusho || 0) > 0 && (
-            <div style={{marginBottom:6}}>
-              <div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap',marginBottom:4}}>
-                {Array.from({length: Math.min(bio.stats.yusho, 10)}).map((_,i) => (
-                  <span key={i} style={{fontSize:'0.9rem'}}>{'🏆'}</span>
-                ))}
-                <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',marginLeft:4}}>
-                  {bio.stats.yusho}{'×'} {t3(lang, 'юшо', 'yusho', '優勝')}
-                </span>
+      {/* Верхній блок: фото-колонка + сітка плиток 3x3 (profile_hero_v4) */}
+      {(() => {
+        const eRt = eloData.ratings[String(r.id || r._id)]
+        const tcRt = eRt ? (eRt.ovr >= 90 ? '#c0392b' : eRt.ovr >= 75 ? '#7d3c98' : eRt.ovr >= 60 ? '#1a4a7a' : eRt.ovr >= 40 ? '#1a6b5c' : '#5a544a') : null
+        const tile = {background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2,textAlign:'center',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}  /* profile_hero_v5 */
+        const tLbl = {fontFamily:'monospace',fontSize:'0.7rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}  /* profile_hero_v6 */
+        const tVal = {fontWeight:700,fontSize:'1.1rem'}
+        const hiRank = (() => { const h = rikishiMeta.find(m => m.id === r.id)?.hiRank; return h ? displayRank(h, lang) : null })()
+        const cName = bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : null
+        return (
+          <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1rem',flexWrap:'wrap'}}>
+            <div style={{flexShrink:0,width: isMobile ? 90 : 108,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+              <div style={{fontWeight:800,fontSize: isMobile ? '0.95rem' : '1.05rem',textAlign:'center',lineHeight:1.1}}>{displayName(r, lang)}</div>
+              <img src={`/rikishi/${r.id}.webp`} alt={r.name}
+                style={{width:'100%',height: isMobile ? 158 : 189,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'}}
+                onError={e => { e.target.style.display = 'none' }}
+                onLoad={e => { e.target.style.display = 'block' }} />
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                <FavStar id={r.id || r._id} size={20} /><VoteButton id={r.id || r._id} />
               </div>
-              {Object.keys(bio.stats.yushoByDivision || {}).length > 0 && (
-                <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                  {Object.entries(bio.stats.yushoByDivision)
-                    .filter(([, count]) => count > 0)
-                    .sort(([a], [b]) => {
-                      const order = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
-                      // ja_gaps_v1
-                      return order.indexOf(a) - order.indexOf(b)
-                    })
-                    .map(([division, count]) => (
-                      <span key={division} style={{
-                        fontFamily:'monospace',fontSize:'0.58rem',
-                        background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg2)',
-                        border: division === 'Makuuchi' ? '1px solid rgba(184,134,11,0.4)' : '1px solid var(--border)',
-                        color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',
-                        padding:'2px 7px',borderRadius:2,
-                      }}>
-                        {lang === 'ja' ? (DIVISION_JA[division] || division) : division} {count}{'×'}  {/* ja_gaps_div_fix */}
-                      </span>
-                    ))}
+              {eRt && eRt.bouts > 0 && (
+                <div style={{width:'100%',background:tcRt,color:'#fff',borderRadius:6,padding:'0.45rem 0.4rem',textAlign:'center'}}>
+                  <div style={{fontFamily:'monospace',fontSize:'0.46rem',letterSpacing:'0.1em',textTransform:'uppercase',opacity:0.85,marginBottom:2}}>{t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', 'レーティング')}</div>
+                  <div style={{fontFamily:'monospace',fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{eRt.ovr}</div>
+                  {eRt.delta !== 0 && <div style={{fontFamily:'monospace',fontSize:'0.6rem',fontWeight:700,marginTop:2,opacity:0.95}}>{eRt.delta > 0 ? '↑' + eRt.delta : '↓' + Math.abs(eRt.delta)}</div>}
                 </div>
               )}
             </div>
-          )}
-
-          {sanshoList.length > 0 && (
-            <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-              {sanshoList.map(([name, count]) => (
-                <span key={name} style={{fontFamily:'monospace',fontSize:'0.6rem',background:'var(--bg2)',padding:'2px 7px',borderRadius:2,color:'var(--mid)'}}>
-                  {lang === 'ja' ? (SANSHO_JA[name] || name) : name} {count}{'×'}  {/* sansho_render_fix */}
-                </span>
-              ))}
+            <div style={{flex:1,minWidth:220,display:'grid',gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)',gap:6,gridAutoRows:'1fr',alignSelf:'stretch'}}>
+              <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>
+                <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                  <div style={tLbl}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>
+                  <div style={{...tVal,fontFamily:'monospace'}}>{displayRank(r.rank, lang)}</div>
+                </div>
+                <div style={{padding:'0.5rem 0.4rem',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                  <div style={tLbl}>{t3(lang, 'Найвищий ранг', 'Highest rank', '最高位')}</div>
+                  <div style={{...tVal,fontFamily:'monospace'}}>{hiRank || '—'}</div>
+                </div>
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Країна', 'Country', '出身')}</div>
+                <div style={tVal}>{bio?.country?.flag ? bio.country.flag + ' ' : ''}{cName || (bio ? '—' : '…')}</div>
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Вік', 'Age', '年齢')}</div>
+                <div style={tVal}>{bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—') : '…'}</div>
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Юшо', 'Yusho', '優勝')}</div>
+                {(bio?.stats?.yusho || 0) > 0 ? (
+                  <>
+                    <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',marginBottom:4}}>
+                      {Array.from({length: Math.min(bio.stats.yusho, 6)}).map((_,i) => (<span key={i} style={{fontSize:'0.8rem'}}>{'🏆'}</span>))}
+                      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'#b8860b',marginLeft:2}}>{bio.stats.yusho}{'×'}</span>
+                    </div>
+                    <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                      {Object.entries(bio.stats.yushoByDivision || {}).filter(([, c]) => c > 0).map(([division, count]) => (
+                        <span key={division} style={{fontFamily:'monospace',fontSize:'0.55rem',background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg)',border:'1px solid var(--border)',color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',padding:'1px 5px',borderRadius:2}}>{lang === 'ja' ? (DIVISION_JA[division] || division) : division} {count}{'×'}</span>
+                      ))}
+                    </div>
+                  </>
+                ) : <div style={tVal}>{'—'}</div>}
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Дебют', 'Debut', '初土俵')}</div>
+                <div style={tVal}>{bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…')}</div>
+                {bio?.debut && <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{({'01':t3(lang,'Хацу','Hatsu','初'),'03':t3(lang,'Хару','Haru','春'),'05':t3(lang,'Нацу','Natsu','夏'),'07':t3(lang,'Наґоя','Nagoya','名古屋'),'09':t3(lang,'Акі','Aki','秋'),'11':t3(lang,'Кюсю','Kyushu','九州')})[bio.debut.slice(4)] || ''}</div>}
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Зріст', 'Height', '身長')}</div>
+                <div style={tVal}>{bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—') : '…'}</div>
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Санко', 'Sansho', '三賞')}</div>
+                {sanshoList.length > 0 ? (
+                  <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                    {sanshoList.map(([name, count]) => (
+                      <span key={name} style={{fontFamily:'monospace',fontSize:'0.55rem',background:'var(--bg)',border:'1px solid var(--border)',padding:'1px 5px',borderRadius:2,color:'var(--mid)'}}>{lang === 'ja' ? (SANSHO_JA[name] || name) : name} {count}{'×'}</span>
+                    ))}
+                  </div>
+                ) : <div style={tVal}>{'—'}</div>}
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Стайня', 'Stable', '部屋')}</div>
+                <div style={tVal}>{bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…'}</div>
+              </div>
+              <div style={tile}>
+                <div style={tLbl}>{t3(lang, 'Вага', 'Weight', '体重')}</div>
+                <div style={tVal}>{bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…'}</div>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Біо-сітка */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,width:'100%'}}>
-          {bioLabels.map((label, idx) => (
-            <div key={label} style={{background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2}}>
-              <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:2}}>{label}</div>
-              <div style={{fontWeight:600,fontSize:'0.8rem'}}>{bioValues[idx]}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        )
+      })()}
 
       {/* Кар'єрна статистика */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
@@ -461,14 +478,16 @@ export default function RikishiPageClient() {
         </div>
 
         <div style={{display:'flex',gap:8,marginBottom:'1.2rem'}}>
-          {['list','compare'].map(v => (
+          {['list','compare','rating'].map(v => (  /* dohyo_rating_wire_v1 */
             <button key={v} onClick={() => setPageView(v)} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: pageView === v ? '#8a6a00' : 'var(--bg2)',color: pageView === v ? '#fff' : 'var(--mid)'}}>
-              {v === 'list' ? t3(lang, 'Список', 'List', '一覧') : t3(lang, 'Порівняти', 'Compare', '比較')}
+              {v === 'list' ? t3(lang, 'Список', 'List', '一覧') : v === 'compare' ? t3(lang, 'Порівняти', 'Compare', '比較') : t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング')}
             </button>
           ))}
         </div>
 
-        {pageView === 'compare' ? (
+        {pageView === 'rating' ? (
+          <DohyoRating />
+        ) : pageView === 'compare' ? (
           <RikishiCompare />
         ) : loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>

@@ -15,9 +15,11 @@ jobs:
         with: { node-version: 22 }
       - name: Rebuild meta
         run: node scripts/build-rikishi-meta.mjs
+      - name: Rebuild elo
+        run: node scripts/build-elo.mjs
       - name: Commit if changed
         run: |
           git config user.name "meta-bot"
           git config user.email "actions@github.com"
-          git add src/app/lib/rikishiMeta.json
+          git add src/app/lib/rikishiMeta.json src/app/lib/eloRatings.json
           git diff --cached --quiet && echo "no changes" || (git commit -m "data: rikishi meta auto-rebuild $(date -u +%F)" && git push)

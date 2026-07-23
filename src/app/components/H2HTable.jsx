@@ -2,10 +2,12 @@
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useLang } from './LangProvider'
+import OvrBadge from './OvrBadge' /* ovr_h2h_v1 */
 
 export default function H2HTable({ rikishi, h2h }) {
   const { lang } = useLang()
   const names = rikishi.map(r => (lang === 'ja' && r.nameJp) ? r.nameJp : r.name)  /* ja_gaps_v4 */
+  const idByName = Object.fromEntries(rikishi.map(r => [(lang === 'ja' && r.nameJp) ? r.nameJp : r.name, r._id]))  /* ovr_h2h_v1 */
 
   const getResult = (a, b) => {
     const match = h2h.find(m =>
@@ -64,7 +66,7 @@ export default function H2HTable({ rikishi, h2h }) {
                   }}>
                     {i+1}
                   </div>
-                  <span style={{whiteSpace:'nowrap'}}>{rowName}</span>
+                  <span style={{whiteSpace:'nowrap'}}>{rowName}</span>{' '}<OvrBadge id={idByName[rowName]} />
                 </div>
               </td>
               {names.map(colName => {

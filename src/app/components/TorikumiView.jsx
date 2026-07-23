@@ -1,4 +1,5 @@
 'use client'
+import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
 /* first_meeting_v1 tk_ja_widths_v1 */
 /* rank_color_tk_v1 rank_pill_tk_v2 */
 import { shortRank, bashoInfo } from '../lib/bashoCalendar' /* tk_shortrank */ /* pickem_panel_v1 */
@@ -202,7 +203,7 @@ const sanyaku = matches
         <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--light)',textAlign:'left'}}>{m.matchNo}</div>{/* tk_matchno_v1 */}
         {/* East */}
         <div style={{display:'grid',gridTemplateColumns: ((hasResult || eMark) ? (isMobile ? 'auto minmax(0,1fr) auto auto 12px' : (lang === 'ja' ? '56px minmax(0,1fr) 22px 40px 14px' : '42px minmax(0,1fr) 22px 40px 14px')) : (isMobile ? 'auto minmax(0,1fr) auto auto' : (lang === 'ja' ? '56px minmax(0,1fr) 22px 40px' : '42px minmax(0,1fr) 22px 40px')))  /* tk_cols_v4 */,gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default'}} /* pickem_name_frame_v1 */ onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
-          <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.eastRank),fontWeight:700,background:rankColor(m.eastRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}  /* tk_pill_fit_v2 */>{shortRank(m.eastRank, lang)}</span>
+          <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}> {/* tk_ovr_wrap_v1 */}<span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.eastRank),fontWeight:700,background:rankColor(m.eastRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}  /* tk_pill_fit_v2 */>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>
           <span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.54rem' : '0.88rem',whiteSpace:'nowrap' /* tk_name_fit_v1 */,textAlign:'center',...pickStyle(m.eastId)}}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{eastFlag}</span>
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
@@ -258,7 +259,7 @@ const sanyaku = matches
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
           <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{westFlag}</span>
           <span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.54rem' : '0.88rem',whiteSpace:'nowrap' /* tk_name_fit_v1 */,textAlign:'center',...pickStyle(m.westId)}}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}{/* tk_jp_fallback_v1 */}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
-          <span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.westRank),fontWeight:700,background:rankColor(m.westRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}>{shortRank(m.westRank, lang)}</span>
+          <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}><span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.westRank),fontWeight:700,background:rankColor(m.westRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>
         </div>
       </div>
     )

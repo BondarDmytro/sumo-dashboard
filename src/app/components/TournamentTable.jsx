@@ -1,4 +1,5 @@
 'use client'
+import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
 /* rank_badge_color_v1 */
 import { useState, useEffect, useRef } from 'react' /* table_timetravel_v1 result_wave_v1 */
 import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
@@ -107,6 +108,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     '#',
     t3(lang, 'Рікіші', 'Rikishi', '力士'),
     t3(lang, 'Ранг', 'Rank', '番付'),
+    t3(lang, 'Бал', 'Score', '点'),  /* ovr_col_tt_v1 */
     t3(lang, 'Рекорд', 'Record', '成績'),
     t3(lang, 'Матчі', 'Matches', '取組'),
     t3(lang, 'Статус', 'Status', '状態'),
@@ -179,6 +181,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_rank_rec_center_v1 */}
                     <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:rankColor(r.rankFull || r.rank) + '2e',padding:'2px 6px',borderRadius:2,color:rankColor(r.rankFull || r.rank),fontWeight:600,display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
                   </td>
+                  <td style={{padding:'0.35rem 0.75rem',textAlign:'center' /* ovr_col_tt_v2 */}}><OvrBadge id={r._id} size="lg" /></td>
                   <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',textAlign:'center',whiteSpace:'nowrap',
                     fontWeight: (r.wins >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) || r.losses >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8)) ? 700 : 500,
                     color: r.wins >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) ? '#1a6b5c' : r.losses >= ((r.wins + r.losses <= 7 && currentDay > 8) ? 4 : 8) ? '#c0392b' : 'var(--ink)'}}>{r.wins}–{r.losses}</td>{/* tt_rank_rec_center_v1 tt_rec_nowrap_v1 */}
