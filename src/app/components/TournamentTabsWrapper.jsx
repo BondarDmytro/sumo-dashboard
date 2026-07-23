@@ -33,6 +33,17 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
   const isCurrent = selBasho === CURRENT_BASHO
   const { lang } = useLang()
   const bios = useBios()
+  const [archPrize, setArchPrize] = useState(null)  /* arch_prizes_v1 */
+  useEffect(() => {  /* arch_prizes_v1: lazy-fetch arkhivnykh pryzovykh pry vidkrytti taby */
+    if (isCurrent || tab !== 'prizes') return
+    let alive = true
+    setArchPrize(null)
+    fetch(`/api/basho-division?division=${division}&basho=${selBasho}`)
+      .then(r => r.json())
+      .then(d => { if (alive) setArchPrize(d) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [isCurrent, tab, selBasho, division])
 
   const tabs = [
     { id: 'standings', label: t3(lang, 'Таблиця', 'Standings', '星取表') },
@@ -45,7 +56,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       label: lang === 'ja' ? `${currentDay+1}日目の取組` : lang === 'en' ? `Day ${currentDay+1} schedule` : `Розклад дня ${currentDay+1}`
     }] : []),
     ...(isCurrent ? [{ id: 'board', label: t3(lang, 'Лідерборд', 'Leaderboard', 'ランキング') }] : []),  /* pickem_board_tab_v1 */
-    ...(isCurrent ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
+    ...(true /* arch_prizes_v1 */ ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
   ]  /* basho_filter_v1 */
 
   return (
@@ -82,6 +93,11 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       {isCurrent && tab === 'torikumi2' && <TorikumiView division={division} currentDay={currentDay+1} bios={bios} rikishi={allRikishi} pickem={true} bashoId={CURRENT_BASHO} />}{/* pickem_panel_v1 */}  {/* torikumi2_v1 */}
       {isCurrent && tab === 'board' && <PickemBoard bashoId={CURRENT_BASHO} currentDay={currentDay} myUid={boardUid} inline={true} />}{/* pickem_board_tab_v1 */}
       {isCurrent && tab === 'prizes' && <PrizeMoney rikishi={allRikishi.filter(r => !r.kyujo)} specialPrizes={specialPrizes} yushoData={yushoData} isFinished={isFinished} />}
+      {!isCurrent && tab === 'prizes' && (  /* arch_prizes_v1 */
+        archPrize && archPrize.rikishi
+          ? <PrizeMoney rikishi={archPrize.rikishi.filter(r => !r.kyujo)} specialPrizes={archPrize.specialPrizes || []} yushoData={archPrize.yushoData || []} isFinished={true} />
+          : <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…')}</div>
+      )}
       {!isCurrent && <PrevBashoDynamics bashoId={selBasho} />}  {/* basho_filter_v1 */}
     </>
   )

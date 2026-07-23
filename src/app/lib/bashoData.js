@@ -6,17 +6,19 @@ const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
-export async function getBashoData(division = 'Makuuchi') {
+export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* basho_param_v1 */
+  const bid = bashoId || currentBashoId()
+  const isArchive = bid !== currentBashoId()
   const bashoStart = Date.UTC(2026, 6, 12) /*nagoya_switch_v1*/
   const nowJst = Date.now() + 9 * 3600 * 1000  /* jst_day_v1: den basho zhyve za yaponskym chasom */
   const diffDays = Math.floor((nowJst - bashoStart) / (1000 * 60 * 60 * 24))
-  const currentDay = Math.min(Math.max(diffDays + 1, 1), 15)
+  const currentDay = isArchive ? 15 : Math.min(Math.max(diffDays + 1, 1), 15)  /* basho_param_v1 */
 
   const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/${division}`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/torikumi/${division}/${currentDay}`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${currentBashoId()}`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}/banzuke/${division}`, { next: { revalidate: 3600 } }),
+    fetch(`https://sumo-api.com/api/basho/${bid}/banzuke/${division}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${bid}/torikumi/${division}/${currentDay}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${bid}`, { next: { revalidate: 60 } }),
+    fetch(`https://sumo-api.com/api/basho/${prevBashoId(bid)}/banzuke/${division}`, { next: { revalidate: 3600 } }),
   ])
 
   const banzuke = await banzukeRes.json()
@@ -24,9 +26,9 @@ export async function getBashoData(division = 'Makuuchi') {
   const bashoInfo = await bashoInfoRes.json()
   const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
   let prevYusho = null  /* prev_champion_v1 */
-  if (bashoStatus(currentBashoId()) === 'upcoming') {
+  if (bashoStatus(bid) === 'upcoming') {
     try {
-      const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId(currentBashoId())}`, { next: { revalidate: 86400 } })
+      const pInfoRes = await fetch(`https://sumo-api.com/api/basho/${prevBashoId(bid)}`, { next: { revalidate: 86400 } })
       const pInfo = await pInfoRes.json()
       const y = (pInfo.yusho || []).find(v => v.division === division || v.type === division) || (pInfo.yusho || [])[0] || null
       if (y) prevYusho = { id: y.rikishiId || y.rikishiID, name: y.shikonaEn, nameJp: y.shikonaJp || null }  /* champ_lookup_v1: Jp дошиється нижче з normalized */
@@ -142,7 +144,7 @@ export async function getBashoData(division = 'Makuuchi') {
       )
       const playoffData = await playoffRes.json()
       const playoffMatch = playoffData.records?.find(m =>
-        m.bashoId === currentBashoId() && m.day >= 16
+        m.bashoId === bid && m.day >= 16
       )
       if (playoffMatch) {
         playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null
