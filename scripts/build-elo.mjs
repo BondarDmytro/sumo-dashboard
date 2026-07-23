@@ -3,7 +3,7 @@
 
 import fs from 'fs'
 
-const BASE_BASHO = '202401'
+const BASE_BASHO = '202001'  /* elo_depth_2020 */
 const DIVISIONS = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
 
 const SEED = {
@@ -70,6 +70,7 @@ console.log(`Basho range: ${bashos[0]} .. ${bashos[bashos.length - 1]} (${bashos
 let latestBashoWithBouts = null
 
 for (const bid of bashos) {
+  if (bid === '202005') { console.log('202005: skipped (covid, cancelled)'); continue }  /* elo_depth_2020 */
   // 1) fetch all divisions of this basho
   const banzukes = {}
   for (const div of DIVISIONS) {
