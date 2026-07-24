@@ -53,15 +53,33 @@ export default function DohyoRating() {
   }, [])
   const { lang } = useLang()
   const [div, setDiv] = useState('Makuuchi')
+  const [sortBy, setSortBy] = useState('score')  /* rating_sort_v1 */
+  const [sortDir, setSortDir] = useState(1)
+  const clickSort = (key) => {
+    if (sortBy === key) setSortDir(d => -d)
+    else { setSortBy(key); setSortDir(1) }
+  }
+  const RANK_ORD2 = { Yokozuna: 0, Ozeki: 1, Sekiwake: 2, Komusubi: 3, Maegashira: 4, Juryo: 5, Makushita: 6, Sandanme: 7, Jonidan: 8, Jonokuchi: 9 }
+  const rankVal = (r) => {
+    const s = String(r || '')
+    const dv = Object.keys(RANK_ORD2).find(k => s.startsWith(k))
+    const num = parseInt((s.match(/\d+/) || [99])[0], 10)
+    return (dv !== undefined ? RANK_ORD2[dv] : 99) * 1000 + num * 2 + (s.includes('West') ? 1 : 0)
+  }
+  const arrow = (key) => sortBy === key ? (sortDir === 1 ? ' \u25BE' : ' \u25B4') : ''
 
   const list = useMemo(() => {
     const joined = meta
       .map(m => ({ m, e: eloData.ratings[String(m.id)] }))
       .filter(x => x.e && x.e.bouts > 0)
       .filter(x => div === 'All' ? true : DIV_OF(x.m.rank) === div)
-    joined.sort((a, b) => b.e.elo - a.e.elo)
+    joined.sort((a, b) => {
+      if (sortBy === 'rank') return sortDir * (rankVal(a.m.rank) - rankVal(b.m.rank))
+      if (sortBy === 'delta') return sortDir * ((b.e.delta || 0) - (a.e.delta || 0))
+      return sortDir * (b.e.elo - a.e.elo)
+    })  /* rating_sort_v1 */
     return joined
-  }, [div])
+  }, [div, sortBy, sortDir])
 
   const dName = (m) => lang === 'ja' ? String(m.nameJp || m.name).split('\u3000')[0].split('(')[0] : m.name
 
@@ -84,9 +102,9 @@ export default function DohyoRating() {
         <div style={{display:'grid',gridTemplateColumns: isMobile ? '28px minmax(0,1fr) 52px 48px 34px' : '34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_mobile_v1 */  /* rating_ui_v3 */,gap:8,alignItems:'center',padding:'0.4rem 0.8rem',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>  {/* rating_ui_v2: khedery */}
           <div style={{textAlign:'center'}}>#</div>
           <div>{t3(lang, 'Рікіші', 'Rikishi', String.fromCharCode(0x529B) + String.fromCharCode(0x58EB))}</div>
-          <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8))}</div>
-          <div style={{textAlign:'center'}}>{t3(lang, 'Бал', 'Score', String.fromCharCode(0x70B9))}</div>
-          <div style={{textAlign:'center'}}>{String.fromCharCode(0x0394)}</div>
+          <div onClick={() => clickSort('rank')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8))}{arrow('rank')}</div>
+          <div onClick={() => clickSort('score')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Бал', 'Score', String.fromCharCode(0x70B9))}{arrow('score')}</div>
+          <div onClick={() => clickSort('delta')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{String.fromCharCode(0x0394)}{arrow('delta')}</div>
           {!isMobile && <div>{t3(lang, 'Рейтинг', 'Rating', String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0))}</div>}
         </div>
         {list.map((x, i) => {

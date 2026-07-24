@@ -1,5 +1,7 @@
 'use client'
 import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
+import RikishiLink from './RikishiLink' /* tk_name_links_v1 */
+import CompareModal from './CompareModal' /* tk_compare_modal_v1 */
 /* first_meeting_v1 tk_ja_widths_v1 */
 /* rank_color_tk_v1 rank_pill_tk_v2 */
 import { shortRank, bashoInfo } from '../lib/bashoCalendar' /* tk_shortrank */ /* pickem_panel_v1 */
@@ -32,6 +34,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
     return () => mq.removeEventListener('change', h)
   }, [])
   const { isFav } = useFavorites()  /* fav_row_v1 */
+  const [compareM, setCompareM] = useState(null)  /* tk_compare_modal_v1 */
   const { lang } = useLang()
   const [matches, setMatches] = useState([])
   const [h2hData, setH2hData] = useState({})
@@ -204,7 +207,7 @@ const sanyaku = matches
         {/* East */}
         <div style={{display:'grid',gridTemplateColumns: ((hasResult || eMark) ? (isMobile ? 'minmax(0,1fr) auto 12px' : (lang === 'ja' ? '56px minmax(0,1fr) 22px 40px 14px' : '42px minmax(0,1fr) 22px 40px 14px')) : (isMobile ? 'minmax(0,1fr) auto' : (lang === 'ja' ? '56px minmax(0,1fr) 22px 40px' : '42px minmax(0,1fr) 22px 40px')))  /* tk_cols_v4 */,gap:4,alignItems:'center',minWidth:0,opacity: hasResult && !eastWon ? 0.4 : 1,cursor: pickable ? 'pointer' : 'default'}} /* pickem_name_frame_v1 */ onClick={pickable ? () => togglePick(m.matchNo, m.eastId) : undefined}>{/* tk_cols_v2 + pickem_panel_v1 */}
           {!isMobile && <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}> {/* tk_ovr_wrap_v1 */}<span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.eastRank),fontWeight:700,background:rankColor(m.eastRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}  /* tk_pill_fit_v2 */>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>}
-          <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.eastId)}}><span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}</span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{eastFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.eastRank),background:rankColor(m.eastRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
+          <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.eastId)}}><span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}><RikishiLink id={String(m.eastId)}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}</RikishiLink></span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{eastFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.eastRank),background:rankColor(m.eastRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
           {!isMobile && <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{eastFlag}</span>}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
           {(hasResult || eMark) && (
@@ -217,7 +220,7 @@ const sanyaku = matches
         </div>
 
         {/* Center */}
-        <div style={{textAlign:'center'}}>
+        <div onClick={(e) => { e.stopPropagation(); setCompareM(m) }} style={{textAlign:'center',cursor:'pointer'}}>  {/* tk_compare_modal_v1 */}
           {hasResult ? (
             <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:4}}>
               {m.kimarite}
@@ -258,7 +261,7 @@ const sanyaku = matches
           )}
           <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
           {!isMobile && <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{westFlag}</span>}
-          <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.westId)}}><span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}</span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{westFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.westRank),background:rankColor(m.westRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
+          <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.westId)}}><span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}><RikishiLink id={String(m.westId)}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}</RikishiLink></span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{westFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.westRank),background:rankColor(m.westRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
           {!isMobile && <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}><span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.westRank),fontWeight:700,background:rankColor(m.westRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>}
         </div>
       </div>
@@ -267,6 +270,7 @@ const sanyaku = matches
 
   return (
     <div>
+      {compareM && (() => { const hh = h2hData[`${compareM.eastId}-${compareM.westId}`]; return <CompareModal eastId={compareM.eastId} westId={compareM.westId} h2hWins={hh?.wins1} h2hTotal={hh ? hh.wins1 + hh.wins2 : undefined} onClose={() => setCompareM(null)} /> })()}
       {scoreMode && (  /* pickem_score_v1: ranishnia smuha rezultatu */
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
           <span>🎯</span>
