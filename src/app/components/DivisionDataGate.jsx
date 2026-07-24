@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext'
 import { useLang } from './LangProvider'
 import TournamentStatus from './TournamentStatus'
+import { computeStandings } from '../lib/chanceEngine' /* ts_timetravel_v1 */
 import TournamentTabsWrapper from './TournamentTabsWrapper'
 import TournamentFooter from './TournamentFooter' /* footer_division_v1 */
 
 function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
 
 export default function DivisionDataGate({ makuuchi }) {
+  const [tableDay, setTableDay] = useState(null)  /* ts_timetravel_v1 */
   const { division, selBasho } = useBashoFilter()
   const { lang } = useLang()
   const [divData, setDivData] = useState(null)
@@ -64,13 +66,29 @@ export default function DivisionDataGate({ makuuchi }) {
           {t3(lang,'\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f \u0434\u0438\u0432\u0456\u0437\u0456\u043e\u043d\u0443...','Loading division...','\u8aad\u307f\u8fbc\u307f\u4e2d...')}
         </div>
       )}
-      <TournamentStatus
-        leaders={view.leaders} chasers={view.chasers} currentDay={view.currentDay}
-        maxWins={view.maxWins} kyujoCount={view.kyujoCount}
-        contendersCount={(view.allRikishi || view.contenders || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) > 0).length} isFinished={view.isFinished}  /* gate_contenders_fix_v1 */
-        eliminatedCount={(view.allRikishi || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length}  /* gate_eliminated_v1 */
+      {(() => {
+        const live = !tableDay || tableDay >= view.currentDay || !(view.allRikishi || []).length
+        const st = live ? null : computeStandings(view.allRikishi, tableDay)
+        const L = live ? view.leaders : st.leaders
+        const C = live ? view.chasers : st.chasers
+        const cnt = live ? null : st.rikishi.filter(r => !r.kyujo && (r.yushoChance ?? 0) > 0).length
+        const elim = live ? null : st.rikishi.filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length
+        const dLim = tableDay ?? view.currentDay  /* ts_kimarite_v1 */
+        const kimCounts = {}
+        let kimTotal = 0
+        ;(view.allRikishi || []).forEach(r => (r.record || []).slice(0, dLim).forEach(m => {
+          if (m && m.result === 'win' && m.kimarite && m.kimarite !== 'fusen') { kimCounts[m.kimarite] = (kimCounts[m.kimarite] || 0) + 1; kimTotal++ }
+        }))
+        const kimTop = Object.entries(kimCounts).sort((a, b) => b[1] - a[1])[0]
+        const topKimarite = kimTop && kimTotal ? { name: kimTop[0], count: kimTop[1], pct: Math.round(kimTop[1] / kimTotal * 100) } : null
+        return <TournamentStatus
+        leaders={L} chasers={C} currentDay={tableDay ?? view.currentDay}
+        maxWins={live ? view.maxWins : st.maxWins} kyujoCount={view.kyujoCount} topKimarite={topKimarite}
+        contendersCount={cnt ?? (view.allRikishi || view.contenders || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) > 0).length} isFinished={view.isFinished}  /* gate_contenders_fix_v1 */
+        eliminatedCount={elim ?? (view.allRikishi || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length}  /* gate_eliminated_v1 */
       />
-      <TournamentTabsWrapper
+      })()}
+      <TournamentTabsWrapper tableDay={tableDay} onTableDay={setTableDay}
         contenders={view.contenders} currentDay={view.currentDay}
         allRikishi={view.allRikishi} isFinished={view.isFinished}
         specialPrizes={view.specialPrizes} yushoData={view.yushoData}

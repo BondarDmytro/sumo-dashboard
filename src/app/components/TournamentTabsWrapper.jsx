@@ -12,7 +12,7 @@ import PrevBashoDynamics from './PrevBashoDynamics' /* prev_dynamics_tab_v1 */
 import PickemBoard from './PickemBoard' /* pickem_board_tab_v1 */
 import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext' /* basho_filter_v2 */
 
-export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [] }) {
+export default function TournamentTabsWrapper({ contenders, currentDay, allRikishi = [], isFinished = false, specialPrizes = [], yushoData = [], tableDay = null, onTableDay = null }) {
   const { setDivision } = useBashoFilter()  /* div_from_url_v1 */
   const [tab, setTab] = useState('standings')
   useEffect(() => {  /* url_listen_v1: chytannia na mount + slukhannia live-nav podii (push z tiiei zh storinky) */
@@ -84,7 +84,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
           </div>
           {liveView === 'list' && (<>{/* list_kyujo_v1 */}
             {allRikishi?.some(r => r.kyujo) && <div className="kyujo-strip"><CompactGrid items={allRikishi.filter(r => r.kyujo)} isKyujo currentDay={currentDay} /></div>}{/* kyujo_hscroll_v1 */}
-            <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} />
+            <TournamentTable contenders={contenders} currentDay={currentDay} allRikishi={allRikishi} extViewDay={tableDay} onDayChange={onTableDay} />  {/* ts_timetravel_v1 */}
           </>)}
           {liveView === 'wins' && <PrevBashoDynamics bashoId={CURRENT_BASHO} liveDay={currentDay} division={division} />}
         </>

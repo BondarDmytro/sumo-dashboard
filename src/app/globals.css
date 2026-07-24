@@ -127,15 +127,15 @@ body {
 }
 
 /* navbar_mobile_v1 + tstatus_mobile_v1: мобільні ущільнення */
-.ts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.ts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }  /* ts_grid7_v1: 7 kartok v odyn riad */
 .ts-num { font-size: 1.6rem; }  /* ts_compact_v1 */
 @media (max-width: 860px) {
   .nav-tab { padding: 0.7rem 0.55rem !important; font-size: 0.62rem !important; }
   /* tstatus_mobile_v2: 1 ряд з 5 блоків */
-  .ts-grid { grid-template-columns: repeat(5, 1fr); }
+  .ts-grid { grid-template-columns: repeat(7, 1fr); }  /* ts_grid7_mob_v1 */
   .ts-num { font-size: 1.05rem; }
-  .ts-grid > div { padding: 0.5rem 0.1rem !important; }
-  .ts-grid > div > div:nth-child(2) { font-size: 0.5rem !important; }
+  .ts-grid > div { padding: 0.4rem 0.05rem !important; }
+  .ts-grid > div > div:nth-child(2) { font-size: 0.44rem !important; }
   .ts-grid > div > div:nth-child(3) { font-size: 0.44rem !important; }
 }
 
@@ -174,6 +174,8 @@ body {
 .sf-nav { gap: clamp(0.55rem, 2.4vw, 1.1rem); }
 .sf-nav-link { font-size: clamp(0.5rem, 2.4vw, 0.6rem); }
 .ts-num { font-size: clamp(0.92rem, 3.8vw, 2.8rem) !important; }
+.ts-numzone { height: calc(clamp(0.92rem, 3.8vw, 2.8rem) * 1.2) !important; min-height: calc(clamp(0.92rem, 3.8vw, 2.8rem) * 1.2) !important; display: flex !important; align-items: center !important; justify-content: center !important; }  /* ts_kimarite_final: odna zona dlia vsikh kartok */
+.ts-num-text { font-size: clamp(0.7rem, 1.9vw, 1.5rem) !important; line-height: 1 !important; }  /* ts_kimarite_v10: height = digits line box (clamp x normal lh 1.2) */  /* ts_colors_v1 */  /* ts_kimarite_v9: text same line box as digits */
 
 /* table_mobile_v1: fluid-styskannia tablytsi standings na vuzkykh */
 @media (max-width: 640px) {
@@ -465,7 +467,7 @@ body {
 
 /* mob_status_5col_v1: stan turniru - vsi kartky v odyn riadok na mob */
 @media (max-width: 700px) {
-  .ts-grid { display: grid !important; grid-template-columns: repeat(5, 1fr) !important; }
+  .ts-grid { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; }  /* ts_grid7_mob_v2 */
   .ts-grid > div { padding: 0.35rem 0.2rem !important; }
   .ts-num { font-size: 1.05rem !important; }
   .ts-grid > div > div:nth-child(2) { font-size: 0.5rem !important; margin-top: 0.2rem !important; }
@@ -503,7 +505,7 @@ body {
 }
 /* mob_status_6col_v1: shosta kartka Vybuli v tomu zh riadku */
 @media (max-width: 700px) {
-  .ts-grid { grid-template-columns: repeat(6, 1fr) !important; }
+  .ts-grid { grid-template-columns: repeat(7, 1fr) !important; }  /* ts_grid7_mob_v2 */
 }
 
 /* mob_fix_round2_v1: kyujo strip universalno + top5 kolonky vyrivniani */

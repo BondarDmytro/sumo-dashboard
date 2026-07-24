@@ -6,7 +6,7 @@ import { displayName } from '../lib/bashoCalendar' /* chart_race_v2 */
 import { useEffect } from 'react' /* chart_mobile_v1 */
 
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine,
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import { useLang } from './LangProvider'
@@ -40,7 +40,7 @@ function calcChanceAtDay(record, day) {
   return Math.round(base * 10) / 10
 }
 
-export default function YushoChart({ rikishi }) {
+export default function YushoChart({ rikishi, highlightDay }) {
   const { lang } = useLang()
   const [hl, setHl] = useState(null)  /* chart_hl_v1 */
   const [mode, setMode] = useState('chart')  /* chart_race_v1 */
@@ -88,7 +88,7 @@ export default function YushoChart({ rikishi }) {
   if (!rikishi?.length) return null
 
   const all = rikishi  /* chart_global_pct_v1 */
-  const topAll = all.filter(r => (r.yushoChance ?? 1) > 0)
+  const topAll = all.filter(r => (r.yushoChance ?? 1) > 0 || r.eliminatedDay)  /* day_switch_v2_chart: vybuli lyshaiutsia z obirvanymy kryvymy */
   const top = isMobile ? [...topAll].sort((a,b) => (b.yushoChance||0) - (a.yushoChance||0)).slice(0, 8) : topAll  /* chart_mobile_v1: top-8 na mob */
   const maxDay = Math.max(...top.map(r => r.record?.filter(m => m.result).length || 0))
 
@@ -98,6 +98,7 @@ export default function YushoChart({ rikishi }) {
 
     const st = computeStandings(all, day)  /* chart_engine_v1: ta sama formula shcho v tablytsi */
     top.forEach(r => {
+      if (r.eliminatedDay && day > r.eliminatedDay) { point[r.name] = undefined; return }  /* day_switch_v2_chart */
       const rr = st.rikishi.find(x => x.name === r.name)
       point[r.name] = rr ? rr.yushoChance : 0
     })
@@ -158,6 +159,8 @@ export default function YushoChart({ rikishi }) {
       })() : (
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={chartData} margin={isMobile ? {top:5,right:4,left:0,bottom:0} : {top:5,right:20,left:0,bottom:5}}>
+              connectNulls={false}
+          {highlightDay && <ReferenceLine x={isMobile ? String(highlightDay) : (lang === 'ja' ? `${highlightDay}\u65E5\u76EE` : lang === 'en' ? `Day ${highlightDay}` : `\u0414\u0435\u043D\u044C ${highlightDay}`)} stroke="#b8860b" strokeWidth={2} strokeDasharray="4 3" />}  {/* day_switch_chart_v1 */}
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="day"
