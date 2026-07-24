@@ -133,6 +133,11 @@ body {
   .nav-tab { padding: 0.7rem 0.55rem !important; font-size: 0.62rem !important; }
   /* tstatus_mobile_v2: 1 ряд з 5 блоків */
   .ts-grid { grid-template-columns: repeat(7, 1fr); }  /* ts_grid7_mob_v1 */
+  /* mob_uk_width_v1: ukr dovhi slova - lamaiemo, tysnemo */
+  .ts-grid > div > div:nth-child(2) { overflow-wrap: break-word; hyphens: auto; line-height: 1.15 !important; }
+  .tt-table td:nth-child(8) span { font-size: 0.42rem !important; padding: 1px 2px !important; }
+  .tt-table { table-layout: fixed; width: 100%; }
+  .tt-table td, .tt-table th { overflow: hidden; text-overflow: ellipsis; }
   .ts-num { font-size: 1.05rem; }
   .ts-grid > div { padding: 0.4rem 0.05rem !important; }
   .ts-grid > div > div:nth-child(2) { font-size: 0.44rem !important; }

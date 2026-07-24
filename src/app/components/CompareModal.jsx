@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from 'react'
 /* compare_modal_v1: mini-porivniannia pary z torikumi */
 import meta from '../lib/rikishiMeta.json'
 import HeyaLink from './HeyaLink'  /* heya_links_v1 */
@@ -13,6 +14,14 @@ const age = (bd) => { if (!bd) return null; const d = new Date(bd); const n = ne
 
 export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClose }) {
   const { lang } = useLang()
+  const [isMob, setIsMob] = useState(false)  /* compare_modal_mob_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMob(mq.matches)
+    const h = e => setIsMob(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   const m1 = meta.find(x => String(x.id) === String(eastId))
   const m2 = meta.find(x => String(x.id) === String(westId))
   if (!m1 || !m2) return null
@@ -47,7 +56,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
           <button onClick={onClose} style={{position:'absolute',right:0,top:0,background:'none',border:'none',fontSize:'1.1rem',cursor:'pointer',color:'var(--mid)',padding:'0 4px'}}>{String.fromCharCode(0x2715)}</button>
         </div>
         <div style={{display:'flex',gap:12,alignItems:'stretch'}}>  {/* compare_modal_v3 */}
-          <img src={`/rikishi/${eastId}.webp`} alt={m1.name} onError={e => { e.target.style.display = 'none' }} style={{width:150,height:'auto',alignSelf:'stretch',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0 /* compare_modal_v5 */}} />
+          {!isMob && <img src={`/rikishi/${eastId}.webp`} alt={m1.name} onError={e => { e.target.style.display = 'none' }} style={{width:150,height:'auto',alignSelf:'stretch',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0 /* compare_modal_v5 */}} />}
           <div style={{flex:1,minWidth:0}}>
         <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:4,alignItems:'center',marginBottom:8}}>
           <div style={{textAlign:'right'}}><span style={{fontFamily:'monospace',fontWeight:800,fontSize:'1.1rem',color:'#fff',background:tierColor(e1.ovr || 0),padding:'2px 10px',borderRadius:4}}>{e1.ovr ?? String.fromCharCode(0x2014)}</span></div>
@@ -71,7 +80,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
           )
         })}
           </div>
-          <img src={`/rikishi/${westId}.webp`} alt={m2.name} onError={e => { e.target.style.display = 'none' }} style={{width:150,height:'auto',alignSelf:'stretch',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0 /* compare_modal_v5 */}} />
+          {!isMob && <img src={`/rikishi/${westId}.webp`} alt={m2.name} onError={e => { e.target.style.display = 'none' }} style={{width:150,height:'auto',alignSelf:'stretch',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',flexShrink:0 /* compare_modal_v5 */}} />}
         </div>
       </div>
     </div>
