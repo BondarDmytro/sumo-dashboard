@@ -1,11 +1,21 @@
 'use client'
+import { useState, useEffect } from 'react'
 /* ovr_badge_v1: kompaktna plashka Dohyo Rating dlia turnirnykh tablyts */
 import eloData from '../lib/eloRatings.json'
 
 const tierColor = (ovr) => ovr >= 90 ? '#c0392b' : ovr >= 75 ? '#7d3c98' : ovr >= 60 ? '#1a4a7a' : ovr >= 40 ? '#1a6b5c' : '#5a544a'
 
-export default function OvrBadge({ id, size = 'sm' }) {
+export default function OvrBadge({ id, size = 'sm', hideMobile = false }) {  /* ovr_mobile_v1 */
+  const [isMob, setIsMob] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMob(mq.matches)
+    const h = e => setIsMob(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   const e = eloData.ratings[String(id)]
+  if (hideMobile && isMob) return null  /* ovr_mobile_v1 */
   if (!e || e.bouts === 0) return null
   const fs = size === 'sm' ? '0.52rem' : size === 'lg' ? '0.8rem' : '0.62rem'  /* ovr_badge_v2_lg */
   return (

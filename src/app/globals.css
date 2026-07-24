@@ -284,8 +284,19 @@ body {
 /* tt_mobile_cols_v1: na mob khovaiemo Den/Matchi/Delta - tablytsia vlaze po shyryni */
 @media (max-width: 700px) {
   .tt-table th:nth-child(1), .tt-table td:nth-child(1),
-  .tt-table th:nth-child(4), .tt-table td:nth-child(4),
-  .tt-table th:nth-child(6), .tt-table td:nth-child(6) { display: none; }  /* +rank hidden on mob */
+  .tt-table th:nth-child(7), .tt-table td:nth-child(7) { display: none; }  /* tt_mob_rank_score_v1: day+matches hidden, rank+score visible */
+  /* tt_mob_uniform_v1: odnakovyi rozmir shryftu vsikh kolonok na mobi */
+  .tt-table td, .tt-table td span, .tt-table td div { font-size: 0.58rem !important; }
+  .tt-table td { padding: 0.3rem 0.15rem !important; }
+  .tt-table th { padding: 0.3rem 0.15rem !important; font-size: 0.46rem !important; }
+  .tt-table td span { padding-left: 2px !important; padding-right: 2px !important; }
+  .tt-table .tt-chancecell + td span, .tt-table td:last-child span { font-size: 0.58rem !important; }
+  /* tt_mob_uniform_v2: statys vuzhche, shans vydymyi */
+  .tt-table td:nth-child(8) span { font-size: 0.48rem !important; padding: 1px 3px !important; letter-spacing: 0 !important; white-space: nowrap !important; }
+  .tt-table td:nth-child(8) { max-width: 64px; }
+  .tt-table td:nth-child(9) { padding-left: 0.05rem !important; padding-right: 0.05rem !important; }
+  .tt-table td:nth-child(9) span, .tt-table td:nth-child(9) div { font-size: 0.52rem !important; }
+  .tt-table .tt-chancebar { max-width: 34px !important; }
   .tt-table td span { padding-left: 3px !important; padding-right: 3px !important; }
   .tt-table { font-size: 0.68rem !important; }
   .tt-table td, .tt-table th { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
@@ -296,7 +307,7 @@ body {
 
 /* tt_mobile_chance_v1: shans-kolonka vuzhcha na mob - bez baru */
 @media (max-width: 700px) {
-  .tt-table td:nth-child(8), .tt-table th:nth-child(8) { min-width: 0 !important; }
+  .tt-table td:nth-child(9), .tt-table th:nth-child(9) { min-width: 0 !important; }  /* tt_mob_rank_score_v1: shift after score col */
   .tt-chancebar { display: none; }
 }
 .tt-chancecell { min-width: 180px; }

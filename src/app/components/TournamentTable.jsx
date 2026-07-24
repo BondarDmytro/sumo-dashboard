@@ -73,6 +73,14 @@ function MatchDots({ record, currentDay }) {
 }
 
 export default function TournamentTable({ contenders, currentDay, allRikishi = null }) {
+  const [isMobileTT, setIsMobileTT] = useState(false)  /* tt_score_mobile_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobileTT(mq.matches)
+    const h = e => setIsMobileTT(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   /* result_wave_v1 kk_mk_color_v1 kk_mk_v2 */
   const [waveIds, setWaveIds] = useState(new Set())
   const prevPlayedRef = useRef({})
@@ -108,7 +116,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     '#',
     t3(lang, 'Рікіші', 'Rikishi', '力士'),
     t3(lang, 'Ранг', 'Rank', '番付'),
-    t3(lang, 'Бал', 'Score', '点'),  /* ovr_col_tt_v1 */
+    t3(lang, 'Бал', 'Score', '点'),  /* ovr_col_tt_v1 tt_mob_rank_score_v1 */
     t3(lang, 'Рекорд', 'Record', '成績'),
     t3(lang, 'Матчі', 'Matches', '取組'),
     t3(lang, 'Статус', 'Status', '状態'),

@@ -66,7 +66,7 @@ export default function H2HTable({ rikishi, h2h }) {
                   }}>
                     {i+1}
                   </div>
-                  <span style={{whiteSpace:'nowrap'}}>{rowName}</span>{' '}<OvrBadge id={idByName[rowName]} />
+                  <span style={{whiteSpace:'nowrap'}}>{rowName}</span>{' '}<OvrBadge id={idByName[rowName]} hideMobile />
                 </div>
               </td>
               {names.map(colName => {

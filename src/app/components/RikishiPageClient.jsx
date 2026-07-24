@@ -180,14 +180,14 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
       {(() => {
         const eRt = eloData.ratings[String(r.id || r._id)]
         const tcRt = eRt ? (eRt.ovr >= 90 ? '#c0392b' : eRt.ovr >= 75 ? '#7d3c98' : eRt.ovr >= 60 ? '#1a4a7a' : eRt.ovr >= 40 ? '#1a6b5c' : '#5a544a') : null
-        const tile = {background:'var(--bg2)',padding:'0.5rem 0.6rem',borderRadius:2,textAlign:'center',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}  /* profile_hero_v5 */
-        const tLbl = {fontFamily:'monospace',fontSize:'0.7rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}  /* profile_hero_v6 */
-        const tVal = {fontWeight:700,fontSize:'1.1rem'}
+        const tile = {background:'var(--bg2)',padding: isMobile ? '0.3rem 0.4rem' : '0.5rem 0.6rem',borderRadius:2,textAlign:'center',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}  /* profile_hero_v5 profile_mobile_v3 */
+        const tLbl = {fontFamily:'monospace',fontSize: isMobile ? '0.44rem' : '0.7rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom: isMobile ? 1 : 4}
+        const tVal = {fontWeight:700,fontSize: isMobile ? '0.6rem' : '1.1rem'}
         const hiRank = (() => { const h = rikishiMeta.find(m => m.id === r.id)?.hiRank; return h ? displayRank(h, lang) : null })()
         const cName = bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : null
         return (
-          <div style={{display:'flex',alignItems:'flex-start',gap:'1rem',marginBottom:'1rem',flexWrap:'wrap'}}>
-            <div style={{flexShrink:0,width: isMobile ? 90 : 108,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap: isMobile ? '0.5rem' : '1rem',marginBottom:'1rem',flexWrap: isMobile ? 'nowrap' : 'wrap'}}>  {/* profile_mobile_v2 */}
+            <div style={{flexShrink:0,width: isMobile ? 72 : 108,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
               <div style={{fontWeight:800,fontSize: isMobile ? '0.95rem' : '1.05rem',textAlign:'center',lineHeight:1.1}}>{displayName(r, lang)}</div>
               <img src={`/rikishi/${r.id}.webp`} alt={r.name}
                 style={{width:'100%',height: isMobile ? 158 : 189,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'}}
@@ -204,7 +204,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 </div>
               )}
             </div>
-            <div style={{flex:1,minWidth:220,display:'grid',gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)',gap:6,gridAutoRows:'1fr',alignSelf:'stretch'}}>
+            <div style={{flex:1,minWidth:0,display:'grid',gridTemplateColumns: 'repeat(3,1fr)',gap: isMobile ? 3 : 6,gridAutoRows:'1fr',alignSelf:'stretch'  /* profile_mobile_v4 */}}>
               <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>
                 <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
                   <div style={tLbl}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>

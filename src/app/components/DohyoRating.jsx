@@ -1,6 +1,6 @@
 'use client'
 /* dohyo_rating_tab_v1: tablytsia vsikh rikishi za Dohyo OVR */
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useLang } from './LangProvider'
 import { t3 } from '../i18n'
 import meta from '../lib/rikishiMeta.json'
@@ -43,6 +43,14 @@ function Bar({ val }) {
 /* rating_ui_v2: hradatsiia ridkosti yak v ihrakh */
 const tierColor = (ovr) => ovr >= 90 ? '#c0392b' : ovr >= 75 ? '#7d3c98' : ovr >= 60 ? '#1a4a7a' : ovr >= 40 ? '#1a6b5c' : '#5a544a'
 export default function DohyoRating() {
+  const [isMobile, setIsMobile] = useState(false)  /* rating_mobile_v1 */
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 700px)')
+    setIsMobile(mq.matches)
+    const h = e => setIsMobile(e.matches)
+    mq.addEventListener('change', h)
+    return () => mq.removeEventListener('change', h)
+  }, [])
   const { lang } = useLang()
   const [div, setDiv] = useState('Makuuchi')
 
@@ -73,24 +81,24 @@ export default function DohyoRating() {
           'Dohyo OVR' + String.fromCharCode(0x306F) + String.fromCharCode(0x5F53) + String.fromCharCode(0x30B5) + String.fromCharCode(0x30A4) + String.fromCharCode(0x30C8) + String.fromCharCode(0x72EC) + String.fromCharCode(0x81EA) + String.fromCharCode(0x306E) + String.fromCharCode(0x5B9F) + String.fromCharCode(0x529B) + String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0) + String.fromCharCode(0xFF08) + '0-99' + String.fromCharCode(0xFF09))}
       </div>
       <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:2}}>
-        <div style={{display:'grid',gridTemplateColumns:'34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_ui_v5_fixedcols */  /* rating_ui_v3 */,gap:8,alignItems:'center',padding:'0.4rem 0.8rem',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>  {/* rating_ui_v2: khedery */}
+        <div style={{display:'grid',gridTemplateColumns: isMobile ? '28px minmax(0,1fr) 52px 48px 34px' : '34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_mobile_v1 */  /* rating_ui_v3 */,gap:8,alignItems:'center',padding:'0.4rem 0.8rem',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>  {/* rating_ui_v2: khedery */}
           <div style={{textAlign:'center'}}>#</div>
           <div>{t3(lang, 'Рікіші', 'Rikishi', String.fromCharCode(0x529B) + String.fromCharCode(0x58EB))}</div>
           <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8))}</div>
           <div style={{textAlign:'center'}}>{t3(lang, 'Бал', 'Score', String.fromCharCode(0x70B9))}</div>
           <div style={{textAlign:'center'}}>{String.fromCharCode(0x0394)}</div>
-          <div>{t3(lang, 'Рейтинг', 'Rating', String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0))}</div>
+          {!isMobile && <div>{t3(lang, 'Рейтинг', 'Rating', String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0))}</div>}
         </div>
         {list.map((x, i) => {
           const { m, e } = x
           return (
-            <div key={m.id} style={{display:'grid',gridTemplateColumns:'34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_ui_v5_fixedcols */  /* rating_ui_v3 */  /* rating_ui_v2 */,gap:8,alignItems:'center',padding:'0.45rem 0.8rem',borderBottom:'1px solid var(--border)'}}>
+            <div key={m.id} style={{display:'grid',gridTemplateColumns: isMobile ? '28px minmax(0,1fr) 52px 48px 34px' : '34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_mobile_v1 */  /* rating_ui_v3 */  /* rating_ui_v2 */,gap:8,alignItems:'center',padding:'0.45rem 0.8rem',borderBottom:'1px solid var(--border)'}}>
               <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--light)',textAlign:'center'}}>{i + 1}</div>
               <div style={{fontWeight:600,fontSize:'0.82rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={String(m.id)}>{dName(m)}</RikishiLink></div>
               <div style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.56rem',color:rankColor(m.rank),fontWeight:700,background:rankColor(m.rank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.rank, lang)}</span></div>
               <div style={{textAlign:'center'}}><span style={{fontFamily:'monospace',fontSize:'0.8rem',fontWeight:800,color:'#fff',background:tierColor(e.ovr),padding:'2px 8px',borderRadius:3,display:'inline-block',minWidth:34,textAlign:'center'}}>{e.ovr}</span></div>
               <div style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,textAlign:'center',color: e.delta > 0 ? '#1a6b5c' : e.delta < 0 ? '#c0392b' : 'var(--light)'}}>{e.delta > 0 ? String.fromCharCode(0x2191) + e.delta : e.delta < 0 ? String.fromCharCode(0x2193) + Math.abs(e.delta) : String.fromCharCode(0x2013)}</div>  {/* rating_ui_v2 */}
-              <Bar val={e.ovr} />
+              {!isMobile && <Bar val={e.ovr} />}
             </div>
           )
         })}
