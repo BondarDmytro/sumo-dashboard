@@ -5,6 +5,7 @@ import { useLang } from './LangProvider'
 import { t3 } from '../i18n'
 import meta from '../lib/rikishiMeta.json'
 import { HEYA_JA } from '../lib/heyaJa'
+import HeyaLink from './HeyaLink'  /* heya_links_v1 */
 import { displayRank, shortRank, currentBashoId } from '../lib/bashoCalendar' /* compare_v3 compare_v13 */
 import { rankColor } from '../lib/rankColors' /* compare_v4 */
 import eloData from '../lib/eloRatings.json' /* compare_ovr_v1 */
@@ -247,7 +248,7 @@ export default function RikishiCompare() {
     { l: t3(lang, 'Вік', 'Age', '年齢'), v: m => ageOf(m.birthDate) ?? '—', cmp: m => -(ageOf(m.birthDate) ?? 99) },  /* compare_v2: menshyi vik = krashchyi */
     { l: t3(lang, 'Зріст', 'Height', '身長'), v: m => m.height ? m.height + ' cm' : '—', cmp: m => m.height || 0 },
     { l: t3(lang, 'Вага', 'Weight', '体重'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
-    { l: t3(lang, 'Стайня', 'Stable', '部屋'), v: m => lang === 'ja' ? (HEYA_JA[m.heya] || m.heya || '—') : (m.heya || '—'), cmp: null },
+    { l: t3(lang, 'Стайня', 'Stable', '部屋'), v: m => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : '—', cmp: null },
     { l: t3(lang, 'Дебют', 'Debut', '初土俵'), v: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4)}` : '—', cmp: null },
     { l: t3(lang, 'Басьо', 'Basho', '場所数'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
     { l: t3(lang, 'Боїв', 'Bouts', '取組数'), v: m => eff(m, 'bouts', m.matches) ?? '—', cmp: m => eff(m, 'bouts', m.matches) || 0 },

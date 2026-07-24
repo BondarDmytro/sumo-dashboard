@@ -2,6 +2,7 @@
 'use client' /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { HEYA_JA } from '../lib/heyaJa' /* heya_ja_lib_v1 */
+import HeyaLink from './HeyaLink'  /* heya_links_v1 */
 
 import { useEffect, useState, useRef } from 'react'  /* useref_fix_v1 */
 import YT_VIDEOS from '../lib/ytVideos.json' /* yt_direct_videos_v1 */
@@ -260,7 +261,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
               </div>
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Стайня', 'Stable', '部屋')}</div>
-                <div style={tVal}>{bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…'}</div>
+                <div style={tVal}>{bio ? (bio.heya ? <HeyaLink heya={bio.heya} lang={lang} /> : '—') : '…'}</div>
               </div>
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Вага', 'Weight', '体重')}</div>

@@ -1,6 +1,7 @@
 'use client'
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { HEYA_JA } from '../lib/heyaJa'
+import HeyaLink from './HeyaLink'  /* heya_links_v1 */
 import { displayName, displayRank, currentBashoId } from '../lib/bashoCalendar' /* ja_names_sweep_v1 rf_polish_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -212,7 +213,7 @@ export default function RankForecast() {
                 {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
                 {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {t3(lang, 'кг', 'kg', 'kg')}</span>}
                 {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{t3(lang, 'дебют', 'debut', '初土俯')} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
-                {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{lang === 'ja' ? (HEYA_JA[r.bio.heya] || r.bio.heya) : r.bio.heya}</span>}
+                {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}><HeyaLink heya={r.bio.heya} lang={lang} /></span>}
               </div>
             </div>
 

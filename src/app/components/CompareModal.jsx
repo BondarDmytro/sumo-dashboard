@@ -1,6 +1,7 @@
 'use client'
 /* compare_modal_v1: mini-porivniannia pary z torikumi */
 import meta from '../lib/rikishiMeta.json'
+import HeyaLink from './HeyaLink'  /* heya_links_v1 */
 import eloData from '../lib/eloRatings.json'
 import { useLang } from './LangProvider'
 import { t3 } from '../i18n'
@@ -18,6 +19,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
   const e1 = eloData.ratings[String(eastId)] || {}
   const e2 = eloData.ratings[String(westId)] || {}
   const wr = (m) => m.matches ? Math.round(m.wins / m.matches * 100) : null
+  const hl = (m) => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : null  /* heya_links_v1 */
 
   const rows = [
     { l: t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8)), v1: displayRank(m1.rank, lang), v2: displayRank(m2.rank, lang) },
@@ -26,7 +28,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
     { l: t3(lang, 'Вага', 'Weight', 'kg'), v1: m1.weight, v2: m2.weight, num: true },
     { l: t3(lang, 'Вінрейт', 'Win rate', '%'), v1: wr(m1), v2: wr(m2), num: true },
     { l: t3(lang, 'Юшо', 'Yusho', String.fromCharCode(0x512A) + String.fromCharCode(0x52DD)), v1: m1.yusho || 0, v2: m2.yusho || 0, num: true },
-    { l: t3(lang, 'Стайня', 'Stable', String.fromCharCode(0x90E8) + String.fromCharCode(0x5C4B)), v1: m1.heya, v2: m2.heya },
+    { l: t3(lang, 'Стайня', 'Stable', String.fromCharCode(0x90E8) + String.fromCharCode(0x5C4B)), v1: hl(m1), v2: hl(m2) },
     { l: t3(lang, 'Дебют', 'Debut', String.fromCharCode(0x521D)), v1: m1.debut ? m1.debut.slice(0,4) + '/' + m1.debut.slice(4) : null, v2: m2.debut ? m2.debut.slice(0,4) + '/' + m2.debut.slice(4) : null },
     { l: t3(lang, 'Басьо', 'Basho', String.fromCharCode(0x5834) + String.fromCharCode(0x6240)), v1: m1.basho, v2: m2.basho, num: true },
     { l: t3(lang, 'Боїв', 'Bouts', String.fromCharCode(0x53D6) + String.fromCharCode(0x7D44)), v1: m1.matches, v2: m2.matches, num: true },
