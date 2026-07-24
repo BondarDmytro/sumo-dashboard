@@ -21,5 +21,5 @@ jobs:
         run: |
           git config user.name "meta-bot"
           git config user.email "actions@github.com"
-          git add src/app/lib/rikishiMeta.json src/app/lib/eloRatings.json
+          git add src/app/lib/rikishiMeta.json src/app/lib/eloRatings.json src/app/lib/rikishiHistory.json
           git diff --cached --quiet && echo "no changes" || (git commit -m "data: rikishi meta auto-rebuild $(date -u +%F)" && git push)

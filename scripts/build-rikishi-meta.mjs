@@ -12,7 +12,7 @@ console.log(`rikishi: ${recs.length}`)
 const bashoList = (() => {
   const out = []
   let y = 2026, m = 5
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 39; i++) {  /* history_full_v1: z 2020, syncz elo-hlybynoiu */
     out.push(`${y}${String(m).padStart(2, '0')}`)
     m -= 2
     if (m < 1) { m += 12; y -= 1 }
@@ -91,7 +91,7 @@ for (const r of recs) {
       debut: r.debut || null,
       yusho: stats.yusho || 0,
       hiRank, hiVal,
-      last9: (hist[r.id] || []).sort((x, y) => x.b.localeCompare(y.b)),  /* meta_v4_last9 */
+      last9: (hist[r.id] || []).sort((x, y) => x.b.localeCompare(y.b)).slice(-9),  /* meta_v4_last9 history_full_v1 */
     })
   } catch (e) { console.log(`skip ${r.shikonaEn}: ${e.message}`) }
   done++
@@ -99,4 +99,11 @@ for (const r of recs) {
   await sleep(250)
 }
 fs.writeFileSync('src/app/lib/rikishiMeta.json', JSON.stringify(out))
+const histOut = {}  /* history_full_v1 */
+for (const r of recs) {  /* history_full_v1 fix */
+  const h = (hist[r.id] || []).sort((x, y) => x.b.localeCompare(y.b))
+  if (h.length) histOut[r.id] = h
+}
+fs.writeFileSync('src/app/lib/rikishiHistory.json', JSON.stringify(histOut))
+console.log(`history written: ${Object.keys(histOut).length} rikishi, ${(fs.statSync('src/app/lib/rikishiHistory.json').size/1024).toFixed(0)}K`)
 console.log(`written: ${out.length} records, ${(fs.statSync('src/app/lib/rikishiMeta.json').size/1024).toFixed(0)}K`)

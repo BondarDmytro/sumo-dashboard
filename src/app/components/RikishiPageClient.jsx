@@ -21,6 +21,7 @@ import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from 
 import RikishiTopTable from './RikishiTopTable' /* rikishi_top_table_v1 */
 import FavStar from './FavStar' /* favorites_v1 */
 import VoteButton from './VoteButton' /* votes_v1 */
+import BashoHistoryPicker from './BashoHistoryPicker' /* history_picker_wire_v1 */
 import rikishiMeta from '../lib/rikishiMeta.json' /* hirank_bio_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
@@ -107,6 +108,12 @@ function RikishiListCard({ r, onClick, selected }) {
 
 export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi_hub_v1: export dlia profil-khabiv */
   /* rikishi_basho_selector_v1 */
+  const [rikHistory, setRikHistory] = useState(null)  /* history_selector_v1 */
+  useEffect(() => {
+    let alive = true
+    import('../lib/rikishiHistory.json').then(mod => { if (alive) setRikHistory(mod.default || mod) }).catch(() => {})
+    return () => { alive = false }
+  }, [])
   const [selBasho, setSelBasho] = useState(currentBashoId())
   const [pastData, setPastData] = useState(null)
   const [pastLoading, setPastLoading] = useState(false)
@@ -303,9 +310,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        <select value={selBasho} onChange={e => setSelBasho(e.target.value)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink)',background:'var(--card)',border:'1px solid var(--border)',borderRadius:2,padding:'2px 6px',marginRight:6}}>
-          {BASHO_LIST.map(b => <option key={b.id} value={b.id}>{lang === 'ja' ? (b.labelJa || b.labelEn) : lang === 'en' ? b.labelEn /* basho_ja_label_v1 */ : b.label}</option>)}
-        </select> — {pastLoading ? '...' : `${shownWins ?? 0}–${shownLosses ?? 0}`}
+        <BashoHistoryPicker hist={rikHistory?.[String(r.id)] || []} value={selBasho} onChange={setSelBasho} lang={lang} current={{ b: currentBashoId(), w: r.wins, l: r.losses, r: r.rank }} />  {/* history_picker_wire_v1 */}{pastLoading && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>...</span>}  {/* history_tail_v2 */}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {regularMatches.map(m => {
