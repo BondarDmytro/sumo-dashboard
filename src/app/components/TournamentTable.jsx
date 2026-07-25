@@ -167,13 +167,13 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
               const barColor = i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
               const statusLabel = r.status === 'lead'
-                ? t3(lang, 'лідер', 'leader', 'トップ')
+                ? (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ'))  /* tt_mob_final_v1 */
                 : r.status === 'chase'
-                ? t3(lang, 'переслідувач', 'chaser', '追走')
+                ? (isMobileTT ? t3(lang, '\u041F', 'C', '\u8FFD') : t3(lang, 'переслідувач', 'chaser', '追走'))
                 : (!r.kyujo && (r.yushoChance ?? 1) <= 0)
                 ? (r.eliminatedDay
-                    ? t3(lang, `вибув (д. ${r.eliminatedDay})`, `out (d. ${r.eliminatedDay})`, `脱落（${r.eliminatedDay}日目）`)
-                    : t3(lang, 'вибув', 'out', '脱落'))  /* tt_elim_day_v1 */
+                    ? (isMobileTT ? t3(lang, `\u0414-${r.eliminatedDay}`, `D-${r.eliminatedDay}`, `\u8131${r.eliminatedDay}`) : t3(lang, `вибув (д. ${r.eliminatedDay})`, `out (d. ${r.eliminatedDay})`, `脱落（${r.eliminatedDay}日目）`))
+                    : (isMobileTT ? t3(lang, '\u0412', 'O', '\u8131') : t3(lang, 'вибув', 'out', '脱落')))  /* tt_elim_day_v1 tt_mob_elim_v1 */
                 : `${r.wins}–${r.losses}`
               const isOut = !r.kyujo && (r.yushoChance ?? 1) <= 0 && r.status !== 'lead' && r.status !== 'chase'
               return (

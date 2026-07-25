@@ -137,6 +137,12 @@ body {
   .ts-grid > div > div:nth-child(2) { overflow-wrap: break-word; hyphens: auto; line-height: 1.15 !important; }
   .tt-table td:nth-child(8) span { font-size: 0.42rem !important; padding: 1px 2px !important; }
   .tt-table { table-layout: fixed; width: 100%; }
+  .tt-table th:nth-child(2), .tt-table td:nth-child(2) { width: 26px; }  /* tt_mob_final_v1: # vuzka */
+  .tt-table th:nth-child(3), .tt-table td:nth-child(3) { width: 31%; }  /* Rikishi shyroka */
+  .tt-table th:nth-child(4), .tt-table td:nth-child(4) { width: 40px; }
+  .tt-table th:nth-child(5), .tt-table td:nth-child(5) { width: 34px; }
+  .tt-table th:nth-child(8), .tt-table td:nth-child(8) { width: 30px; }
+  .tt-table td:nth-child(2) > * { width: 20px !important; height: 20px !important; font-size: 0.5rem !important; }
   .tt-table td, .tt-table th { overflow: hidden; text-overflow: ellipsis; }
   .ts-num { font-size: 1.05rem; }
   .ts-grid > div { padding: 0.4rem 0.05rem !important; }
