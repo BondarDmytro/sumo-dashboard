@@ -166,9 +166,11 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
         { next: { revalidate: 60 } }
       )
       const playoffData = await playoffRes.json()
-      const playoffMatch = playoffData.records?.find(m =>
-        m.bashoId === bid && m.day >= 16
-      )
+      const poms = (playoffData.records || []).filter(m => m.bashoId === bid && m.day >= 16 && m.winnerId)
+      const winCounts = {}
+      poms.forEach(m => { winCounts[m.winnerId] = (winCounts[m.winnerId] || 0) + 1 })
+      const champId = Object.keys(winCounts).find(id => winCounts[id] >= 2) || (poms.length === 1 ? poms[0].winnerId : null)
+      const playoffMatch = champId ? [...poms].reverse().find(m => String(m.winnerId) === String(champId)) : (poms.length ? poms[poms.length - 1] : null)  /* playoff_last_match_v1+playoff_last_match_v2: 2 peremohy pospil abo yedynyi bii */
       if (playoffMatch) {
         playoffWinner = normalized.find(r => String(r._id) === String(playoffMatch.winnerId)) || null
         const loserId = playoffMatch.winnerId === playoffMatch.eastId ? playoffMatch.westId : playoffMatch.eastId  /* ja_loser_v1 */
