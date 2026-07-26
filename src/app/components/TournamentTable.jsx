@@ -110,7 +110,9 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     ? computeStandings(allRikishi, Math.min(viewDayEff, 15))  /* tt_playoff_tab_v1: den 16 = pislia-pleiof */
     : null
   const shown = retro
-    ? retro.rikishi.filter(r => !r.kyujo)  /* retro_all_v1 */
+    ? (viewDayEff === 16 && divisionPlayoff?.bouts?.length
+        ? (() => { const ids = new Set(divisionPlayoff.bouts.flatMap(b => [String(b.eastId), String(b.westId)])); return retro.rikishi.filter(r => ids.has(String(r._id))) })()
+        : retro.rikishi.filter(r => !r.kyujo))  /* retro_all_v1 tt_playoff_filter_v1 */
     : contenders
 
   const dayLabel = t3(lang, `День ${viewDayEff}`, `Day ${viewDayEff}`, `${viewDayEff}日目`)
@@ -152,6 +154,27 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
           </div>
         ))}
       </div>
+      {viewDayEff === 16 && divisionPlayoff?.bouts?.length > 0 && (
+        <div style={{marginBottom:'1rem',padding:'0.7rem 0.9rem',background:'var(--card)',border:'1px solid #b8860b',borderRadius:4}}>  {/* tt_playoff_panel_v1 */}
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'#b8860b',marginBottom:6}}>{t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444 \u0437\u0430 \u044E\u0448\u043E', 'Yusho playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226')}</div>
+          {divisionWinner && (
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,paddingBottom:8,borderBottom:'1px solid var(--border)'}}>  {/* tt_playoff_champion_v1 */}
+              <span style={{fontSize:'1.1rem'}}>{String.fromCodePoint(0x1F3C6)}</span>
+              <span style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>{t3(lang, '\u042E\u0448\u043E', 'Yusho', '\u512A\u52DD')}:</span>
+              <span style={{fontWeight:800,fontSize:'0.95rem',color:'#b8860b'}}>{divisionWinner.name || divisionWinner}</span>
+            </div>
+          )}
+          {divisionPlayoff.bouts.map((b, i) => (
+            <div key={i} style={{display:'flex',alignItems:'center',gap:8,fontFamily:'monospace',fontSize:'0.72rem',padding:'3px 0'}}>
+              <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{b.east}</span>
+              <span style={{color:'var(--light)',fontSize:'0.6rem'}}>vs</span>
+              <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{b.west}</span>
+              {b.kimarite && <span style={{color:'var(--mid)',fontSize:'0.6rem'}}>{'\u00b7'} {b.kimarite}</span>}
+              {!b.winnerId && <span style={{color:'#b8860b',fontSize:'0.6rem'}}>{t3(lang, '\u0442\u0440\u0438\u0432\u0430\u0454...', 'in progress...', '\u9032\u884C\u4E2D')}</span>}
+            </div>
+          ))}
+        </div>
+      )}
       <div className="anim-3 desktop-table" style={{overflowX:'auto',marginBottom:'1rem'}}>
         <table className="tt-table" style={{width:'100%',borderCollapse:'collapse',fontSize:'0.88rem'}}>
           <thead>

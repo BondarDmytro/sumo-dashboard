@@ -125,8 +125,9 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
     })
   })
 
+  const divBoutLimit = ['Makuuchi', 'Juryo'].includes(division) ? 15 : 7  /* playoff_7bout_v1 */
   const allPlayed = normalized.filter(r => !r.kyujo).every(r =>
-    r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= 15
+    r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= divBoutLimit
   )
 
   const topWinsCheck = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
@@ -136,8 +137,27 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   let playoffWinner = null
   let playoff = null
 
+  let playoffBouts = []  /* playoff_bouts_v1 */
   if (allPlayed && needsPlayoff) {
     try {
+      const seen = new Set()
+      for (const t of tiedCheck.slice(0, 8)) {
+        const pr = await fetch(
+          `https://sumo-api.com/api/rikishi/${t._id}/matches?limit=20`,
+          { next: { revalidate: 60 } }
+        )
+        const pd = await pr.json()
+        for (const m of (pd.records || [])) {
+          if (m.bashoId === bid && m.day >= 16) {
+            const key = `${m.day}:${m.eastId}:${m.westId}`
+            if (!seen.has(key)) {
+              seen.add(key)
+              playoffBouts.push({ day: m.day, east: m.eastShikona, west: m.westShikona, eastId: m.eastId, westId: m.westId, winnerId: m.winnerId || null, kimarite: m.kimarite || null })
+            }
+          }
+        }
+      }
+      playoffBouts.sort((a, b) => a.day - b.day)
       const playoffRes = await fetch(
         `https://sumo-api.com/api/rikishi/${tiedCheck[0]._id}/matches?limit=20`,
         { next: { revalidate: 60 } }
@@ -153,7 +173,7 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
         const loserName = playoffMatch.winnerId === playoffMatch.eastId
           ? playoffMatch.westShikona
           : playoffMatch.eastShikona
-        playoff = { loser: loserName, loserJp: loserObj?.nameJp || null, kimarite: playoffMatch.kimarite }
+        playoff = { loser: loserName, loserJp: loserObj?.nameJp || null, kimarite: playoffMatch.kimarite , bouts: playoffBouts }  /* playoff_bouts_v1 */
       }
     } catch(e) {}
   }

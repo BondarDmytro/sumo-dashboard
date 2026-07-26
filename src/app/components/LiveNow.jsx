@@ -14,7 +14,9 @@ const DIV_LABEL = { Jonokuchi: '序ノ口', Jonidan: '序二段', Sandanme: '三
 export default function LiveNow({ currentDay: dayProp = null }) {
   /* den rakhuiemo sami: (zaraz - start) / doba + 1 */
   const bi = bashoInfo(currentBashoId())
-  const currentDay = dayProp ?? Math.min(15, Math.max(1, Math.floor((Date.now() - bi.startUtcMs) / 86400000) + 1))
+  const rawDay = Math.max(1, Math.floor((Date.now() - bi.startUtcMs) / 86400000) + 1)  /* live_playoff_v1 */
+  const currentDay = dayProp ?? Math.min(15, rawDay)
+  const tryPlayoff = !dayProp && rawDay >= 15
   const { lang } = useLang()
   const [live, setLive] = useState(null)
   const path = usePathname()
@@ -34,7 +36,7 @@ export default function LiveNow({ currentDay: dayProp = null }) {
         const jstMin = (utc.getUTCHours() * 60 + utc.getUTCMinutes() + 540) % 1440
         if (jstMin < 480 || jstMin > 1110) { if (!stop) setLive(null); return }  // 08:00-18:30 JST
         const results = await Promise.all(DIVS.map(d =>
-          fetch(`/api/torikumi?division=${d}&day=${currentDay}`, { cache: 'no-store' }).then(r => r.json()).catch(() => [])
+          fetch(`/api/torikumi?division=${d}&day=${tryPlayoff ? 16 : currentDay}`, { cache: 'no-store' }).then(r => r.json()).then(x => (tryPlayoff && (!x || !x.length)) ? fetch(`/api/torikumi?division=${d}&day=${currentDay}`, { cache: 'no-store' }).then(r2 => r2.json()).catch(() => []) : x).catch(() => [])
         ))
         /* live_detect_v2: divizion "u rozpali" (ye i zihrani, i nezihrani) maie priorytet -
            zavysli cherez lah API boi molodshykh dyvizioniv ne blokuiut perekhid do starshykh */
