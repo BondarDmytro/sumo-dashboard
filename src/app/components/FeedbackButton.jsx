@@ -39,6 +39,8 @@ export default function FeedbackButton() {
         ts: Date.now(),
         source: 'dashboard',
       })
+      fetch('/api/feedback-notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ msg: msg.trim().slice(0, 2000), email: email.trim().slice(0, 200), page: window.location.pathname + window.location.search, lang }) }).catch(() => {})  /* feedback_email_v1 */
       localStorage.setItem(RATE_KEY, String(Date.now()))
       setState('done')
       setMsg(''); setEmail('')
