@@ -25,8 +25,8 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export default async function Home() {
   const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
   const juryoData = await getBashoData('Juryo').catch(() => null)  /* top5_juryo_v1 */
-  let champions = null  /* champions_hero_v1 */
-  if (isFinished) {
+  let champions = null  /* champions_hero_v1 champions_hero_v3: nezalezhno vid Makuuchi */
+  if (currentDay >= 15) {
     const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
     const packs = await Promise.all(divs.map(d =>
       d === 'Makuuchi' ? Promise.resolve({ winner }) : d === 'Juryo' ? Promise.resolve({ winner: juryoData?.winner }) : getBashoData(d).catch(() => null)

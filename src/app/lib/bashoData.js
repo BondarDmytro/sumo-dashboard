@@ -185,9 +185,9 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   const activePlayed = normalized.filter(r => !r.kyujo && r.record.some(m => RESULTS_PLAYED.includes(m.result))).every(r =>
     r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= divBoutLimit
   )  /* finished_solo_v1: 0-bout bez kyujo-prapora ne blokuiut zavershenist */
-  const isFinished = currentDay >= 15 && (allPlayed || activePlayed) && (
+  const isFinished = currentDay >= 15 && (allPlayed || activePlayed || tiedAllPlayed) && (
     officialWinner || playoffWinner || !needsPlayoff
-  )
+  )  /* finished_tied_v1: dostatno zavershenykh tied-lideriv */
 
   let winner = null
   if (isFinished) {

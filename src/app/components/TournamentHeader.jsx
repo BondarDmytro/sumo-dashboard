@@ -113,7 +113,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
       {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
-        {isFinished && champions && champions.length > 0 && (
+        {champions && champions.length > 0 && (  /* champions_hero_v3: bez isFinished-gate */
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>  {/* champions_hero_v2 */}
             <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0427\u0435\u043C\u043F\u0456\u043E\u043D\u0438', 'Champions', '\u5404\u6BB5\u512A\u52DD')}</div>
             {champions.map(c => (
@@ -126,7 +126,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             <MyRikishi />
           </div>
         )}
-        {!isFinished && top3.length > 0 && (
+        {!isFinished && top3.length > 0 && !(champions && champions.length > 0) && (  /* champions_hero_v4 */
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
             <div className="top5-wrap"><div className="top5-col">{/* top5_sbs_v1 top5_sbs_v2: zagolovok useredyni kolonky */}
             <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>
