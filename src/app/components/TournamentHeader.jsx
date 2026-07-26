@@ -122,6 +122,12 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
                 <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
                 <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={c.id} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</RikishiLink></span>  {/* champions_links_v1 */}
                 <span style={{color:'#f0c060',fontWeight:700,marginLeft:'auto',minWidth:44,textAlign:'right'}}>{c.wins != null ? `${c.wins}\u2013${c.losses}` : ''}</span>
+                <span style={{fontSize:'0.52rem',fontFamily:'monospace',padding:'1px 5px',borderRadius:2,marginLeft:6,flexShrink:0,
+                              background: c.po ? 'rgba(184,134,11,0.25)' : 'rgba(255,255,255,0.08)',
+                              color: c.po ? '#f0c060' : '#8a847c',
+                              border: '1px solid ' + (c.po ? 'rgba(240,192,96,0.4)' : 'rgba(255,255,255,0.12)')}}>
+                  {c.po ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A') : t3(lang, '\u0441\u043E\u043B\u043E', 'solo', '\u5358\u72EC')}
+                </span>  {/* champions_po_mark_v1 */}
               </div>
             ))}
             <MyRikishi />

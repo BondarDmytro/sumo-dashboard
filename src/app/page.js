@@ -29,12 +29,12 @@ export default async function Home() {
   if (currentDay >= 15) {
     const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
     const packs = await Promise.all(divs.map(d =>
-      d === 'Makuuchi' ? Promise.resolve({ winner }) : d === 'Juryo' ? Promise.resolve({ winner: juryoData?.winner }) : getBashoData(d).catch(() => null)
+      d === 'Makuuchi' ? Promise.resolve({ winner, playoff }) : d === 'Juryo' ? Promise.resolve({ winner: juryoData?.winner, playoff: juryoData?.playoff }) : getBashoData(d).catch(() => null)  /* champions_po_mark_v1 */
     ))
     champions = divs.map((d, i) => {
       const w = packs[i]?.winner
-      return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses } : null
-    }).filter(Boolean)
+      return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses, po: Boolean(packs[i]?.playoff) } : null
+    }).filter(Boolean)  /* champions_po_mark_v1 */
     if (!champions.length) champions = null
   }
   const contenders = rikishi.filter(r => !r.kyujo)
