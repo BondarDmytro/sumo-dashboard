@@ -2,7 +2,7 @@
 import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
 /* rank_badge_color_v1 */
 import { useState, useEffect, useRef } from 'react' /* table_timetravel_v1 result_wave_v1 */
-import { displayRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
+import { displayRank, shortRank } from '../lib/bashoCalendar' /* kanji_names_v2 */
 import { rankColor } from '../lib/rankColors' /* rank_badge_color_v1 */
 
 import { useLang } from './LangProvider'
@@ -72,7 +72,7 @@ function MatchDots({ record, currentDay }) {
   )
 }
 
-export default function TournamentTable({ contenders, currentDay, allRikishi = null, extViewDay = null, onDayChange = null }) {
+export default function TournamentTable({ contenders, currentDay, allRikishi = null, extViewDay = null, onDayChange = null, divisionWinner = null, divisionPlayoff = null }) {
   const [isMobileTT, setIsMobileTT] = useState(false)  /* tt_score_mobile_v1 */
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 700px)')
@@ -167,7 +167,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
               const barColor = i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
               const statusLabel = r.status === 'lead'
-                ? (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ'))  /* tt_mob_final_v1 */
+                ? ((divisionWinner && (String(divisionWinner._id ?? divisionWinner.id ?? divisionWinner) === String(r._id) || divisionWinner.name === r.name)) ? t3(lang, '\u044E\u0448\u043E ' , 'yusho ', '\u512A\u52DD ') + String.fromCodePoint(0x1F3C6) : (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ')))  /* tt_mob_final_v1 division_winner_v1 */
                 : r.status === 'chase'
                 ? (isMobileTT ? t3(lang, '\u041F', 'C', '\u8FFD') : t3(lang, 'переслідувач', 'chaser', '追走'))
                 : (!r.kyujo && (r.yushoChance ?? 1) <= 0)
@@ -189,7 +189,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
                     {r.editorialNote && <div className="tt-note" style={{fontSize:'0.65rem',color:'#b8860b',marginTop:2}}>{r.editorialNote[typeof lang !== 'undefined' ? lang : 'uk'] || r.editorialNote.uk /* ja_batch4b tt_note_mobile_v1 */}</div>} {/* badge_render_v1 */}
                   </td>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center'}}>{/* tt_rank_rec_center_v1 */}
-                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:rankColor(r.rankFull || r.rank) + '2e',padding:'2px 6px',borderRadius:2,color:rankColor(r.rankFull || r.rank),fontWeight:600,display:'inline-block'}}>{displayRank(r.rank, lang)}</span>
+                    <span style={{fontFamily:'monospace',fontSize:'0.62rem',background:rankColor(r.rankFull || r.rank) + '2e',padding:'2px 6px',borderRadius:2,color:rankColor(r.rankFull || r.rank),fontWeight:600,display:'inline-block'}}>{shortRank(r.rank, lang)}</span>  {/* tt_shortrank_v1 */}
                   </td>
                   <td style={{padding:'0.35rem 0.75rem',textAlign:'center' /* ovr_col_tt_v2 */}}><OvrBadge id={r._id} size="lg" /></td>
                   <td style={{padding:'0.35rem 0.75rem',fontFamily:'monospace',textAlign:'center',whiteSpace:'nowrap',

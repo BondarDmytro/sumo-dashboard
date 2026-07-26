@@ -34,8 +34,8 @@ function pickPhase(day) {
   return weights.phases ? weights.phases[weights.phases.length - 1] : null
 }
 
-function modelFeatures(r, wins, losses, day, maxWinsCtx) {
-  const remaining = 15 - wins - losses
+function modelFeatures(r, wins, losses, day, maxWinsCtx, boutLimit = 15) {  /* engine_7bout_v2 */
+  const remaining = boutLimit - wins - losses
   const maxSelf = wins + remaining
   const behind = maxWinsCtx - wins
   const margin = maxSelf - maxWinsCtx
@@ -56,6 +56,8 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 // rikishiList: [{ name, rankValue, record, kyujo }], day: 1..15
 // opts.todayOpponent: { [name]: oppName } - tilky dlia potochnoho dnia (retro: null -> scheduleBonus=1)
 export function computeStandings(rikishiList, day, opts = {}) {
+  const boutLimit = opts.boutLimit || (day >= 13 && rikishiList.length && Math.max(...rikishiList.map(r => (r.wins || 0) + (r.losses || 0))) <= 8 ? 7 : 15)  /* engine_7bout_v1 */
+  const kachiLine = boutLimit === 7 ? 4 : 8
   const todayOpponent = opts.todayOpponent || {}
   const sliced = rikishiList.map(r => {
     const rec = (r.record || []).slice(0, day)
@@ -70,9 +72,9 @@ export function computeStandings(rikishiList, day, opts = {}) {
     const maxWinsCtx = Math.max(...sliced.filter(x => !x.kyujo).map(x => x.wins), 0)
     const scores = sliced.map(r => {
       if (r.kyujo) return -1e9
-      const remaining = 15 - r.wins - r.losses
-      if (r.losses >= 8 || r.wins + remaining < maxWinsCtx) return -1e9  // математично вибули
-      let fv = modelFeatures(r, r.wins, r.losses, day, maxWinsCtx)
+      const remaining = boutLimit - r.wins - r.losses
+      if (r.losses >= kachiLine || r.wins + remaining < maxWinsCtx) return -1e9  // математично вибули
+      let fv = modelFeatures(r, r.wins, r.losses, day, maxWinsCtx, boutLimit)
       if (phase.w.length > fv.length) {
         const leadersNow = sliced.filter(x => !x.kyujo && x.wins === maxWinsCtx)
         fv = [...fv, ...extLiveFeatures(r, leadersNow)]
@@ -97,7 +99,7 @@ export function computeStandings(rikishiList, day, opts = {}) {
   const withChances = sliced.map(r => {
     if (r.kyujo) return { ...r, yushoChance: 0 }
     const played = r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length
-    const remaining = 15 - played
+    const remaining = boutLimit - played
     const maxWinsSelf = r.wins + remaining
 
     if (day >= 15) {
@@ -114,7 +116,7 @@ export function computeStandings(rikishiList, day, opts = {}) {
       return { ...r, yushoChance: Math.round(base * rankBonus * formBonus * 10) / 10 }
     }
 
-    if (r.losses >= 5 || maxWinsSelf < 11) return { ...r, yushoChance: 0 }
+    if (r.losses >= (boutLimit === 7 ? 3 : 5) || maxWinsSelf < (boutLimit === 7 ? 5 : 11)) return { ...r, yushoChance: 0 }
     let base = r.losses === 0 ? 85 : r.losses === 1 ? 55 : r.losses === 2 ? 25 : r.losses === 3 ? 8 : 2
     if (maxWinsSelf < 13) base *= 0.6
     const rankBonus = r.rankValue <= 103 ? 1.3 : r.rankValue <= 201 ? 1.15 : r.rankValue <= 401 ? 1.05 : 1.0

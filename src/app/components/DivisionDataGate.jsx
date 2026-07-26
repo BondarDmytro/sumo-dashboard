@@ -55,6 +55,8 @@ export default function DivisionDataGate({ makuuchi }) {
       contenders, allRikishi: rikishi,
       kyujoCount: rikishi.filter(r => r.kyujo).length,
       isFinished: divData.isFinished || false,
+      winner: divData.winner || null,  /* division_winner_v1 */
+      playoff: divData.playoff || null,
       specialPrizes: divData.specialPrizes || [], yushoData: divData.yushoData || [],
     }
   }
@@ -88,7 +90,7 @@ export default function DivisionDataGate({ makuuchi }) {
         eliminatedCount={elim ?? (view.allRikishi || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length}  /* gate_eliminated_v1 */
       />
       })()}
-      <TournamentTabsWrapper tableDay={tableDay} onTableDay={setTableDay}
+      <TournamentTabsWrapper tableDay={tableDay} onTableDay={setTableDay} divisionWinner={view.winner} divisionPlayoff={view.playoff}
         contenders={view.contenders} currentDay={view.currentDay}
         allRikishi={view.allRikishi} isFinished={view.isFinished}
         specialPrizes={view.specialPrizes} yushoData={view.yushoData}
