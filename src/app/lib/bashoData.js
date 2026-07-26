@@ -182,7 +182,10 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   }
 
   const officialWinner = yushoData.find(y => y.type === division)  /* bashoData_v1 */
-  const isFinished = currentDay >= 15 && allPlayed && (
+  const activePlayed = normalized.filter(r => !r.kyujo && r.record.some(m => RESULTS_PLAYED.includes(m.result))).every(r =>
+    r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= divBoutLimit
+  )  /* finished_solo_v1: 0-bout bez kyujo-prapora ne blokuiut zavershenist */
+  const isFinished = currentDay >= 15 && (allPlayed || activePlayed) && (
     officialWinner || playoffWinner || !needsPlayoff
   )
 
@@ -190,6 +193,8 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   if (isFinished) {
     if (playoffWinner) {
       winner = playoffWinner
+    } else if (!officialWinner && !needsPlayoff && tiedCheck.length === 1) {
+      winner = tiedCheck[0]  /* finished_solo_v1: solnyi lider bez pley-ofa */
     } else if (officialWinner) {
       winner = normalized.find(r => String(r._id) === String(officialWinner.rikishiId)) || null
       if (winner && needsPlayoff) {
