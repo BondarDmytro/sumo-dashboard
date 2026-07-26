@@ -103,10 +103,11 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
   const { isFav } = useFavorites()  /* fav_row_v1 */
   const { t, lang } = useLang()
   const [viewDay, setViewDay] = useState(currentDay)  /* table_timetravel_v1 */
+  const dayMax = divisionPlayoff ? 16 : currentDay  /* tt_playoff_tab_v1 */
   const viewDayEff = extViewDay ?? viewDay  /* ts_timetravel_v1 */
   const setDay = (d) => { setViewDay(d); if (onDayChange) onDayChange(d) }
   const retro = viewDayEff !== currentDay && allRikishi?.length
-    ? computeStandings(allRikishi, viewDayEff)
+    ? computeStandings(allRikishi, Math.min(viewDayEff, 15))  /* tt_playoff_tab_v1: den 16 = pislia-pleiof */
     : null
   const shown = retro
     ? retro.rikishi.filter(r => !r.kyujo)  /* retro_all_v1 */
@@ -133,21 +134,21 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
       <div className="tt-slider" style={{display:'flex',alignItems:'center',gap:8,marginBottom:'0.5rem'}}>{/* table_timetravel_v1 */}
         <button onClick={() => setDay(d => Math.max(1, d - 1))} disabled={viewDayEff <= 1}
           style={{fontFamily:'monospace',padding:'2px 10px',cursor:'pointer',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)'}}>{'\u2039'}</button>
-        <input type="range" min={1} max={currentDay} value={viewDayEff} onChange={e => setDay(parseInt(e.target.value, 10))}
+        <input type="range" min={1} max={dayMax} value={viewDayEff} onChange={e => setDay(parseInt(e.target.value, 10))}
           style={{flex:1,minWidth:120,accentColor:'#b8860b'}} />
-        <button onClick={() => setDay(d => Math.min(currentDay, d + 1))} disabled={viewDayEff >= currentDay}
+        <button onClick={() => setDay(d => Math.min(dayMax, d + 1))} disabled={viewDayEff >= dayMax}
           style={{fontFamily:'monospace',padding:'2px 10px',cursor:'pointer',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)'}}>{'\u203a'}</button>
-        <span style={{fontFamily:'monospace',fontSize:'0.7rem',fontWeight:700,whiteSpace:'nowrap'}}>{t3(lang,'\u0414\u0435\u043d\u044c','Day','\u65e5\u76ee')} {viewDayEff}/{currentDay}</span>
+        <span style={{fontFamily:'monospace',fontSize:'0.7rem',fontWeight:700,whiteSpace:'nowrap'}}>{viewDayEff === 16 ? t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444', 'Playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226') : t3(lang,'\u0414\u0435\u043d\u044c','Day','\u65e5\u76ee') + ' ' + viewDayEff + '/' + currentDay}</span>
       </div>
       <div className="tt-days" style={{display:'flex',gap:3,marginBottom:'0.6rem'}}>{/* table_timetravel_v1 */}
-        {Array.from({length:15},(_,k)=>k+1).map(d => (
-          <div key={d} onClick={() => d <= currentDay && setDay(d)}
+        {Array.from({length: divisionPlayoff ? 16 : 15},(_,k)=>k+1).map(d => (
+          <div key={d} onClick={() => d <= dayMax && setDay(d)}
             style={{flex:1,height:20,borderRadius:2,display:'flex',alignItems:'center',justifyContent:'center',
-              cursor: d > currentDay ? 'default' : 'pointer', opacity: d > currentDay ? 0.35 : 1,
+              cursor: d > dayMax ? 'default' : 'pointer', opacity: d > dayMax ? 0.35 : 1,
               background: d === viewDayEff ? '#b8860b' : d <= currentDay ? 'rgba(184,134,11,0.18)' : 'var(--bg2)',
-              border: '1px solid ' + (d === viewDayEff ? '#b8860b' : d <= currentDay ? 'rgba(184,134,11,0.4)' : 'var(--border)'),
+              border: '1px solid ' + (d === viewDayEff ? '#b8860b' : d <= dayMax ? 'rgba(184,134,11,0.4)' : 'var(--border)'),
               fontFamily:'monospace',fontSize:'0.55rem',fontWeight:700,color: d === viewDayEff ? '#1a120a' : 'var(--mid)'}}>
-            {d}
+            {d === 16 ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A') : d}
           </div>
         ))}
       </div>
