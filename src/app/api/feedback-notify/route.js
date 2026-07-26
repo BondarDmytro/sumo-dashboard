@@ -14,7 +14,7 @@ export async function POST(request) {
       headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: 'Dohyo Feedback <onboarding@resend.dev>',
-        to: ['panterramail@gmail.com'],
+        to: ['bondardmytromail@gmail.com'],  /* resend acct addr; forward -> panterra */
         reply_to: email || undefined,
         subject: `[sumo] feedback${email ? ' vid ' + email : ''}`,
         text: `${msg}\n\n---\npage: ${page}\nlang: ${lang}\nemail: ${email || '(ne vkazano)'}`,
