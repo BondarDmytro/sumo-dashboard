@@ -53,7 +53,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
     <header className="anim-header" style={{background:'var(--header)',color:'#f5f0e8',padding:'1.5rem 2rem',position:'relative',overflow:'hidden',minHeight:120}}>
       {bashoSelect && <div className="th-basho-select" style={{zIndex:2}}>{bashoSelect}</div>}  {/* basho_select_mobile_v1 */}  {/* basho_filter_v2 */}
       <div style={{position:'absolute',right:'-0.05em',top:'-0.1em',fontSize:'clamp(6rem,15vw,12rem)',fontWeight:800,opacity:0.12,lineHeight:1,pointerEvents:'none',color:'#ff2121'}}>相撲</div>
-      <div className={(champion || (!isFinished && top3.length > 0)) ? 'th-grid th-grid-3' : 'th-grid th-grid-2'} style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,alignItems:'center'}}>  {/* header_mobile_v1 */}  {/* header_v10 */}
+      <div className={(champion || (champions && champions.length > 0) || (!isFinished && top3.length > 0)) ? 'th-grid th-grid-3' : 'th-grid th-grid-2'}  /* champions_grid3_v1 */ style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,alignItems:'center'}}>  {/* header_mobile_v1 */}  {/* header_v10 */}
         <div className="th-col" style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center'}}>
           <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:'100%',flex:1,minHeight:0,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
           <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : bi.city.uk)}</div>
