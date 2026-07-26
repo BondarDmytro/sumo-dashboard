@@ -16,7 +16,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [] }) {  /* basho_filter_v2 */  /* header_v3 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [], champions = null }) {  /* basho_filter_v2 */  /* header_v3 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -113,6 +113,19 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
       {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
+        {isFinished && champions && champions.length > 0 && (
+          <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>  {/* champions_hero_v2 */}
+            <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0427\u0435\u043C\u043F\u0456\u043E\u043D\u0438', 'Champions', '\u5404\u6BB5\u512A\u52DD')}</div>
+            {champions.map(c => (
+              <div key={c.division} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
+                <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
+                <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</span>
+                <span style={{color:'#f0c060',fontWeight:700,marginLeft:'auto',minWidth:44,textAlign:'right'}}>{c.wins != null ? `${c.wins}\u2013${c.losses}` : ''}</span>
+              </div>
+            ))}
+            <MyRikishi />
+          </div>
+        )}
         {!isFinished && top3.length > 0 && (
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>{/* top5_center_v1 top_align_v1 */}
             <div className="top5-wrap"><div className="top5-col">{/* top5_sbs_v1 top5_sbs_v2: zagolovok useredyni kolonky */}

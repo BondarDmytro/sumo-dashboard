@@ -25,6 +25,18 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export default async function Home() {
   const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
   const juryoData = await getBashoData('Juryo').catch(() => null)  /* top5_juryo_v1 */
+  let champions = null  /* champions_hero_v1 */
+  if (isFinished) {
+    const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
+    const packs = await Promise.all(divs.map(d =>
+      d === 'Makuuchi' ? Promise.resolve({ winner }) : d === 'Juryo' ? Promise.resolve({ winner: juryoData?.winner }) : getBashoData(d).catch(() => null)
+    ))
+    champions = divs.map((d, i) => {
+      const w = packs[i]?.winner
+      return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses } : null
+    }).filter(Boolean)
+    if (!champions.length) champions = null
+  }
   const contenders = rikishi.filter(r => !r.kyujo)
     .sort((a,b) => b.yushoChance - a.yushoChance || b.wins - a.wins || (a.rankValue||999) - (b.rankValue||999))  /* sort_by_chance_v1 all_in_table_v1: vybuli v osnovnii tablytsi z beidzhem */
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
@@ -46,6 +58,7 @@ export default async function Home() {
         contendersCount={contenders.length}
         hasPlayoff={hasPlayoff}
         isFinished={isFinished}
+        champions={champions}
       />
 
       {/* ticker_layout_v1: VoteTicker pereikhav u layout */}
