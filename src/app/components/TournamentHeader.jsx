@@ -1,5 +1,6 @@
 /* auto_current_v3 */
 'use client'
+import RikishiLink from './RikishiLink' /* champions_links_v1 */
 /* champ_text_v3 */
 import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
@@ -119,7 +120,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             {champions.map(c => (
               <div key={c.division} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
                 <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
-                <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</span>
+                <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={c.id} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</RikishiLink></span>  {/* champions_links_v1 */}
                 <span style={{color:'#f0c060',fontWeight:700,marginLeft:'auto',minWidth:44,textAlign:'right'}}>{c.wins != null ? `${c.wins}\u2013${c.losses}` : ''}</span>
               </div>
             ))}
