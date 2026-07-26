@@ -120,9 +120,9 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             {champions.map(c => (
               <div key={c.division} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
                 <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
-                <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}><RikishiLink id={c.id} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</RikishiLink></span>  {/* champions_links_v1 */}
-                <span style={{color:'#f0c060',fontWeight:700,marginLeft:'auto',minWidth:44,textAlign:'right'}}>{c.wins != null ? `${c.wins}\u2013${c.losses}` : ''}</span>
-                <span style={{fontSize:'0.52rem',fontFamily:'monospace',padding:'1px 5px',borderRadius:2,marginLeft:6,flexShrink:0,
+                <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',width:118,flexShrink:0}}><RikishiLink id={c.id} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</RikishiLink></span>  {/* champions_links_v1 */}
+                <span style={{color:'#f0c060',fontWeight:700,minWidth:44,textAlign:'center',marginLeft:0}}>{c.wins != null ? `${c.wins}\u2013${c.losses}` : ''}</span>  {/* champions_align_v1 */}
+                <span style={{fontSize:'0.52rem',fontFamily:'monospace',padding:'1px 5px',borderRadius:2,marginLeft:4,flexShrink:0,minWidth:38,textAlign:'center',display:'inline-block',
                               background: c.po ? 'rgba(184,134,11,0.25)' : 'rgba(255,255,255,0.08)',
                               color: c.po ? '#f0c060' : '#8a847c',
                               border: '1px solid ' + (c.po ? 'rgba(240,192,96,0.4)' : 'rgba(255,255,255,0.12)')}}>
