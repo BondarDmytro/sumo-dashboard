@@ -138,7 +138,10 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   let playoff = null
 
   let playoffBouts = []  /* playoff_bouts_v1 */
-  if (allPlayed && needsPlayoff) {
+  const tiedAllPlayed = tiedCheck.every(r =>
+    r.record.filter(m => RESULTS_PLAYED.includes(m.result)).length >= divBoutLimit
+  )  /* playoff_tied_ready_v1: obminni boi mozhut shche ity - dosyt zavershenykh tied */
+  if ((allPlayed || tiedAllPlayed) && needsPlayoff) {
     try {
       const seen = new Set()
       for (const t of tiedCheck.slice(0, 8)) {
