@@ -7,9 +7,41 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount, eliminatedCount = 0, isFinished, topKimarite = null }) {  /* ts_kimarite_v1 */  /* ts_eliminated_v1 */
+export default function TournamentStatus({ leaders, chasers, currentDay, maxWins, kyujoCount, contendersCount, eliminatedCount = 0, isFinished, topKimarite = null, winner = null, playoff = null }) {  /* ts_kimarite_v1 */  /* ts_eliminated_v1 */
   const { lang } = useLang()
-  if (isFinished) return null
+  if (isFinished) {
+    if (!winner) return null
+    const wid = winner._id ?? winner.id
+    return (
+      <>
+        <div className="anim-1" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.8rem',marginTop:'1.2rem'}}>
+          {t3(lang, 'Підсумки турніру', 'Tournament results', '\u5834\u6240\u7D50\u679C')}
+        </div>
+        <div className="anim-1" style={{display:'flex',gap:'1rem',alignItems:'stretch',background:'var(--card)',border:'1px solid #b8860b',borderRadius:4,padding:'0.9rem 1rem',marginBottom:'1.2rem',flexWrap:'wrap'}}>
+          {wid && <img src={`/rikishi/${wid}.webp`} alt={winner.name} onError={e => { e.target.style.display = 'none' }}
+            style={{width:96,height:168,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid #b8860b',flexShrink:0}} />}
+          <div style={{flex:1,minWidth:200,display:'flex',flexDirection:'column',justifyContent:'center',gap:4}}>
+            <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'#b8860b'}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, 'Юшо', 'Yusho champion', '\u512A\u52DD')}</div>
+            <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1.1}}>{winner.name}</div>
+            <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)'}}>{winner.rank || ''}{winner.wins != null ? ` \u00b7 ${winner.wins}\u2013${winner.losses}` : ''}</div>
+            {playoff?.bouts?.length > 0 && (
+              <div style={{marginTop:6,paddingTop:6,borderTop:'1px solid var(--border)'}}>
+                <div style={{fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',marginBottom:3}}>{t3(lang, 'Плей-оф', 'Playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226')}</div>
+                {playoff.bouts.map((b, i) => (
+                  <div key={i} style={{fontFamily:'monospace',fontSize:'0.66rem',padding:'1px 0'}}>
+                    <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{b.east}</span>
+                    <span style={{color:'var(--light)'}}> vs </span>
+                    <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{b.west}</span>
+                    {b.kimarite && <span style={{color:'var(--mid)'}}> {'\u00b7'} {b.kimarite}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    )
+  }
 
   const rec = t3(lang, 'рекорд', 'record', '成績')
   const stats = [

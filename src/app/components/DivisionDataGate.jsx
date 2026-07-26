@@ -85,7 +85,7 @@ export default function DivisionDataGate({ makuuchi }) {
         const topKimarite = kimTop && kimTotal ? { name: kimTop[0], count: kimTop[1], pct: Math.round(kimTop[1] / kimTotal * 100) } : null
         return <TournamentStatus
         leaders={L} chasers={C} currentDay={tableDay ?? view.currentDay}
-        maxWins={live ? view.maxWins : st.maxWins} kyujoCount={view.kyujoCount} topKimarite={topKimarite}
+        maxWins={live ? view.maxWins : st.maxWins} kyujoCount={view.kyujoCount} topKimarite={topKimarite} winner={view.winner} playoff={view.playoff}
         contendersCount={cnt ?? (view.allRikishi || view.contenders || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) > 0).length} isFinished={view.isFinished}  /* gate_contenders_fix_v1 */
         eliminatedCount={elim ?? (view.allRikishi || []).filter(r => !r.kyujo && (r.yushoChance ?? 0) <= 0).length}  /* gate_eliminated_v1 */
       />
