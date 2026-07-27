@@ -28,6 +28,7 @@ export default async function Home() {
   let champions = null  /* champions_hero_v1+v3 champions_prev_basho_v1 */
   const curId = currentBashoId()
   const champBashoId = bashoStatus(curId) === 'upcoming' ? prevBashoIdOf(curId) : null
+  try {  /* champions_safe_v1: fetch-fail ne valyt bild */
   if (currentDay >= 15 || champBashoId) {
     const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
     const packs = await Promise.all(divs.map(d =>
@@ -40,6 +41,7 @@ export default async function Home() {
     }).filter(Boolean)  /* champions_po_mark_v1 */
     if (!champions.length) champions = null
   }
+  } catch (e) { champions = null }
   const contenders = rikishi.filter(r => !r.kyujo)
     .sort((a,b) => b.yushoChance - a.yushoChance || b.wins - a.wins || (a.rankValue||999) - (b.rankValue||999))  /* sort_by_chance_v1 all_in_table_v1: vybuli v osnovnii tablytsi z beidzhem */
   const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
