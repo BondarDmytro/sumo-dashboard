@@ -61,18 +61,20 @@ export default function BashoSelect() {
 
           {mode === 'year' && (
             <div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 12, marginBottom: 10, alignItems: 'flex-start' }}>{/* basho_select_layout_v1 */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0, paddingRight: 12, borderRight: '1px solid rgba(240,192,96,0.2)' }}>  {/* basho_select_layout_v2: dekady 2x4 */}
                 {decades.map(d => (
                   <button key={d} style={{ ...(decade === d ? btnActive : btn), textTransform: 'none' }} onClick={() => { setDecade(d); setYear(null) }}>{d}{lang === 'ja' ? '年代' : lang === 'en' ? 's' : '-\u0456'}</button>
                 ))}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, alignContent: 'flex-start', flex: 1 }}>  {/* basho_select_layout_v3: roky 3 kolonky */}
                 {yearsOfDecade(decade).map(y => (
-                  <button key={y} style={year === y ? btnActive : btn} onClick={() => setYear(y)}>{y}</button>
+                  <button key={y} style={year === y ? { ...btnActive, background: '#1a6b5c', borderColor: '#1a6b5c' } : { ...btn, borderColor: 'rgba(26,107,92,0.5)', color: '#7fc9b8' }} onClick={() => setYear(y)}>{y}</button>
                 ))}
+                </div>
               </div>
               {year && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderTop: '1px solid rgba(240,192,96,0.2)', paddingTop: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, auto)', gridAutoFlow: 'column', gap: 6, borderTop: '1px solid rgba(240,192,96,0.2)', paddingTop: 10 }}>  {/* basho_select_layout_v4: basho 2 kolonky po-kolonkakh */}
                   {idsForYear(year).map(id => (
                     <button key={id} style={selBasho === id ? btnActive : btn} onClick={() => pick(id)}>{L(id)}</button>
                   ))}
