@@ -4,7 +4,9 @@ import RikishiLink from './RikishiLink' /* champions_links_v1 */
 /* champ_text_v3 */
 import { useLang } from './LangProvider'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useBashoFilter } from './BashoFilterContext' /* champions_filter_v1 */
+import { currentBashoId as curBashoIdFn, bashoStatus as bashoStatusFn } from '../lib/bashoCalendar'
 import { currentBashoId, bashoInfo, nextBashoId, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* header_calendar_v1 */
 import BashoCountdown from './BashoCountdown'
 import ShareButton from './ShareButton' /* share_button_v1 */
@@ -35,6 +37,25 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
   const boutsNow = status !== 'upcoming' && status !== 'finished' && !isFinished && jstMinNow >= 480 && jstMinNow <= 1110
   const cdTarget = boutsNow ? null : (status === 'upcoming' ? bi : (status === 'finished' || isFinished || currentDay >= 15 ? nextBi : dayCd))
   const { lang } = useLang()
+  const { selBasho } = useBashoFilter()  /* champions_filter_v1 */
+  const [champsView, setChampsView] = useState(null)
+  useEffect(() => {
+    const base = curBashoIdFn()
+    if (!selBasho || selBasho === base || bashoStatusFn(selBasho) !== 'finished') { setChampsView(null); return }
+    let alive = true
+    const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
+    Promise.all(divs.map(d => fetch(`/api/basho-division?division=${d}&basho=${selBasho}`).then(r => r.json()).catch(() => null)))
+      .then(packs => {
+        if (!alive) return
+        const list = divs.map((d, i) => {
+          const w = packs[i]?.winner
+          return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses, po: Boolean(packs[i]?.playoff) } : null
+        }).filter(Boolean)
+        setChampsView(list.length ? list : null)
+      })
+    return () => { alive = false }
+  }, [selBasho])
+  const champsEff = champsView || champions
   const router = useRouter()
   useEffect(() => {  /* refresh_gate_v1: 60s u vikni boiv (08:00-18:45 JST), 600s poza - ne palymo Vercel unochi */
     if (isFinished) return
@@ -114,10 +135,10 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
       {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
         </div>
-        {champions && champions.length > 0 && (  /* champions_hero_v3: bez isFinished-gate */
+        {(champsEff && champsEff.length > 0) && (  /* champions_hero_v3 champions_filter_v1 */
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>  {/* champions_hero_v2 */}
             <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0427\u0435\u043C\u043F\u0456\u043E\u043D\u0438', 'Champions', '\u5404\u6BB5\u512A\u52DD')}</div>
-            {champions.map(c => (
+            {champsEff.map(c => (
               <div key={c.division} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
                 <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
                 <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',width:118,flexShrink:0}}><RikishiLink id={c.id} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && c.nameJp ? c.nameJp.split(/\s/)[0] : c.name}</RikishiLink></span>  {/* champions_links_v1 */}
