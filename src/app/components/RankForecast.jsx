@@ -79,7 +79,7 @@ export default function RankForecast() {
 
   if (loading) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-      {t3(lang, 'Завантаження прогнозу рангів...', 'Loading rank forecast...', '番付予想を読み込み中...')}
+      {t3(lang, 'Завантаження прогнозу рангів...', 'Loading rank forecast...', '番付予想を読み込み中...', 'Chargement du pronostic des rangs...')}
     </div>
   )
 
@@ -91,7 +91,7 @@ export default function RankForecast() {
     <div style={{marginBottom:'1rem'}}>
       {data.srcBasho && (
         <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
-          {t3(lang, 'Прогноз за: ', 'Forecast from: ', '予想元：')}{(lang === 'ja' ? bashoInfo(srcB).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(srcB).label.en : bashoInfo(srcB).label.uk)}
+          {t3(lang, 'Прогноз за: ', 'Forecast from: ', '予想元：', 'Pronostic depuis : ')}{(lang === 'ja' ? bashoInfo(srcB).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(srcB).label.en : bashoInfo(srcB).label.uk)}
         </div>
       )}
       {data.rikishi.map(r => {
@@ -134,7 +134,7 @@ export default function RankForecast() {
                 }}>
                   {r.forecasts.slice(0, 1).map((f,i) => {
                     const fst = TYPE_STYLES[f.type] || TYPE_STYLES.info
-                    const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
+                    const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.en || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
                     return (
                       <div key={i} style={{
                         color: fst.color,
@@ -217,10 +217,10 @@ export default function RankForecast() {
                 {r.bio?.country?.flag && r.bio.country.flag !== '🇯🇵' && (  /* country_name_i18n_v1: порівнюємо прапор, не назву */
                   <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{typeof r.bio.country.name === 'object' ? (r.bio.country.name[lang] || r.bio.country.name.en || r.bio.country.name.uk) : r.bio.country.name}</span>
                 )}
-                {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {t3(lang, 'р.', 'y.o.', '歳')}</span>}
-                {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
-                {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {t3(lang, 'кг', 'kg', 'kg')}</span>}
-                {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{t3(lang, 'дебют', 'debut', '初土俯')} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
+                {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {t3(lang, 'р.', 'y.o.', '歳', 'ans')}</span>}
+                {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm', 'cm')}</span>}
+                {r.bio?.weight && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.weight} {t3(lang, 'кг', 'kg', 'kg', 'kg')}</span>}
+                {r.bio?.debut && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{t3(lang, 'дебют', 'debut', '初土俯', 'débuts')} {r.bio.debut.slice(0,4)}/{r.bio.debut.slice(4)}</span>}
                 {r.bio?.heya && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}><HeyaLink heya={r.bio.heya} lang={lang} /></span>}
               </div>
             </div>
@@ -266,7 +266,7 @@ export default function RankForecast() {
             }}>
               {r.forecasts.slice(0, 1).map  /* rf_grid10_v2 */((f,i) => {
                 const fst = TYPE_STYLES[f.type] || TYPE_STYLES.info
-                const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
+                const text = (f.text && typeof f.text === 'object') ? (f.text[lang] || f.text.en || f.text.uk) : f.text  /* forecast_i18n_client_v1 */
                 return (
                   <div key={i} style={{
                     color: fst.color,
@@ -282,8 +282,8 @@ export default function RankForecast() {
                 const pKachi = chancePct(8 - r.wins, r.wins, r.losses, r.last9)
                 return (
                   <div style={{fontFamily:'monospace',fontSize:'0.62rem',display:'flex',gap:10,justifyContent:'center',marginTop:2}}>
-                    <span style={{color:'#1a6b5c'}}>{'\u2191'} {t3(lang, 'качі-коші', 'kachi-koshi', '勝ち越し')} {pKachi}%</span>
-                    <span style={{color:'#c0392b'}}>{'\u2193'} {t3(lang, 'маке-коші', 'make-koshi', '負け越し')} {100 - pKachi}%</span>
+                    <span style={{color:'#1a6b5c'}}>{'\u2191'} {t3(lang, 'качі-коші', 'kachi-koshi', '勝ち越し', 'kachi-koshi')} {pKachi}%</span>
+                    <span style={{color:'#c0392b'}}>{'\u2193'} {t3(lang, 'маке-коші', 'make-koshi', '負け越し', 'make-koshi')} {100 - pKachi}%</span>
                   </div>
                 )
               })()}
@@ -297,3 +297,5 @@ export default function RankForecast() {
 /* rankforecast_verdict_fixed_v1 */
 
 /* fr_ternary_sweep_v1 */
+
+/* fr_batch4_rf_v1 */

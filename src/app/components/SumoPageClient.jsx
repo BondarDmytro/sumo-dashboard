@@ -37,7 +37,7 @@ function getKimariteCategory(name, lang) {
   for (const c of KIMARITE_CATS) {
     if (c.moves.includes(name)) return c.label[lang] || c.label.en || c.label.uk
   }
-  return t3(lang, 'Інші', 'Other', 'その他')
+  return t3(lang, 'Інші', 'Other', 'その他', 'Autres')
 }
 
 const KIMARITE_EXT = {
@@ -152,7 +152,7 @@ function KimariteModal({ item, onClose, lang }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div>
             <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)'}}>
-              {t3(lang, 'Використань за всю історію', 'Uses in all-time history', '通算使用回数')}
+              {t3(lang, 'Використань за всю історію', 'Uses in all-time history', '通算使用回数', 'Utilisations dans toute l\u2019histoire')}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700}}>{item.count.toLocaleString()}</div>
           </div>
@@ -202,7 +202,7 @@ function KimariteView({ data, lang }) {
         ))}
       </div>
       <div style={{fontSize:'0.72rem',color:'var(--mid)',fontFamily:'monospace'}}>
-        {t3(lang, '* Загальна статистика з 1958 · Натисни на техніку для деталей', '* All-time statistics since 1958 · Click on a technique for details', '* 1958年以降の通算統計 ・ 技をクリックで詳細')}
+        {t3(lang, '* Загальна статистика з 1958 · Натисни на техніку для деталей', '* All-time statistics since 1958 · Click on a technique for details', '* 1958年以降の通算統計 ・ 技をクリックで詳細', '* Statistiques cumul\u00e9es depuis 1958 · Cliquez sur une technique pour les d\u00e9tails')}
       </div>
     </div>
   )
@@ -250,8 +250,8 @@ export default function SumoPageClient() {
   }, [bzDiv])
 
   const tabs = [
-    { id: 'banzuke', label: t3(lang, 'Бандзуке', 'Banzuke', '番付') },  /* banzuke_fallback_v1 */
-    { id: 'kimarite', label: t3(lang, 'Кімаріте', 'Kimarite', '決まり手') },
+    { id: 'banzuke', label: t3(lang, 'Бандзуке', 'Banzuke', '番付', 'Banzuke') },  /* banzuke_fallback_v1 */
+    { id: 'kimarite', label: t3(lang, 'Кімаріте', 'Kimarite', '決まり手', 'Kimarite') },
   ]
 
   return (
@@ -261,8 +261,8 @@ export default function SumoPageClient() {
           {bashoInfo(currentBashoId()).label[lang] /* ja_batch2 */}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
-          {t3(lang, 'Про сумо', 'About Sumo', '相撲について')}
-          <span style={{color:'#b8860b'}}>{t3(lang, ' — Довідник', ' — Guide', ' — ガイド')}</span>
+          {t3(lang, 'Про сумо', 'About Sumo', '相撲について', 'Le sumo')}
+          <span style={{color:'#b8860b'}}>{t3(lang, ' — Довідник', ' — Guide', ' — ガイド', ' — Guide')}</span>
         </h1>
 
         <div style={{display:'flex',gap:1,marginBottom:'2rem',borderBottom:'2px solid var(--border)'}}>
@@ -275,14 +275,14 @@ export default function SumoPageClient() {
 
         {loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
+            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...', 'Chargement...')}
           </div>
         ) : (
           <>
             {tab === 'banzuke' && (
               <div>
                 <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'1.5rem',lineHeight:1.6}}>
-                  {lang === 'en'
+                  {lang === 'fr' ? 'Le banzuke est le classement officiel des lutteurs avant le tournoi. L\u2019Est est traditionnellement consid\u00e9r\u00e9 comme le c\u00f4t\u00e9 le plus fort.' : lang === 'en'
                     ? 'Banzuke is the official ranking list of wrestlers before the tournament. East is traditionally considered the stronger side.'
                     : lang === 'ja' ? '番付は場所前に発表される公式の力士ランキング。伝統的に東が格上とされる。'  /* ja_final_tails */
                     : 'Бандзуке — офіційна таблиця рангів борців перед початком турніру. Схід (East) традиційно вважається сильнішою стороною.'}
@@ -300,16 +300,16 @@ export default function SumoPageClient() {
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,marginBottom:4}}>
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',textAlign:'right',color:'var(--mid)'}}>
-                    {t3(lang, 'СХІД (EAST)', 'EAST', '東')}
+                    {t3(lang, 'СХІД (EAST)', 'EAST', '東', 'EST')}
                   </div>
 
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',color:'var(--mid)'}}>
-                    {t3(lang, 'ЗАХІД (WEST)', 'WEST', '西')}
+                    {t3(lang, 'ЗАХІД (WEST)', 'WEST', '西', 'OUEST')}
                   </div>
                 </div>
                 {banzuke?.srcBasho && (
                   <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
-                    {t3(lang, 'Бандзуке: ', 'Banzuke: ', '\u756A\u4ED8\uFF1A')}{(lang === 'ja' ? bashoInfo(banzuke.srcBasho).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(banzuke.srcBasho).label.en : bashoInfo(banzuke.srcBasho).label.uk)}
+                    {t3(lang, 'Бандзуке: ', 'Banzuke: ', '\u756A\u4ED8\uFF1A', 'Banzuke : ')}{(lang === 'ja' ? bashoInfo(banzuke.srcBasho).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(banzuke.srcBasho).label.en : bashoInfo(banzuke.srcBasho).label.uk)}
                   </div>
                 )}
                 <BanzukeView data={banzuke} lang={lang} prevRanks={banzuke?.prevRanks || {}} />
@@ -318,7 +318,7 @@ export default function SumoPageClient() {
             {tab === 'kimarite' && (
               <div>
                 <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'1.5rem',lineHeight:1.6}}>
-                  {lang === 'en'
+                  {lang === 'fr' ? 'Les kimarite sont les techniques de victoire officielles du sumo. Il en existe 82 au total. Cliquez sur une technique pour la description et la vid\u00e9o.' : lang === 'en'
                     ? 'Kimarite are the official winning techniques in sumo. There are 82 official techniques in total. Click on any technique for a description and video.'
                     : lang === 'ja' ? '決まり手は相撲の勝負を決める公式の技。82手あり、クリックで詳細と動画を表示。'
                     : 'Кімаріте — офіційні техніки завершення поєдинку в сумо. Всього існує 82 офіційні техніки. Натисни на будь-яку для опису та відео.'}
@@ -335,3 +335,5 @@ export default function SumoPageClient() {
 /* kimarite_ja_v2 */
 
 /* fr_ternary_sweep_v1 */
+
+/* fr_batch4_spc_v1 */

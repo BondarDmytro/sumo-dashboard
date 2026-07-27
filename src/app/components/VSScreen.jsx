@@ -209,7 +209,7 @@ export default function VSScreen({ playerLabel, opponentLabel, lang, playerAvata
             marginTop: '1rem', marginBottom: '1rem',
             animation: 'vsHeynakke 0.65s ease 0.25s both',
           }}>
-            {t3(lang, 'ХЕЙ-НАККЕ!', 'HEY-NAKKE!', 'ハッケヨイ!')}
+            {t3(lang, 'ХЕЙ-НАККЕ!', 'HEY-NAKKE!', 'ハッケヨイ!', 'HAKKEYOI !')}
           </div>
         )}
 
@@ -261,3 +261,5 @@ export default function VSScreen({ playerLabel, opponentLabel, lang, playerAvata
     </>
   )
 }
+
+/* fr_batch4b_v1 */

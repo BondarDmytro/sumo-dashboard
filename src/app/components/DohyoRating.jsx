@@ -89,7 +89,7 @@ export default function DohyoRating() {
       <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:'0.9rem'}}>
         {DIV_FILTERS.map(d => (
           <button key={d} onClick={() => setDiv(d)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'0.3rem 0.7rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: div === d ? '#8a6a00' : 'var(--bg2)',color: div === d ? '#fff' : 'var(--mid)'}}>
-            {d === 'All' ? t3(lang, 'Всі', 'All', '全体') : d}
+            {d === 'All' ? t3(lang, 'Всі', 'All', '全体', 'Tous') : d}
           </button>
         ))}
       </div>
@@ -97,16 +97,16 @@ export default function DohyoRating() {
         {t3(lang,
           'Dohyo OVR — власний рейтинг сили сайту (0–99) на основі Elo: враховує кожен бій і силу суперника. Оновлюється щодня.',
           'Dohyo OVR is our in-house strength rating (0-99) based on Elo: every bout counts, weighted by opponent strength. Updated daily.',
-          'Dohyo OVR' + String.fromCharCode(0x306F) + String.fromCharCode(0x5F53) + String.fromCharCode(0x30B5) + String.fromCharCode(0x30A4) + String.fromCharCode(0x30C8) + String.fromCharCode(0x72EC) + String.fromCharCode(0x81EA) + String.fromCharCode(0x306E) + String.fromCharCode(0x5B9F) + String.fromCharCode(0x529B) + String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0) + String.fromCharCode(0xFF08) + '0-99' + String.fromCharCode(0xFF09))}
+          'Dohyo OVR' + String.fromCharCode(0x306F) + String.fromCharCode(0x5F53) + String.fromCharCode(0x30B5) + String.fromCharCode(0x30A4) + String.fromCharCode(0x30C8) + String.fromCharCode(0x72EC) + String.fromCharCode(0x81EA) + String.fromCharCode(0x306E) + String.fromCharCode(0x5B9F) + String.fromCharCode(0x529B) + String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0) + String.fromCharCode(0xFF08) + '0-99' + String.fromCharCode(0xFF09), 'Dohyo OVR est notre cote de force maison (0–99) basée sur Elo : chaque combat compte, pondéré par la force de l\u2019adversaire. Mise à jour quotidienne.')}
       </div>
       <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:2}}>
         <div style={{display:'grid',gridTemplateColumns: isMobile ? '28px minmax(0,1fr) 52px 48px 34px' : '34px minmax(120px,190px) 64px 56px 40px minmax(0,2fr)'  /* rating_mobile_v1 */  /* rating_ui_v3 */,gap:8,alignItems:'center',padding:'0.4rem 0.8rem',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>  {/* rating_ui_v2: khedery */}
           <div style={{textAlign:'center'}}>#</div>
-          <div>{t3(lang, 'Рікіші', 'Rikishi', String.fromCharCode(0x529B) + String.fromCharCode(0x58EB))}</div>
-          <div onClick={() => clickSort('rank')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8))}{arrow('rank')}</div>
-          <div onClick={() => clickSort('score')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Бал', 'Score', String.fromCharCode(0x70B9))}{arrow('score')}</div>
+          <div>{t3(lang, 'Рікіші', 'Rikishi', String.fromCharCode(0x529B) + String.fromCharCode(0x58EB), 'Rikishi')}</div>
+          <div onClick={() => clickSort('rank')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8), 'Rang')}{arrow('rank')}</div>
+          <div onClick={() => clickSort('score')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{t3(lang, 'Бал', 'Score', String.fromCharCode(0x70B9), 'Cote')}{arrow('score')}</div>
           <div onClick={() => clickSort('delta')} style={{textAlign:'center',cursor:'pointer',userSelect:'none'}}>{String.fromCharCode(0x0394)}{arrow('delta')}</div>
-          {!isMobile && <div>{t3(lang, 'Рейтинг', 'Rating', String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0))}</div>}
+          {!isMobile && <div>{t3(lang, 'Рейтинг', 'Rating', String.fromCharCode(0x30EC) + String.fromCharCode(0x30FC) + String.fromCharCode(0x30C6) + String.fromCharCode(0x30A3) + String.fromCharCode(0x30F3) + String.fromCharCode(0x30B0), 'Cote')}</div>}
         </div>
         {list.map((x, i) => {
           const { m, e } = x
@@ -127,3 +127,5 @@ export default function DohyoRating() {
 }
 
 /* rating_ui_v4_align */
+
+/* fr_batch4b_v1 */

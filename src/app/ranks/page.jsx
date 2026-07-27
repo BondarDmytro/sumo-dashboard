@@ -16,17 +16,18 @@ export default function RanksPage() {
           {bashoInfo(currentBashoId()).label[lang] /* ja_batch2 */}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'0.4rem'}}>
-          {t3(lang, 'Прогноз змін рангу', 'Rank Forecast', '番付予想')}
-          <span style={{color:'#b8860b'}}>{t3(lang, " — Сан'яку", " — San'yaku", " — 三役")}</span>
+          {t3(lang, 'Прогноз змін рангу', 'Rank Forecast', '番付予想', 'Pronostic des rangs')}
+          <span style={{color:'#b8860b'}}>{t3(lang, " — Сан'яку", " — San'yaku", " — 三役", " — San'yaku")}</span>
         </h1>
         <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'2rem',lineHeight:1.6}}>
           {lang === 'en'
             ? "Forecast based on current results. Takes into account kadoban for Ozeki, ozeki promotion test (33 wins over 3 basho) for Sekiwake, and make-koshi for all ranks."
             : lang === 'ja' ? '現在の成績に基づく予想。大関の角番、関脇の大関取り（3場所で33勝）、全地位の負け越しを考慮。'  /* ja_gaps_v2 */
-            : "Прогноз на основі поточних результатів. Враховує кадо-бан для Озекі, озекі-тест (33 перемоги за 3 башьо) для Секіваке, та маке-коші для всіх рангів."}
+            : lang === 'fr' ? "Pronostic bas\u00e9 sur les r\u00e9sultats actuels. Prend en compte le kadoban pour les Ozeki, le test ozeki (33 victoires sur 3 basho) pour les Sekiwake, et le make-koshi pour tous les rangs." : "Прогноз на основі поточних результатів. Враховує кадо-бан для Озекі, озекі-тест (33 перемоги за 3 башьо) для Секіваке, та маке-коші для всіх рангів."}
         </p>
         <RankForecast />
       </div>
     </main>
   )
 }
+/* fr_batch4b_v1 */

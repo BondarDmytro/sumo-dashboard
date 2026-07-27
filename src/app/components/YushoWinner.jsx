@@ -85,7 +85,7 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
                 {winner.wins}–{winner.losses}
               </div>
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>
-                {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績')}
+                {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績', 'Bilan final')}
               </div>
             </div>
           </div>
@@ -111,3 +111,4 @@ export default function YushoWinner({ winner, playoff, bashoLabel, bashoLabelEn,
     </div>
   )
 }
+/* fr_batch4b_v1 */

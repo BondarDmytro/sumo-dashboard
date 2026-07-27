@@ -35,7 +35,7 @@ export default function H2HTable({ rikishi, h2h, maxDay = 99 }) {  /* day_switch
               width:180, minWidth:100, position:'sticky', left:0,
               background:'var(--bg)',zIndex:1,
             }}>
-              {t3(lang, 'Рікіші', 'Rikishi', '力士')}
+              {t3(lang, 'Рікіші', 'Rikishi', '力士', 'Rikishi')}
             </th>
             {names.map(name => (
               <th key={name} style={{
@@ -104,10 +104,11 @@ export default function H2HTable({ rikishi, h2h, maxDay = 99 }) {  /* day_switch
         </tbody>
       </table>
       <div style={{marginTop:'0.75rem',fontSize:'0.68rem',color:'var(--light)',fontFamily:'monospace',display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
-        <span><span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span> {t3(lang, 'перемога', 'win', '勝ち')}</span>
-        <span><span style={{border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span> {t3(lang, 'поразка', 'loss', '負け')}</span>
-        <span><span style={{color:'var(--light)'}}>·</span> {t3(lang, 'не зустрічались', 'not met', '対戦なし')}</span>
+        <span><span style={{background:'var(--ink)',color:'var(--bg)',padding:'1px 5px',borderRadius:2}}>●</span> {t3(lang, 'перемога', 'win', '勝ち', 'victoire')}</span>
+        <span><span style={{border:'1.5px solid var(--ink)',color:'var(--ink)',padding:'1px 5px',borderRadius:2}}>○</span> {t3(lang, 'поразка', 'loss', '負け', 'défaite')}</span>
+        <span><span style={{color:'var(--light)'}}>·</span> {t3(lang, 'не зустрічались', 'not met', '対戦なし', 'pas rencontrés')}</span>
       </div>
     </div>
   )
 }
+/* fr_batch4b_v1 */

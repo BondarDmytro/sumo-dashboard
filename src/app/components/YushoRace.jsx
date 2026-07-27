@@ -47,11 +47,11 @@ export default function YushoRace({ allRikishi = [], currentDay = 1 }) {
     <div style={{margin:'1rem 0 1.4rem',border:'1px solid var(--border)',borderRadius:2,background:'var(--card)',padding:'0.8rem 1rem'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.6rem'}}>
         <span style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'var(--mid)'}}>
-          {t3(lang, 'Гонка за юшо', 'Yusho race', '優勝争い')} · {t3(lang, 'день', 'day', '')}{day}{lang === 'ja' ? '日目' : ''}
+          {t3(lang, 'Гонка за юшо', 'Yusho race', '優勝争い', 'Course au yusho')} · {t3(lang, 'день', 'day', '', 'jour')}{day}{lang === 'ja' ? '日目' : ''}
         </span>
         <button onClick={() => { if (!playing) setDay(1); setPlaying(p => !p) }}
           style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',padding:'0.28rem 0.8rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: playing ? 'var(--bg2)' : '#8a6a00',color: playing ? 'var(--mid)' : '#fff'}}>
-          {playing ? t3(lang, '⏸ пауза', '⏸ pause', '⏸ 停止') : t3(lang, '▶ відтворити', '▶ replay', '▶ 再生')}
+          {playing ? t3(lang, '⏸ пауза', '⏸ pause', '⏸ 停止', '⏸ pause') : t3(lang, '▶ відтворити', '▶ replay', '▶ 再生', '▶ relancer')}
         </button>
       </div>
       <div style={{position:'relative',height: frame.length * ROW_H}}>
@@ -68,3 +68,5 @@ export default function YushoRace({ allRikishi = [], currentDay = 1 }) {
     </div>
   )
 }
+
+/* fr_batch4b_v1 */

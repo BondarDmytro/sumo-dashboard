@@ -7,7 +7,7 @@ const MONTHS = ['01', '03', '05', '07', '09', '11']
 
 export default function BashoHistoryPicker({ hist, value, onChange, lang, current = null }) {  /* history_grid_v2 */
   const [expanded, setExpanded] = useState(false)
-  const mShort = { '01': t3(lang,'Хацу','Hatsu','\u521D'), '03': t3(lang,'Хару','Haru','\u6625'), '05': t3(lang,'Нацу','Natsu','\u590F'), '07': t3(lang,'Наґоя','Nagoya','\u540D'), '09': t3(lang,'Акі','Aki','\u79CB'), '11': t3(lang,'Кюшю','Kyushu','\u4E5D') }
+  const mShort = { '01': t3(lang,'Хацу','Hatsu','\u521D', 'Hatsu'), '03': t3(lang,'Хару','Haru','\u6625', 'Haru'), '05': t3(lang,'Нацу','Natsu','\u590F', 'Natsu'), '07': t3(lang,'Наґоя','Nagoya','\u540D', 'Nagoya'), '09': t3(lang,'Акі','Aki','\u79CB', 'Aki'), '11': t3(lang,'Кюшю','Kyushu','\u4E5D', 'Kyushu') }
   const byKey = Object.fromEntries((hist || []).map(h => [h.b, h]))
   if (current && current.b && !byKey[current.b]) byKey[current.b] = current
   const years = [...new Set([...(hist || []).map(h => h.b.slice(0, 4)), ...(current && current.b ? [current.b.slice(0, 4)] : [])])].sort((a, b) => b.localeCompare(a))
@@ -17,7 +17,7 @@ export default function BashoHistoryPicker({ hist, value, onChange, lang, curren
   return (
     <div style={{marginBottom:'0.8rem'}}>
       <div onClick={() => setExpanded(e => !e)} style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'var(--mid)',marginBottom:4,userSelect:'none'}}>
-        {t3(lang, 'Історія турнірів', 'Tournament history', '\u5834\u6240\u6B74')} {expanded ? '\u25B4' : '\u25BE'}
+        {t3(lang, 'Історія турнірів', 'Tournament history', '\u5834\u6240\u6B74', 'Historique des tournois')} {expanded ? '\u25B4' : '\u25BE'}
       </div>
       <div style={{overflowX:'auto',display:'flex',justifyContent:'center'}}>
         <table style={{borderCollapse:'separate',borderSpacing:4,fontFamily:'monospace',fontSize:'0.62rem',width:'100%',maxWidth:720,tableLayout:'fixed'}}>  {/* history_grid_ui_v1 history_grid_v2 */}
@@ -54,3 +54,5 @@ export default function BashoHistoryPicker({ hist, value, onChange, lang, curren
     </div>
   )
 }
+
+/* fr_batch4b_v1 */

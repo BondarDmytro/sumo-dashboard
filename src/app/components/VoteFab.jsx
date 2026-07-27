@@ -39,7 +39,7 @@ export default function VoteFab() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} aria-label="Vote" className="fb-btn fb-vote" title={t3(lang, 'Хто візьме юшо?', 'Who takes the yusho?', '優勝予想')}>
+      <button onClick={() => setOpen(true)} aria-label="Vote" className="fb-btn fb-vote" title={t3(lang, 'Хто візьме юшо?', 'Who takes the yusho?', '優勝予想', 'Qui remportera le yusho ?')}>
         <span style={{fontSize:20,lineHeight:1}}>{'🗳️'}</span>
       </button>
       {open && (
@@ -47,13 +47,13 @@ export default function VoteFab() {
           <div onClick={e => e.stopPropagation()} style={{background:'var(--card)',border:'1px solid rgba(184,134,11,0.4)',borderRadius:6,width:'min(680px, 100%)',maxHeight:'80vh',display:'flex',flexDirection:'column',boxShadow:'0 16px 48px rgba(0,0,0,0.4)'}}>
             <div style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:'1px solid var(--border)'}}>
               <div style={{flex:1,fontFamily:'monospace',fontSize:'0.78rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'var(--ink)',fontWeight:700}}>
-                {'🗳️ '}{t3(lang, 'Хто візьме юшо?', 'Who takes the yusho?', '優勝は誰だ？')}
-                {total > 0 && <span style={{color:'var(--mid)',fontWeight:400}}> · {total} {t3(lang, 'голосів', 'votes', '票')}</span>}
+                {'🗳️ '}{t3(lang, 'Хто візьме юшо?', 'Who takes the yusho?', '優勝は誰だ？', 'Qui remportera le yusho ?')}
+                {total > 0 && <span style={{color:'var(--mid)',fontWeight:400}}> · {total} {t3(lang, 'голосів', 'votes', '票', 'votes')}</span>}
               </div>
               <button onClick={() => setOpen(false)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:18,color:'var(--mid)',padding:4}}>{'\u2715'}</button>
             </div>
             <div style={{overflowY:'auto',padding:'8px 16px 16px'}}>
-              {list === null && <div style={{padding:20,textAlign:'center',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem'}}>{t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}</div>}
+              {list === null && <div style={{padding:20,textAlign:'center',color:'var(--mid)',fontFamily:'monospace',fontSize:'0.72rem'}}>{t3(lang, 'Завантаження...', 'Loading...', '読み込み中...', 'Chargement...')}</div>}
               {Array.isArray(list) && (
                 <div style={{display:'grid',gridTemplateColumns: isMobile ? 'repeat(3, minmax(0,1fr))' : 'repeat(5, minmax(0,1fr))',gap:6}}>{/* vote_pills_grid_v2 */}
                   {list.map(r => {
@@ -80,3 +80,5 @@ export default function VoteFab() {
     </>
   )
 }
+
+/* fr_batch4b_v1 */

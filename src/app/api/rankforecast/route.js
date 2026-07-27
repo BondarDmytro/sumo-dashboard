@@ -95,11 +95,11 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     const makekoshi = currentBashoLosses > currentBashoWins
     const prevMakekoshi = prev1 && prev1.losses > prev1.wins
     if (makekoshi && prevMakekoshi) {
-      forecasts.push({ type: 'danger', text: { uk: '⚠ Тиск на відставку після 2 маке-коші поспіль', en: '⚠ Retirement pressure after 2 straight make-koshi', ja: '⚠ 2場所連続負け越しで引退圧力' } })
+      forecasts.push({ type: 'danger', text: { uk: '⚠ Тиск на відставку після 2 маке-коші поспіль', en: '⚠ Retirement pressure after 2 straight make-koshi', ja: '⚠ 2場所連続負け越しで引退圧力' , fr: '\u26a0 Pression pour la retraite apr\u00e8s 2 make-koshi cons\u00e9cutifs' } })
     } else if (makekoshi) {
-      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші — очікується критика', en: '⚠ Make-koshi — criticism expected', ja: '⚠ 負け越し — 批判必至' } })
+      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші — очікується критика', en: '⚠ Make-koshi — criticism expected', ja: '⚠ 負け越し — 批判必至' , fr: '\u26a0 Make-koshi \u2014 critiques attendues' } })
     } else {
-      forecasts.push({ type: 'info', text: { uk: 'Довічний ранг', en: 'Rank for life', ja: '終身地位' } })
+      forecasts.push({ type: 'info', text: { uk: 'Довічний ранг', en: 'Rank for life', ja: '終身地位' , fr: 'Rang \u00e0 vie' } })
     }
   }
 
@@ -121,23 +121,23 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     const maxWins = currentWins + remaining
 
     if (isKadoban && currentMakekoshi) {
-      forecasts.push({ type: 'danger', text: { uk: '🔴 Виліт з Озекі — 2 маке-коші поспіль → Секіваке', en: '🔴 Ozeki demotion — 2 straight make-koshi → Sekiwake', ja: '🔴 2場所連続負け越しで大関陥落 → 関脇' } })
+      forecasts.push({ type: 'danger', text: { uk: '🔴 Виліт з Озекі — 2 маке-коші поспіль → Секіваке', en: '🔴 Ozeki demotion — 2 straight make-koshi → Sekiwake', ja: '🔴 2場所連続負け越しで大関陥落 → 関脇' , fr: '\ud83d\udd34 R\u00e9trogradation d\u2019Ozeki \u2014 2 make-koshi cons\u00e9cutifs \u2192 Sekiwake' } })
     } else if (isKadoban) {
       const needed = 8 - currentWins
       if (needed <= 0) {
-        forecasts.push({ type: 'good', text: { uk: '✓ Кадо-бан знятий — ранг Озекі збережено', en: '✓ Kadoban cleared — Ozeki rank retained', ja: '✓ 角番脱出 — 大関防衛' } })
+        forecasts.push({ type: 'good', text: { uk: '✓ Кадо-бан знятий — ранг Озекі збережено', en: '✓ Kadoban cleared — Ozeki rank retained', ja: '✓ 角番脱出 — 大関防衛' , fr: '\u2713 Kadoban lev\u00e9 \u2014 rang d\u2019Ozeki conserv\u00e9' } })
       } else if (maxWins >= 8) {
-        forecasts.push({ type: 'warning', text: { uk: `⚠ Кадо-бан — потрібно ще ${needed} перемог`, en: `⚠ Kadoban — ${needed} more wins needed`, ja: `⚠ 角番 — あと${needed}勝必要`  }, need: needed })  /* rf_chance_v1 */
+        forecasts.push({ type: 'warning', text: { uk: `⚠ Кадо-бан — потрібно ще ${needed} перемог`, en: `⚠ Kadoban — ${needed} more wins needed`, ja: `⚠ 角番 — あと${needed}勝必要`  , fr: `\u26a0 Kadoban \u2014 encore ${needed} victoires n\u00e9cessaires` }, need: needed })  /* rf_chance_v1 */
       } else {
-        forecasts.push({ type: 'danger', text: { uk: `🔴 Кадо-бан — виліт неминучий (макс. ${maxWins}/8)`, en: `🔴 Kadoban — demotion inevitable (max ${maxWins}/8)`, ja: `🔴 角番 — 陥落確定（最大${maxWins}/8）` } })
+        forecasts.push({ type: 'danger', text: { uk: `🔴 Кадо-бан — виліт неминучий (макс. ${maxWins}/8)`, en: `🔴 Kadoban — demotion inevitable (max ${maxWins}/8)`, ja: `🔴 角番 — 陥落確定（最大${maxWins}/8）` , fr: `\ud83d\udd34 Kadoban \u2014 r\u00e9trogradation in\u00e9vitable (max ${maxWins}/8)` } })
       }
     } else if (currentMakekoshi) {
-      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → наступний турнір кадо-бан', en: '⚠ Make-koshi → kadoban next basho', ja: '⚠ 負け越し → 来場所角番' } })
+      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → наступний турнір кадо-бан', en: '⚠ Make-koshi → kadoban next basho', ja: '⚠ 負け越し → 来場所角番' , fr: '\u26a0 Make-koshi \u2192 kadoban au prochain basho' } })
     } else {
-      forecasts.push({ type: 'good', text: { uk: '✓ Ранг Озекі збережено', en: '✓ Ozeki rank retained', ja: '✓ 大関防衛' } })
+      forecasts.push({ type: 'good', text: { uk: '✓ Ранг Озекі збережено', en: '✓ Ozeki rank retained', ja: '✓ 大関防衛' , fr: '\u2713 Rang d\u2019Ozeki conserv\u00e9' } })
     }
     if (!isKadoban && prev1 && prev1.wins >= 11) {  /* forecast_rules_v1: йокодзуна-ран */
-      forecasts.push({ type: 'info', text: { uk: '🏔 Йокодзуна-ран: юшо або еквівалент дає підвищення', en: '🏔 Yokozuna run: yusho or equivalent earns promotion', ja: '🏔 綱取り: 優勝または同等成績で昇進' } })
+      forecasts.push({ type: 'info', text: { uk: '🏔 Йокодзуна-ран: юшо або еквівалент дає підвищення', en: '🏔 Yokozuna run: yusho or equivalent earns promotion', ja: '🏔 綱取り: 優勝または同等成績で昇進' , fr: '\ud83c\udfd4 Course au yokozuna : un yusho ou \u00e9quivalent donne la promotion' } })
     }
   }
 
@@ -147,11 +147,11 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
       const played10 = currentBashoWins + currentBashoLosses
       const max10 = currentBashoWins + (15 - played10)
       if (currentBashoWins >= 10) {
-        forecasts.push({ type: 'good', text: { uk: '✓ 10 перемог — повернення рангу Озекі', en: '✓ 10 wins — Ozeki rank regained', ja: '✓ 10勝で大関復帰' } })
+        forecasts.push({ type: 'good', text: { uk: '✓ 10 перемог — повернення рангу Озекі', en: '✓ 10 wins — Ozeki rank regained', ja: '✓ 10勝で大関復帰' , fr: '\u2713 10 victoires \u2014 rang d\u2019Ozeki retrouv\u00e9' } })
       } else if (max10 >= 10) {
-        forecasts.push({ type: 'info', text: { uk: `Екс-озекі: ще ${needed10} перемог до повернення рангу (10 всього)`, en: `Ex-Ozeki: ${needed10} more wins to regain rank (10 total)`, ja: `元大関: 復帰まであと${needed10}勝（合計10勝）`  }, need: needed10 })
+        forecasts.push({ type: 'info', text: { uk: `Екс-озекі: ще ${needed10} перемог до повернення рангу (10 всього)`, en: `Ex-Ozeki: ${needed10} more wins to regain rank (10 total)`, ja: `元大関: 復帰まであと${needed10}勝（合計10勝）`  , fr: `Ex-Ozeki : encore ${needed10} victoires pour retrouver le rang (10 au total)` }, need: needed10 })
       } else {
-        forecasts.push({ type: 'warning', text: { uk: '⚠ Повернення озекі за правилом 10 перемог вже недосяжне', en: '⚠ 10-win Ozeki return no longer possible', ja: '⚠ 10勝での大関復帰は不可能' } })
+        forecasts.push({ type: 'warning', text: { uk: '⚠ Повернення озекі за правилом 10 перемог вже недосяжне', en: '⚠ 10-win Ozeki return no longer possible', ja: '⚠ 10勝での大関復帰は不可能' , fr: '\u26a0 Retour au rang d\u2019Ozeki par la r\u00e8gle des 10 victoires d\u00e9sormais impossible' } })
       }
     }
     const winsThisBasho = currentBashoWins
@@ -164,33 +164,33 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     const maxTotal = (winsThisBasho + remaining) + winsPrev1 + winsPrev2
 
     if (total3 >= 33) {
-      forecasts.push({ type: 'good', text: { uk: `✓ Озекі-кандидат — ${total3}/33 за 3 башьо в санʼяку`, en: `✓ Ozeki candidate — ${total3}/33 over 3 basho in san'yaku`, ja: `✓ 大関候補 — 三役で3場所${total3}/33` } })
+      forecasts.push({ type: 'good', text: { uk: `✓ Озекі-кандидат — ${total3}/33 за 3 башьо в санʼяку`, en: `✓ Ozeki candidate — ${total3}/33 over 3 basho in san'yaku`, ja: `✓ 大関候補 — 三役で3場所${total3}/33` , fr: `\u2713 Candidat Ozeki \u2014 ${total3}/33 sur 3 basho en san'yaku` } })
     } else if (maxTotal >= 33) {
-      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 — потрібно ще ${needed} перемог`, en: `Ozeki test: ${total3}/33 — ${needed} more wins needed`, ja: `大関取り: ${total3}/33 — あと${needed}勝必要`  }, need: needed })
+      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 — потрібно ще ${needed} перемог`, en: `Ozeki test: ${total3}/33 — ${needed} more wins needed`, ja: `大関取り: ${total3}/33 — あと${needed}勝必要`  , fr: `Test ozeki : ${total3}/33 \u2014 encore ${needed} victoires n\u00e9cessaires` }, need: needed })
     } else {
-      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 (цей цикл недостатній)`, en: `Ozeki test: ${total3}/33 (this cycle insufficient)`, ja: `大関取り: ${total3}/33（今回は不十分）` } })
+      forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 (цей цикл недостатній)`, en: `Ozeki test: ${total3}/33 (this cycle insufficient)`, ja: `大関取り: ${total3}/33（今回は不十分）` , fr: `Test ozeki : ${total3}/33 (cycle insuffisant)` } })
     }
 
     if (currentBashoLosses > currentBashoWins && played >= 8) {
-      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → можливе пониження до Комусубі', en: '⚠ Make-koshi → possible demotion to Komusubi', ja: '⚠ 負け越し → 小結陥落の可能性' } })
+      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → можливе пониження до Комусубі', en: '⚠ Make-koshi → possible demotion to Komusubi', ja: '⚠ 負け越し → 小結陥落の可能性' , fr: '\u26a0 Make-koshi \u2192 r\u00e9trogradation possible en Komusubi' } })
     } else if (currentBashoWins >= 8) {
-      forecasts.push({ type: 'good', text: { uk: '✓ Качі-коші — ранг Секіваке збережено', en: '✓ Kachi-koshi — Sekiwake rank retained', ja: '✓ 勝ち越し — 関脇防衛' } })
+      forecasts.push({ type: 'good', text: { uk: '✓ Качі-коші — ранг Секіваке збережено', en: '✓ Kachi-koshi — Sekiwake rank retained', ja: '✓ 勝ち越し — 関脇防衛' , fr: '\u2713 Kachi-koshi \u2014 rang de Sekiwake conserv\u00e9' } })
     }
   }
 
   if (rankType === 'komusubi') {
     const played = currentBashoWins + currentBashoLosses
     if (currentBashoWins >= 10) {
-      forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → підвищення до Секіваке`, en: `✓ ${currentBashoWins} wins → promotion to Sekiwake`, ja: `✓ ${currentBashoWins}勝 → 関脇昇進` } })
+      forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → підвищення до Секіваке`, en: `✓ ${currentBashoWins} wins → promotion to Sekiwake`, ja: `✓ ${currentBashoWins}勝 → 関脇昇進` , fr: `\u2713 ${currentBashoWins} victoires \u2192 promotion en Sekiwake` } })
     } else if (currentBashoWins >= 8) {
-      forecasts.push({ type: 'good', text: { uk: '✓ Качі-коші — ранг Комусубі збережено', en: '✓ Kachi-koshi — Komusubi rank retained', ja: '✓ 勝ち越し — 小結防衛' } })
+      forecasts.push({ type: 'good', text: { uk: '✓ Качі-коші — ранг Комусубі збережено', en: '✓ Kachi-koshi — Komusubi rank retained', ja: '✓ 勝ち越し — 小結防衛' , fr: '\u2713 Kachi-koshi \u2014 rang de Komusubi conserv\u00e9' } })
     } else if (played >= 8 && currentBashoLosses > currentBashoWins) {
-      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → пониження до Маєґашіра', en: '⚠ Make-koshi → demotion to Maegashira', ja: '⚠ 負け越し → 前頭陥落' } })
+      forecasts.push({ type: 'warning', text: { uk: '⚠ Маке-коші → пониження до Маєґашіра', en: '⚠ Make-koshi → demotion to Maegashira', ja: '⚠ 負け越し → 前頭陥落' , fr: '\u26a0 Make-koshi \u2192 r\u00e9trogradation en Maegashira' } })
     } else {
       const needed = 8 - currentBashoWins
       const remaining = 15 - played
       if (remaining > 0) {
-        forecasts.push({ type: 'info', text: { uk: `Потрібно ще ${needed} перемог для качі-коші`, en: `${needed} more wins needed for kachi-koshi`, ja: `勝ち越しまであと${needed}勝` } })
+        forecasts.push({ type: 'info', text: { uk: `Потрібно ще ${needed} перемог для качі-коші`, en: `${needed} more wins needed for kachi-koshi`, ja: `勝ち越しまであと${needed}勝` , fr: `Encore ${needed} victoires pour le kachi-koshi` } })
       }
     }
   }
@@ -199,14 +199,14 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     const num = getMaegashiraNum(rank)
     if (currentBashoWins >= 11) {
       if (num >= 3) {
-        forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → можливе підвищення до Санʼяку`, en: `✓ ${currentBashoWins} wins → possible San'yaku promotion`, ja: `✓ ${currentBashoWins}勝 → 三役昇進の可能性` } })
+        forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → можливе підвищення до Санʼяку`, en: `✓ ${currentBashoWins} wins → possible San'yaku promotion`, ja: `✓ ${currentBashoWins}勝 → 三役昇進の可能性` , fr: `\u2713 ${currentBashoWins} victoires \u2192 promotion possible en san'yaku` } })
       } else {
-        forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → Санʼяку кандидат`, en: `✓ ${currentBashoWins} wins → San'yaku candidate`, ja: `✓ ${currentBashoWins}勝 → 三役候補` } })
+        forecasts.push({ type: 'good', text: { uk: `✓ ${currentBashoWins} перемог → Санʼяку кандидат`, en: `✓ ${currentBashoWins} wins → San'yaku candidate`, ja: `✓ ${currentBashoWins}勝 → 三役候補` , fr: `\u2713 ${currentBashoWins} victoires \u2192 candidat san'yaku` } })
       }
     } else if (currentBashoLosses > currentBashoWins) {
-      forecasts.push({ type: 'warning', text: { uk: `⚠ Маке-коші → пониження в банзуке`, en: `⚠ Make-koshi → banzuke demotion`, ja: `⚠ 負け越し → 番付降下` } })
+      forecasts.push({ type: 'warning', text: { uk: `⚠ Маке-коші → пониження в банзуке`, en: `⚠ Make-koshi → banzuke demotion`, ja: `⚠ 負け越し → 番付降下` , fr: `\u26a0 Make-koshi \u2192 descente au banzuke` } })
     } else {
-      forecasts.push({ type: 'info', text: { uk: `Качі-коші — ранг стабільний`, en: `Kachi-koshi — rank stable`, ja: `勝ち越し — 地位安定` } })
+      forecasts.push({ type: 'info', text: { uk: `Качі-коші — ранг стабільний`, en: `Kachi-koshi — rank stable`, ja: `勝ち越し — 地位安定` , fr: `Kachi-koshi \u2014 rang stable` } })
     }
   }
 

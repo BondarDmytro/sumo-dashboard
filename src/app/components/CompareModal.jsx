@@ -32,17 +32,17 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
   const hl = (m) => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : null  /* heya_links_v1 */
 
   const rows = [
-    { l: t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8)), v1: displayRank(m1.rank, lang), v2: displayRank(m2.rank, lang) },
-    { l: t3(lang, 'Вік', 'Age', String.fromCharCode(0x5E74) + String.fromCharCode(0x9F62)), v1: age(m1.birthDate), v2: age(m2.birthDate), num: true },
-    { l: t3(lang, 'Зріст', 'Height', 'cm'), v1: m1.height, v2: m2.height, num: true },
-    { l: t3(lang, 'Вага', 'Weight', 'kg'), v1: m1.weight, v2: m2.weight, num: true },
-    { l: t3(lang, 'Вінрейт', 'Win rate', '%'), v1: wr(m1), v2: wr(m2), num: true },
-    { l: t3(lang, 'Юшо', 'Yusho', String.fromCharCode(0x512A) + String.fromCharCode(0x52DD)), v1: m1.yusho || 0, v2: m2.yusho || 0, num: true },
-    { l: t3(lang, 'Стайня', 'Stable', String.fromCharCode(0x90E8) + String.fromCharCode(0x5C4B)), v1: hl(m1), v2: hl(m2) },
-    { l: t3(lang, 'Дебют', 'Debut', String.fromCharCode(0x521D)), v1: m1.debut ? m1.debut.slice(0,4) + '/' + m1.debut.slice(4) : null, v2: m2.debut ? m2.debut.slice(0,4) + '/' + m2.debut.slice(4) : null },
-    { l: t3(lang, 'Башьо', 'Basho', String.fromCharCode(0x5834) + String.fromCharCode(0x6240)), v1: m1.basho, v2: m2.basho, num: true },
-    { l: t3(lang, 'Боїв', 'Bouts', String.fromCharCode(0x53D6) + String.fromCharCode(0x7D44)), v1: m1.matches, v2: m2.matches, num: true },
-    { l: t3(lang, 'Перемог', 'Wins', String.fromCharCode(0x767D) + String.fromCharCode(0x661F)), v1: m1.wins, v2: m2.wins, num: true },
+    { l: t3(lang, 'Ранг', 'Rank', String.fromCharCode(0x756A) + String.fromCharCode(0x4ED8), 'Rang'), v1: displayRank(m1.rank, lang), v2: displayRank(m2.rank, lang) },
+    { l: t3(lang, 'Вік', 'Age', String.fromCharCode(0x5E74) + String.fromCharCode(0x9F62), 'Âge'), v1: age(m1.birthDate), v2: age(m2.birthDate), num: true },
+    { l: t3(lang, 'Зріст', 'Height', 'cm', 'Taille'), v1: m1.height, v2: m2.height, num: true },
+    { l: t3(lang, 'Вага', 'Weight', 'kg', 'Poids'), v1: m1.weight, v2: m2.weight, num: true },
+    { l: t3(lang, 'Вінрейт', 'Win rate', '%', 'Taux de victoires'), v1: wr(m1), v2: wr(m2), num: true },
+    { l: t3(lang, 'Юшо', 'Yusho', String.fromCharCode(0x512A) + String.fromCharCode(0x52DD), 'Yusho'), v1: m1.yusho || 0, v2: m2.yusho || 0, num: true },
+    { l: t3(lang, 'Стайня', 'Stable', String.fromCharCode(0x90E8) + String.fromCharCode(0x5C4B), 'Écurie'), v1: hl(m1), v2: hl(m2) },
+    { l: t3(lang, 'Дебют', 'Debut', String.fromCharCode(0x521D), 'Débuts'), v1: m1.debut ? m1.debut.slice(0,4) + '/' + m1.debut.slice(4) : null, v2: m2.debut ? m2.debut.slice(0,4) + '/' + m2.debut.slice(4) : null },
+    { l: t3(lang, 'Башьо', 'Basho', String.fromCharCode(0x5834) + String.fromCharCode(0x6240), 'Basho'), v1: m1.basho, v2: m2.basho, num: true },
+    { l: t3(lang, 'Боїв', 'Bouts', String.fromCharCode(0x53D6) + String.fromCharCode(0x7D44), 'Combats'), v1: m1.matches, v2: m2.matches, num: true },
+    { l: t3(lang, 'Перемог', 'Wins', String.fromCharCode(0x767D) + String.fromCharCode(0x661F), 'Victoires'), v1: m1.wins, v2: m2.wins, num: true },
   ]  /* compare_modal_v2 */
 
   return (
@@ -61,12 +61,12 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
           <div style={{flex:1,minWidth:0}}>
         <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:4,alignItems:'center',marginBottom:8}}>
           <div style={{textAlign:'right'}}><span style={{fontFamily:'monospace',fontWeight:800,fontSize:'1.1rem',color:'#fff',background:tierColor(e1.ovr || 0),padding:'2px 10px',borderRadius:4}}>{e1.ovr ?? String.fromCharCode(0x2014)}</span></div>
-          <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',padding:'0 8px'}}>{t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '')}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.08em',padding:'0 8px'}}>{t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '', 'Cote Dohyo')}</div>
           <div style={{textAlign:'left'}}><span style={{fontFamily:'monospace',fontWeight:800,fontSize:'1.1rem',color:'#fff',background:tierColor(e2.ovr || 0),padding:'2px 10px',borderRadius:4}}>{e2.ovr ?? String.fromCharCode(0x2014)}</span></div>
         </div>
         {typeof h2hWins === 'number' && typeof h2hTotal === 'number' && h2hTotal > 0 && (
           <div style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',marginBottom:8}}>
-            {t3(lang, 'Очні зустрічі', 'Head-to-head', String.fromCharCode(0x5BFE) + String.fromCharCode(0x6226))}: <b style={{color:'var(--ink)'}}>{h2hWins}</b> {String.fromCharCode(0x2013)} <b style={{color:'var(--ink)'}}>{h2hTotal - h2hWins}</b>
+            {t3(lang, 'Очні зустрічі', 'Head-to-head', String.fromCharCode(0x5BFE) + String.fromCharCode(0x6226), 'Face-à-face')}: <b style={{color:'var(--ink)'}}>{h2hWins}</b> {String.fromCharCode(0x2013)} <b style={{color:'var(--ink)'}}>{h2hTotal - h2hWins}</b>
           </div>
         )}
         {rows.map(r => {
@@ -87,3 +87,5 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
     </div>
   )
 }
+
+/* fr_batch3_cm_v1 */

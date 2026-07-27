@@ -8,10 +8,10 @@ function relTime(dateStr, lang) {
   const d = new Date(dateStr)
   if (isNaN(d)) return ''
   const h = Math.floor((Date.now() - d.getTime()) / 3600000)
-  if (h < 1) return t3(lang, 'щойно', 'just now', 'たった今')
-  if (h < 24) return h + t3(lang, ' год тому', 'h ago', '時間前')
+  if (h < 1) return t3(lang, 'щойно', 'just now', 'たった今', 'à l\u2019instant')
+  if (h < 24) return h + t3(lang, ' год тому', 'h ago', '時間前', ' h')
   const days = Math.floor(h / 24)
-  return days + t3(lang, ' дн тому', 'd ago', '日前')
+  return days + t3(lang, ' дн тому', 'd ago', '日前', ' j')
 }
 
 export default function NewsBlock() {
@@ -27,8 +27,8 @@ export default function NewsBlock() {
   return (
     <div style={{marginTop:'2rem'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.6rem'}}>
-        <span>{t3(lang, 'Новини', 'News', 'ニュース')}</span>
-        <span style={{letterSpacing:'normal',textTransform:'none',fontSize:'0.6rem'}}>NHK · {t3(lang, 'японською', 'in Japanese', '日本語')}</span>
+        <span>{t3(lang, 'Новини', 'News', 'ニュース', 'Actualités')}</span>
+        <span style={{letterSpacing:'normal',textTransform:'none',fontSize:'0.6rem'}}>NHK · {t3(lang, 'японською', 'in Japanese', '日本語', 'en japonais')}</span>
       </div>
       {news.map((n, i) => (
         <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{display:'flex',gap:10,alignItems:'baseline',padding:'0.45rem 0.25rem',borderBottom:'1px solid var(--border)',textDecoration:'none',color:'var(--ink)'}}>
@@ -39,3 +39,5 @@ export default function NewsBlock() {
     </div>
   )
 }
+
+/* fr_batch4b_v1 */

@@ -65,6 +65,7 @@ export default async function HeyaPage({ params }) {
   const intro = {
     uk: `Стайня ${h.name} (${h.name}-бея) — ${h.members.length} рікіші у професійному сумо. Сумарно ${totWins.toLocaleString('en-US')} кар'єрних перемог і ${totYusho} юшо. Найвищий поточний ранг — ${top?.rank || '—'}.`,
     en: `${h.name} stable (${h.name}-beya) has ${h.members.length} rikishi in professional sumo, with a combined ${totWins.toLocaleString('en-US')} career wins and ${totYusho} yusho. Highest current rank: ${top?.rank || '—'}.`,
+    fr: `L'\u00e9curie ${h.name} (${h.name}-beya) compte ${h.members.length} rikishi en sumo professionnel, avec ${totWins.toLocaleString('fr-FR')} victoires en carri\u00e8re cumul\u00e9es et ${totYusho} yusho. Rang actuel le plus \u00e9lev\u00e9 : ${top?.rank || '\u2014'}.`,  /* fr_heya_desc_v1 */
     ja: `${heyaJa(h.name)}部屋には${h.members.length}名の力士が所属。通算${totWins.toLocaleString('en-US')}勝、優勝${totYusho}回。現在の最高位は${top?.rank ? displayRank(top.rank, 'ja') : ''}。`,
   }[L]
   const label = {

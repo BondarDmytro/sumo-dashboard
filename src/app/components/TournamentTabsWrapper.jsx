@@ -48,7 +48,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
   }, [isCurrent, selBasho, division])  /* arch_standings_v1 */
 
   const tabs = [
-    { id: 'standings', label: t3(lang, 'Таблиця', 'Standings', '星取表') },
+    { id: 'standings', label: t3(lang, 'Таблиця', 'Standings', '星取表', 'Classement') },
     ...(isCurrent && !isFinished && currentDay <= 15 ? [{
       id: 'torikumi',
       label: lang === 'ja' ? `${currentDay}日目の取組` : lang === 'en' ? `Day ${currentDay} schedule` : `Розклад дня ${currentDay}`
@@ -57,8 +57,8 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
       id: 'torikumi2',  /* torikumi2_v1 */
       label: lang === 'ja' ? `${currentDay+1}日目の取組` : lang === 'en' ? `Day ${currentDay+1} schedule` : `Розклад дня ${currentDay+1}`
     }] : []),
-    ...(isCurrent ? [{ id: 'board', label: t3(lang, 'Лідерборд', 'Leaderboard', 'ランキング') }] : []),  /* pickem_board_tab_v1 */
-    ...(true /* arch_prizes_v1 */ ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金') }] : []),
+    ...(isCurrent ? [{ id: 'board', label: t3(lang, 'Лідерборд', 'Leaderboard', 'ランキング', 'Classement joueurs') }] : []),  /* pickem_board_tab_v1 */
+    ...(true /* arch_prizes_v1 */ ? [{ id: 'prizes', label: t3(lang, 'Призові', 'Prize money', '賞金', 'Gains') }] : []),
   ]  /* basho_filter_v1 */
 
   return (
@@ -80,7 +80,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
           <div style={{display:'flex',gap:6,marginBottom:'0.9rem'}}>
             {['list','wins'].map(v => (
               <button key={v} onClick={() => setLiveView(v)} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: liveView === v ? '#8a6a00' : 'var(--bg2)',color: liveView === v ? '#fff' : 'var(--mid)'}}>
-                {v === 'list' ? t3(lang,'\u0421\u043f\u0438\u0441\u043e\u043a','List','\u4e00\u89a7') : t3(lang,'\u041f\u043e \u043f\u0435\u0440\u0435\u043c\u043e\u0433\u0430\u0445','By wins','\u6210\u7e3e\u5225')}
+                {v === 'list' ? t3(lang,'\u0421\u043f\u0438\u0441\u043e\u043a','List','\u4e00\u89a7', 'Liste') : t3(lang,'\u041f\u043e \u043f\u0435\u0440\u0435\u043c\u043e\u0433\u0430\u0445','By wins','\u6210\u7e3e\u5225', 'Par victoires')}
               </button>
             ))}
           </div>
@@ -110,7 +110,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
                       <img src={'/rikishi/' + wid + '.webp'} alt={w.name} style={{width:'clamp(100px,22%,180px)',minHeight:'100%',objectFit:'cover',objectPosition:'top',display:'block',flexShrink:0}} onError={e=>{e.target.style.display='none'}} />
                       <div style={{position:'relative',zIndex:1,flex:1,minWidth:0,display:'flex',flexDirection:'column',justifyContent:'center',padding:'1rem 1.25rem',gap:'0.6rem'}}>
                         <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#b8860b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-                          {bashoInfo(selBasho).label[lang] + ' \u2014 ' + t3(lang, '\u042E\u0448\u043E', 'Yusho', '\u512A\u52DD')}
+                          {bashoInfo(selBasho).label[lang] + ' \u2014 ' + t3(lang, '\u042E\u0448\u043E', 'Yusho', '\u512A\u52DD', 'Yusho')}
                         </div>
                         <div>
                           <div style={{fontWeight:800,fontSize:'clamp(1.1rem,4vw,2.2rem)',lineHeight:1.1,color:'var(--ink)',wordBreak:'break-word'}}>
@@ -120,7 +120,7 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
                         </div>
                         <div style={{background:'var(--card)',padding:'0.5rem 1rem',borderRadius:2,border:'1px solid var(--border)',display:'inline-block',alignSelf:'flex-start'}}>
                           <div style={{fontFamily:'Georgia,serif',fontSize:'clamp(1.4rem,5vw,1.8rem)',fontWeight:800,color:'#b8860b',lineHeight:1}}>{w.wins}{'\u2013'}{w.losses}</div>
-                          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>{t3(lang, '\u0424\u0456\u043D\u0430\u043B\u044C\u043D\u0438\u0439 \u0440\u0435\u043A\u043E\u0440\u0434', 'Final record', '\u6700\u7D42\u6210\u7E3E')}</div>
+                          <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>{t3(lang, '\u0424\u0456\u043D\u0430\u043B\u044C\u043D\u0438\u0439 \u0440\u0435\u043A\u043E\u0440\u0434', 'Final record', '\u6700\u7D42\u6210\u7E3E', 'Bilan final')}</div>
                         </div>
                       </div>
                     </div>
@@ -130,13 +130,14 @@ export default function TournamentTabsWrapper({ contenders, currentDay, allRikis
                 <TournamentFooter contenders={arkCont} h2h={archPrize.h2h || []} allRikishi={arkAll} />  {/* arch_footer_v1 */}
               </>)
             })()
-          : <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>{t3(lang, '\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F\u2026', 'Loading\u2026', '\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026')}</div>
+          : <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>{t3(lang, '\u0417\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F\u2026', 'Loading\u2026', '\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026', 'Chargement\u2026')}</div>
       )}
       {!isCurrent && tab === 'prizes' && (  /* arch_prizes_v1 */
         archPrize && archPrize.rikishi
           ? <PrizeMoney rikishi={archPrize.rikishi.filter(r => !r.kyujo)} specialPrizes={archPrize.specialPrizes || []} yushoData={archPrize.yushoData || []} isFinished={true} />
-          : <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…')}</div>
+          : <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…', 'Chargement…')}</div>
       )}
     </>
   )
 }
+/* fr_batch4_ttw_v1 */

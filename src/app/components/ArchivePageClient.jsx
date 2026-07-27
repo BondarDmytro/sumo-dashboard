@@ -1,5 +1,6 @@
 'use client' /* arch_rank_ja_v1 */ /* ja_batch3_fix */
-import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import RikishiLink from './RikishiLink'
+import OvrBadge from './OvrBadge'  /* arch_cols_v1 */ /* rikishi_links_batch2_v1 */
 import { rankColor } from '../lib/rankColors' /* rank_badge_color_v1 */
 import { kimariteKanji } from '../lib/kimarite' /* ja_kimarite_ui_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
@@ -82,6 +83,8 @@ export default function ArchivePageClient() {
           fetch(`https://sumo-api.com/api/basho/${selectedBasho.id}`).then(r => r.json()),
         ])
         const all = [...(banzuke.east||[]), ...(banzuke.west||[])]
+        const rankById = {}  /* arch_cols_v1 arch_cols_fields_v1: kinboshi - mapa id->rang */
+        all.forEach(r => { rankById[String(r.rikishiID)] = r.rank || '' })
         const processed = all.map(r => {
           const record = r.record || []
           const wins = record.filter(m => RESULTS_WIN.includes(m.result)).length
@@ -89,8 +92,16 @@ export default function ArchivePageClient() {
           const absentCount = record.filter(m => m.result === 'absent').length
           const hasLateAbsent = record.some((m, i) => m.result === 'absent' && i >= 5)
           const kyujo = absentCount > 5 || (absentCount > 0 && hasLateAbsent)
+          /* arch_cols_v1: top-kimarite + kinboshi */
+          const kimCnt = {}
+          record.forEach(m => { if (m.result === 'win' && m.kimarite && m.kimarite !== 'fusen') kimCnt[m.kimarite] = (kimCnt[m.kimarite] || 0) + 1 })
+          const kimTop = Object.entries(kimCnt).sort((a,b) => b[1] - a[1])[0]
+          const isMaegashira = (r.rank || '').includes('Maegashira')
+          const kinboshi = isMaegashira ? record.filter(m => m.result === 'win' && (rankById[String(m.opponentID)] || '').includes('Yokozuna')).length : 0  /* arch_cols_fields_v1 */
           return {
             id: r.rikishiID,
+            topKim: kimTop ? { name: kimTop[0], count: kimTop[1] } : null,
+            kinboshi,
             name: r.shikonaEn,
             nameJp: r.shikonaJp,  /* ja_names_sweep_v1 */
             rank: getRankShort(r.rank),
@@ -139,20 +150,21 @@ export default function ArchivePageClient() {
   }, [selectedBasho, biosLoaded])
 
   const tableHeaders = lang === 'en'
-    ? ['#', 'Rikishi', 'Rank', 'Record', 'Matches']
-    : lang === 'ja' ? ['#', '力士', '番付', '成績', '取組']  /* ja_final_tails */
-    : ['#', 'Рікіші', 'Ранг', 'Рекорд', 'Матчі']
+    ? ['#', 'Rikishi', 'Rank', 'OVR', 'Record', 'Kinboshi', 'Kimarite', 'Matches']
+    : lang === 'fr' ? ['#', 'Rikishi', 'Rang', 'OVR', 'Bilan', 'Kinboshi', 'Kimarite', 'Combats']  /* fr_arch_headers_v1 arch_cols_v1 */
+    : lang === 'ja' ? ['#', '力士', '番付', 'OVR', '成績', '金星', '決まり手', '取組']  /* ja_final_tails */
+    : ['#', 'Рікіші', 'Ранг', 'OVR', 'Рекорд', 'Зірки кінбоші', 'Кімаріте', 'Матчі']
 
   return (
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
 
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'0.5rem'}}>
-          {t3(lang, 'Архів турнірів', 'Tournament archive', '場所アーカイブ')}
+          {t3(lang, 'Архів турнірів', 'Tournament archive', '場所アーカイブ', 'Archives des tournois')}
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
-          {t3(lang, 'Результати', 'Results', '結果')}
-          <span style={{color:'#b8860b'}}>{t3(lang, ' — Попередні башьо', ' — Previous basho', ' — 過去の場所')}</span>
+          {t3(lang, 'Результати', 'Results', '結果', 'Résultats')}
+          <span style={{color:'#b8860b'}}>{t3(lang, ' — Попередні башьо', ' — Previous basho', ' — 過去の場所', ' — Basho précédents')}</span>
         </h1>
 
         {/* Кнопки вибору башьо */}
@@ -176,7 +188,7 @@ export default function ArchivePageClient() {
 
         {loading && (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
+            {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...', 'Chargement...')}
           </div>
         )}
 
@@ -223,7 +235,7 @@ export default function ArchivePageClient() {
         gap:'0.6rem',
       }}>
         <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#b8860b',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
-          {bashoInfo(selectedBasho.id).label[lang] + ' — ' + t3(lang, 'Юшо', 'Yusho', '優勝')}
+          {bashoInfo(selectedBasho.id).label[lang] + ' — ' + t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho')}
         </div>
 
         <div>
@@ -241,7 +253,7 @@ export default function ArchivePageClient() {
               {data.winner.wins}–{data.winner.losses}
             </div>
             <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginTop:4,textTransform:'uppercase',letterSpacing:'0.1em'}}>
-              {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績')}
+              {t3(lang, 'Фінальний рекорд', 'Final record', '最終成績', 'Bilan final')}
             </div>
           </div>
         </div>
@@ -257,7 +269,7 @@ export default function ArchivePageClient() {
             <span style={{fontFamily:'monospace',fontSize:'0.65rem',color:'#b8860b',fontWeight:600,wordBreak:'break-word'}}>
               {lang === 'en'
                 ? `Won in playoff vs ${data.playoff.loser} · ${data.playoff.kimarite}`
-                : lang === 'ja' ? `優勝決定戦で${data.playoff.loser}を下す · ${kimariteKanji(data.playoff.kimarite)}` : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
+                : lang === 'ja' ? `優勝決定戦で${data.playoff.loser}を下す · ${kimariteKanji(data.playoff.kimarite)}` : lang === 'fr' ? `Vainqueur du barrage contre ${data.playoff.loser} · ${data.playoff.kimarite}` : `Переміг у плей-офі проти ${data.playoff.loser} · ${data.playoff.kimarite}`}
             </span>
           </div>
         )}
@@ -272,7 +284,7 @@ export default function ArchivePageClient() {
                 <thead>
                   <tr style={{borderBottom:'2px solid var(--ink)'}}>
                     {tableHeaders.map(h => (
-                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.3rem',textAlign: h === tableHeaders[1] ? 'left' : 'center',fontWeight:500}}>{/* arch_th_center_v1 */}
+                      <th key={h} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.3rem',textAlign: h === tableHeaders[1] ? 'left' : 'center' /* arch_table_polish_v1 */,fontWeight:500}}>{/* arch_th_center_v1 */}
                         {h}
                       </th>
                     ))}
@@ -281,7 +293,7 @@ export default function ArchivePageClient() {
                 <tbody>
                   {data.rikishi.map((r, i) => (
                     <tr key={r.id} style={{borderBottom:'1px solid var(--border)',opacity: r.kyujo ? 0.5 : 1}}>
-                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
+                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)',textAlign:'center'}}>
                         {r.id === data.winner?.id ? '🏆' : i+1}
                       </td>
                       <td style={{padding:'0.5rem 0.3rem'}}>
@@ -289,22 +301,31 @@ export default function ArchivePageClient() {
                           <span>{r.flag}</span>
                           <div>
                             <div style={{fontWeight:700,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth: isMobile ? 92 : 'none'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
-                            {!isMobile && <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{displayRank(r.rankFull, lang)}</div>}{/* arch_table_mobile_v1 */}
+                            
                           </div>
                         </div>
                       </td>
-                      <td style={{padding:'0.5rem 0.3rem'}}>
+                      <td style={{padding:'0.5rem 0.3rem',textAlign:'center'}}>
                         <span style={{fontFamily:'monospace',fontSize:'0.6rem',background:rankColor(r.rank) + '2e',padding:'2px 5px',borderRadius:2,color:rankColor(r.rank),fontWeight:600}}>{displayRank(r.rank, lang)}</span>
                       </td>
-                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap'}}>
+                      <td style={{padding:'0.5rem 0.3rem',textAlign:'center'}}>{/* arch_cols_v1: OVR */}
+                        <OvrBadge id={String(r.id)} size='sm' />
+                      </td>
+                      <td style={{padding:'0.5rem 0.3rem',fontFamily:'monospace',fontWeight:600,fontSize: isMobile ? '0.7rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center'}}>
                         <span style={{color: r.kyujo ? 'var(--mid)' : r.wins >= 8 ? 'var(--ink)' : '#c0392b'}}>
                           {r.wins}–{r.losses}
                         </span>
                         {r.kyujo && (
                           <span style={{fontFamily:'monospace',fontSize:'0.55rem',background:'#fde8e8',color:'#c0392b',padding:'1px 5px',borderRadius:2,marginLeft:4}}>
-                            {t3(lang, 'КЮД', 'KYJ', '休')}
+                            {t3(lang, 'КЮД', 'KYJ', '休', 'KYJ')}
                           </span>
                         )}
+                      </td>
+                      <td style={{padding:'0.5rem 0.3rem',textAlign:'center',fontFamily:'monospace',fontSize:'0.78rem',color:'#b8860b',fontWeight:700}}>{/* arch_cols_v1: kinboshi */}
+                        {r.kinboshi > 0 ? '★' + (r.kinboshi > 1 ? r.kinboshi : '') : ''}
+                      </td>
+                      <td style={{padding:'0.5rem 0.3rem',textAlign:'center',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{/* arch_cols_v1: top kimarite */}
+                        {r.topKim ? r.topKim.name + ' ×' + r.topKim.count : '—'}
                       </td>
                       <td style={{padding:'0.5rem 0.3rem',width:'34%'}}>{/* arch_dots_big_v1: kolonka Matchi zabyraie tretynu tablytsi */}
                         <MatchDots record={r.record} isMobile={isMobile} />
@@ -324,3 +345,5 @@ export default function ArchivePageClient() {
 /* archive_dots_nowrap_v1 */
 
 /* archive_table_compact_v1 */
+
+/* fr_batch4b_v1 */

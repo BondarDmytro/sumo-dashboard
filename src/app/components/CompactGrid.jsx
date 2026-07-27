@@ -34,8 +34,8 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
   }, [])
 
   const title = titleProp || (isKyujo
-    ? (t3(lang, 'Кюджо — відсутні', 'Kyujo — absent', '休場'))
-    : (t3(lang, 'Вибули з гонки юшо', 'Eliminated from yusho race', '優勝争い脱落')))
+    ? (t3(lang, 'Кюджо — відсутні', 'Kyujo — absent', '休場', 'Kyujo — absents'))
+    : (t3(lang, 'Вибули з гонки юшо', 'Eliminated from yusho race', '優勝争い脱落', 'Éliminés de la course au yusho')))
 
   const winsLabel = w => {
     if (lang === 'ja') return w + '勝'  /* ja_gaps_v2 */
@@ -155,3 +155,4 @@ export default function CompactGrid({ items, isKyujo, currentDay, title: titlePr
     </div>
   )
 }
+/* fr_batch4b_v1 */

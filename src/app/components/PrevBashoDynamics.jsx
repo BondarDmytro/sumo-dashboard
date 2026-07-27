@@ -86,14 +86,14 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
   const playoff = data?.info?.playoff || null
 
   if (err) return <div style={{ padding: '2rem', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem' }}>API error: {err}</div>
-  if (!data) return <div style={{ padding: '2rem', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem' }}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…')}</div>
+  if (!data) return <div style={{ padding: '2rem', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem' }}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…', 'Chargement…')}</div>
 
   const label = lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : lang === 'fr' ? bi.label.fr : bi.label.uk  /* fr_ternary_sweep_v1 */
 
   return (
     <div>
       <div style={{ fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--mid)', margin: '1rem 0 0.75rem' }}>
-        {label} — {t3(lang, 'динаміка турніру', 'tournament dynamics', '優勝争いの推移')}
+        {label} — {t3(lang, 'динаміка турніру', 'tournament dynamics', '優勝争いの推移', 'dynamique du tournoi')}
       </div>
 
       {/* Слайдер дня */}
@@ -104,7 +104,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
         <button onClick={() => setDay(d => Math.min(maxDay, d + 1))} disabled={day >= maxDay}
           style={{ background: 'var(--bg2)', border: '1px solid var(--border)', color: 'var(--ink)', borderRadius: 2, width: 30, height: 30, cursor: day >= 15 ? 'default' : 'pointer', opacity: day >= 15 ? 0.4 : 1 }}>›</button>
         <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, color: 'var(--ink)', minWidth: 90 }}>
-          {t3(lang, 'День', 'Day', '日目')} {day}/{maxDay}
+          {t3(lang, 'День', 'Day', '日目', 'Jour')} {day}/{maxDay}
         </div>
       </div>
 
@@ -124,8 +124,8 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
       {liveDay == null && (  /* inner_toggle_live_hide_v1: u laivi zovnishnii peremykach */
       <div style={{ display: 'flex', gap: 6, marginBottom: '1rem' }}>
         {[
-          { id: 'groups', label: t3(lang, 'По перемогах', 'By wins', '勝数別') },
-          { id: 'list', label: t3(lang, 'Список', 'List', 'リスト') },
+          { id: 'groups', label: t3(lang, 'По перемогах', 'By wins', '勝数別', 'Par victoires') },
+          { id: 'list', label: t3(lang, 'Список', 'List', 'リスト', 'Liste') },
         ].map(v => (
           <button key={v.id} onClick={() => setView(v.id)} style={{
             padding: '4px 14px', fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -139,7 +139,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
       {/* Плей-оф банер на дні 15 */}
       {day === 15 && (playoff || yusho) && (
         <div style={{ background: 'rgba(184,134,11,0.12)', border: '1px solid rgba(184,134,11,0.4)', borderRadius: 2, padding: '0.75rem 1rem', marginBottom: '1rem', fontFamily: 'monospace', fontSize: '0.72rem', color: 'var(--ink)' }}>
-          🏆 {yusho ? ((lang === 'ja' && yusho.shikonaJp ? yusho.shikonaJp : yusho.shikonaEn) + ' — ' + t3(lang, 'юшо', 'yusho', '優勝')) : ''}{playoff ? ' · ' + t3(lang, 'плей-оф', 'playoff', '優勝決定戦') : ''}
+          🏆 {yusho ? ((lang === 'ja' && yusho.shikonaJp ? yusho.shikonaJp : yusho.shikonaEn) + ' — ' + t3(lang, 'юшо', 'yusho', '優勝', 'yusho')) : ''}{playoff ? ' · ' + t3(lang, 'плей-оф', 'playoff', '優勝決定戦', 'barrage') : ''}
         </div>
       )}
 
@@ -154,10 +154,10 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
           <thead>
             <tr style={{ color: 'var(--mid)', textAlign: 'left', fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               <th style={{ padding: '6px 8px' }}>#</th>
-              <th style={{ padding: '6px 8px' }}>{t3(lang, 'Рікіші', 'Rikishi', '力士')}</th>
-              <th style={{ padding: '6px 8px' }}>{t3(lang, 'Ранг', 'Rank', '番付')}</th>
+              <th style={{ padding: '6px 8px' }}>{t3(lang, 'Рікіші', 'Rikishi', '力士', 'Rikishi')}</th>
+              <th style={{ padding: '6px 8px' }}>{t3(lang, 'Ранг', 'Rank', '番付', 'Rang')}</th>
               <th style={{ padding: '6px 8px' }}>W–L</th>
-              <th style={{ padding: '6px 8px' }}>{t3(lang, 'День', 'Day', '当日')} {day}</th>
+              <th style={{ padding: '6px 8px' }}>{t3(lang, 'День', 'Day', '当日', 'Jour')} {day}</th>
             </tr>
           </thead>
           <tbody>
@@ -172,7 +172,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
                   <td style={{ padding: '6px 8px' }}><span style={{color:rankColor(r.rank),fontWeight:600,background:rankColor(r.rank)+'2e',padding:'1px 5px',borderRadius:2,fontSize:'0.72rem'}}>{displayRank(r.rank, lang)}</span></td>
                   <td style={{ padding: '6px 8px', fontWeight: 700, color: isLeader ? '#b8860b' : 'var(--ink)' }}>{r.w}–{r.l}</td>
                   <td style={{ padding: '6px 8px' }}>
-                    {r.res === 'w' ? <span style={{ color: '#1a6b5c' }}>○</span> : r.res === 'l' ? <span style={{ color: '#c0392b' }}>●</span> : r.res === 'a' ? <span style={{ color: 'var(--light)' }}>{t3(lang, 'кюджо', 'kyujo', '休')}</span> : <span style={{ color: 'var(--light)' }}>—</span>}
+                    {r.res === 'w' ? <span style={{ color: '#1a6b5c' }}>○</span> : r.res === 'l' ? <span style={{ color: '#c0392b' }}>●</span> : r.res === 'a' ? <span style={{ color: 'var(--light)' }}>{t3(lang, 'кюджо', 'kyujo', '休', 'kyujo')}</span> : <span style={{ color: 'var(--light)' }}>—</span>}
                   </td>
                 </tr>
               )
@@ -184,7 +184,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
             marginTop: 10, width: '100%', padding: '8px', fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase',
             background: 'var(--bg2)', color: 'var(--mid)', border: '1px solid var(--border)', borderRadius: 2, cursor: 'pointer',
           }}>
-            {showAll ? t3(lang, 'Згорнути до топ-10', 'Collapse to top 10', 'トップ10に戻す') : t3(lang, 'Показати всіх (' + activeNow.length + ')', 'Show all (' + activeNow.length + ')', '全員表示 (' + activeNow.length + ')')}
+            {showAll ? t3(lang, 'Згорнути до топ-10', 'Collapse to top 10', 'トップ10に戻す', 'Réduire au top 10') : t3(lang, 'Показати всіх (' + activeNow.length + ')', 'Show all (' + activeNow.length + ')', '全員表示 (' + activeNow.length + ')', 'Afficher tous (' + activeNow.length + ')')}
           </button>
         )}
       </div>}
@@ -198,3 +198,5 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
     </div>
   )
 }
+
+/* fr_batch4b_v1 */

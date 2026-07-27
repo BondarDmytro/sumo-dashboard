@@ -111,12 +111,12 @@ export default function YushoChart({ rikishi, highlightDay }) {
       <div style={{display:'flex',gap:6,marginBottom:8}}>{/* chart_race_v2 tabs */}
         {['chart','race'].map(mm => (
           <button key={mm} onClick={() => setMode(mm)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'0.26rem 0.75rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: mode === mm ? '#8a6a00' : 'var(--bg2)',color: mode === mm ? '#fff' : 'var(--mid)'}}>
-            {mm === 'chart' ? t3(lang,'Графік','Chart','グラフ') : t3(lang,'Гонка','Race','レース')}
+            {mm === 'chart' ? t3(lang,'Графік','Chart','グラフ', 'Graphique') : t3(lang,'Гонка','Race','レース', 'Course')}
           </button>
         ))}
       </div>
       <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:'0.75rem',letterSpacing:'0.08em'}}>
-        {t3(lang, 'Динаміка шансів на юшо по днях турніру', 'Yusho chance dynamics by tournament day', '優勝確率の日別推移')}
+        {t3(lang, 'Динаміка шансів на юшо по днях турніру', 'Yusho chance dynamics by tournament day', '優勝確率の日別推移', 'Évolution des chances de yusho par jour')}
       </div>
       {mode === 'race' ? (() => {  /* chart_race_v2: honka - vsi ne-kyujo, № + bar + rekord + % */
         const rv = raceViewRef.current
@@ -132,7 +132,7 @@ export default function YushoChart({ rikishi, highlightDay }) {
                 {racePlaying ? '\u23f8' : '\u25b6'}
               </button>
               <input type="range" min={1} max={maxDay} value={dayNow} onChange={e => { setRacePlaying(false); setRaceDay(Number(e.target.value)) }} style={{flex:1}} />
-              <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',minWidth:60,textAlign:'right'}}>{t3(lang,'день','day','')} {dayNow}{lang === 'ja' ? '日目' : ''}</span>
+              <span style={{fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',minWidth:60,textAlign:'right'}}>{t3(lang,'день','day','', 'jour')} {dayNow}{lang === 'ja' ? '日目' : ''}</span>
             </div>
             <div style={{position:'relative',height: frame.length * ROW_H}}>
               {(() => {  /* race_stable_dom_v5: DOM u poriadku za id - transition zhyve, pozytsiia lyshe transformom */
@@ -219,3 +219,4 @@ export default function YushoChart({ rikishi, highlightDay }) {
     </div>
   )
 }
+/* fr_batch4b_v1 */

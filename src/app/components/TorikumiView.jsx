@@ -69,11 +69,11 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
   const isSynthetic = matches.length > 0 && !!matches[0].synthetic  /* pickem_synth_guard_v1 */
   const fixPicks = async () => {
     if (saving || isSynthetic || !Object.keys(draft).length) return
-    if (!window.confirm(t3(lang, 'Прогноз не можна буде змінити. Фіксуємо?', 'Picks cannot be changed later. Lock in?', '予想は変更できません。確定しますか？'))) return
+    if (!window.confirm(t3(lang, 'Прогноз не можна буде змінити. Фіксуємо?', 'Picks cannot be changed later. Lock in?', '予想は変更できません。確定しますか？', 'Les pronostics ne pourront plus être modifiés. Valider ?'))) return
     setSaving(true)
     const res = await submit(draft)
     setSaving(false)
-    if (!res.ok) window.alert(t3(lang, 'Не вдалося зберегти: ', 'Failed to save: ', '保存に失敗: ') + res.err)
+    if (!res.ok) window.alert(t3(lang, 'Не вдалося зберегти: ', 'Failed to save: ', '保存に失敗: ', 'Échec de l\u2019enregistrement : ') + res.err)
   }
   const nextDay = currentDay
   /* tk_live_v1: pershyi bii bez rezultatu = na dokhio zaraz (±1 bii, lah API) */
@@ -126,13 +126,13 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
 
   if (nextDay > 15) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {t3(lang, 'Турнір завершено', 'Tournament is over', '場所終了')}
+      {t3(lang, 'Турнір завершено', 'Tournament is over', '場所終了', 'Tournoi terminé')}
     </div>
   )
 
   if (loading) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
-      {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}
+      {t3(lang, 'Завантаження...', 'Loading...', '読み込み中...', 'Chargement...')}
     </div>
   )
 
@@ -141,7 +141,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
       {pickem && (  /* pickem_empty_v1: anons prohnoziv poky rozkladu nema */
         <div style={{display:'flex',alignItems:'center',gap:10,padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)'}}>
           <span>🎯</span>
-          <span>{t3(lang, "Щойно з'явиться розклад — тут можна буде вгадати переможців сан'яку", "Once the schedule is out, you can pick the san'yaku winners here", '取組発表後、ここで三役の勝者を予想できます')}</span>
+          <span>{t3(lang, "Щойно з'явиться розклад — тут можна буде вгадати переможців сан'яку", "Once the schedule is out, you can pick the san'yaku winners here", '取組発表後、ここで三役の勝者を予想できます', "D\u00e8s la sortie du programme, vous pourrez pronostiquer les vainqueurs san'yaku ici")}</span>
         </div>
       )}
       <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
@@ -245,7 +245,7 @@ const sanyaku = matches
             </div>
           ) : (
             <div style={{fontFamily:'monospace',fontSize:'0.52rem',color:'var(--light)',textAlign:'center',fontStyle:'italic'}}>
-              {t3(lang, 'перша зустріч', 'first meeting', '初対戦')}
+              {t3(lang, 'перша зустріч', 'first meeting', '初対戦', 'première rencontre')}
             </div>
           )}
         </div>
@@ -274,10 +274,10 @@ const sanyaku = matches
       {scoreMode && (  /* pickem_score_v1: ranishnia smuha rezultatu */
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
           <span>🎯</span>
-          <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Твій прогноз', 'Your picks', '予想結果')}: {hits}/{scored.length} {'\u2713'}</span>
-          {scored.length < Object.keys(myPicks).length && <span style={{color:'var(--mid)'}}>{t3(lang, '· ще не всі бої завершено', '· some bouts pending', '· 未消化の取組あり')}</span>}
+          <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Твій прогноз', 'Your picks', '予想結果', 'Vos pronostics')}: {hits}/{scored.length} {'\u2713'}</span>
+          {scored.length < Object.keys(myPicks).length && <span style={{color:'var(--mid)'}}>{t3(lang, '· ще не всі бої завершено', '· some bouts pending', '· 未消化の取組あり', '· des combats en attente')}</span>}
           <button onClick={() => setBoardOpen(true)} style={{marginLeft:'auto',fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'3px 12px',cursor:'pointer',borderRadius:2,border:'1px solid rgba(41,128,185,0.6)',background:'transparent',color:'#1a4a7a',fontWeight:700}}>
-            {t3(lang, 'Лідерборд', 'Leaderboard', '順位表')} {'\u2192'}
+            {t3(lang, 'Лідерборд', 'Leaderboard', '順位表', 'Classement')} {'\u2192'}
           </button>
           <PickemBoard bashoId={bashoId} currentDay={currentDay} myUid={pickUid} open={boardOpen} onClose={() => setBoardOpen(false)} />
         </div>
@@ -286,17 +286,17 @@ const sanyaku = matches
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>
           <span>🎯</span>
           {locked ? (
-            <span style={{color:'#1a6b5c',fontWeight:700}}>{t3(lang, 'Твій прогноз зафіксовано · результат — після боїв', 'Your picks are locked · results after the bouts', '予想確定 · 結果は取組後')}</span>
+            <span style={{color:'#1a6b5c',fontWeight:700}}>{t3(lang, 'Твій прогноз зафіксовано · результат — після боїв', 'Your picks are locked · results after the bouts', '予想確定 · 結果は取組後', 'Pronostics validés · résultats après les combats')}</span>
           ) : deadlinePast ? (
-            <span style={{color:'var(--mid)'}}>{t3(lang, 'Прийом прогнозів на цей день закрито', 'Picks for this day are closed', 'この日の予想受付は終了')}</span>
+            <span style={{color:'var(--mid)'}}>{t3(lang, 'Прийом прогнозів на цей день закрито', 'Picks for this day are closed', 'この日の予想受付は終了', 'Les pronostics pour ce jour sont clos')}</span>
           ) : (
             <>
-              <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Вгадай переможців дня — клікай по стороні пари', 'Pick the day winners — tap a side', 'その日の勝者を予想 — 側をタップ')}</span>
+              <span style={{color:'var(--ink)',fontWeight:700}}>{t3(lang, 'Вгадай переможців дня — клікай по стороні пари', 'Pick the day winners — tap a side', 'その日の勝者を予想 — 側をタップ', 'Pronostiquez les vainqueurs du jour — touchez un côté')}</span>
               <span style={{color:'var(--mid)'}}>{Object.keys(draft).length}/{matches.length}</span>{/* pickem_all_affordance_v1 */}
-              {isSynthetic && <span style={{color:'#b8860b'}}>{t3(lang, '· попередні пари — фіксація відкриється з офіційним розкладом', '· preliminary pairs — lock opens with the official schedule', '· 暫定取組 — 正式発表後に確定可能')}</span>}{/* synth_badge_v1 */}
+              {isSynthetic && <span style={{color:'#b8860b'}}>{t3(lang, '· попередні пари — фіксація відкриється з офіційним розкладом', '· preliminary pairs — lock opens with the official schedule', '· 暫定取組 — 正式発表後に確定可能', '· paires provisoires — validation d\u00e8s le programme officiel')}</span>}{/* synth_badge_v1 */}
               {Object.keys(draft).length > 0 && !isSynthetic && (
                 <button onClick={fixPicks} disabled={saving} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'4px 14px',cursor:'pointer',borderRadius:2,border:'1px solid #1a4a7a',background:'#1a4a7a',color:'#fff',fontWeight:700,opacity: saving ? 0.6 : 1}}>
-                  {saving ? '...' : t3(lang, 'Зафіксувати', 'Lock in', '確定')} ({Object.keys(draft).length})
+                  {saving ? '...' : t3(lang, 'Зафіксувати', 'Lock in', '確定', 'Valider')} ({Object.keys(draft).length})
                 </button>
               )}
             </>
@@ -306,7 +306,7 @@ const sanyaku = matches
       {sanyaku.length > 0 && (
         <div style={{marginBottom:'0.5rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 1rem',background:'var(--bg2)',borderLeft:'3px solid #b8860b',marginBottom:1}}>
-            {t3(lang, "Сан'яку", "San'yaku", "三役")}
+            {t3(lang, "Сан'яку", "San'yaku", "三役", "San'yaku")}
           </div>
           <div className="tk-list">{sanyaku.map(m => renderMatch(m))}</div>{/* tk_compact_v1 */}
         </div>
@@ -323,3 +323,5 @@ const sanyaku = matches
   )
 }
 /* tk_mob_stack_final_v1 */
+
+/* fr_batch3_tv_v1 */

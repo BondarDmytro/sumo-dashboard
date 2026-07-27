@@ -7,10 +7,10 @@ function relTime(dateStr, lang) {
   const d = new Date(dateStr)
   if (isNaN(d)) return ''
   const h = Math.floor((Date.now() - d.getTime()) / 3600000)
-  if (h < 1) return t3(lang, 'щойно', 'just now', 'たった今')
-  if (h < 24) return h + t3(lang, ' год тому', 'h ago', '時間前')
+  if (h < 1) return t3(lang, 'щойно', 'just now', 'たった今', 'à l\u2019instant')
+  if (h < 24) return h + t3(lang, ' год тому', 'h ago', '時間前', ' h')
   const days = Math.floor(h / 24)
-  return days + t3(lang, ' дн тому', 'd ago', '日前')
+  return days + t3(lang, ' дн тому', 'd ago', '日前', ' j')
 }
 
 export default function NewsPageClient({ lang }) {
@@ -24,17 +24,17 @@ export default function NewsPageClient({ lang }) {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:900,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'0.4rem'}}>
-          {t3(lang, 'Новини сумо', 'Sumo News', '相撲ニュース')}
+          {t3(lang, 'Новини сумо', 'Sumo News', '相撲ニュース', 'Actualités sumo')}
         </h1>
         <p style={{fontSize:'0.82rem',color:'var(--mid)',marginBottom:'2rem',lineHeight:1.6}}>
           {t3(lang, 'Офіційні новини від NHK мовою оригіналу. Клік відкриває повну статтю на nhk.or.jp.',
               'Official NHK news in original Japanese. Click opens the full article on nhk.or.jp.',
-              'NHKの公式ニュース。クリックでnhk.or.jpの記事全文へ。')}
+              'NHKの公式ニュース。クリックでnhk.or.jpの記事全文へ。', 'Actualités officielles de NHK en langue originale. Cliquez pour lire l\u2019article complet sur nhk.or.jp.')}
         </p>
         {news === null && <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>...</div>}
         {news && news.length === 0 && (
           <div style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>
-            {t3(lang, 'Наразі свіжих сумо-новин немає', 'No fresh sumo news right now', '現在、新しい相撲ニュースはありません')}
+            {t3(lang, 'Наразі свіжих сумо-новин немає', 'No fresh sumo news right now', '現在、新しい相撲ニュースはありません', 'Pas d\u2019actualités sumo pour le moment')}
           </div>
         )}
         {news && news.map((n, i) => (
@@ -44,9 +44,11 @@ export default function NewsPageClient({ lang }) {
           </a>
         ))}
         <div style={{marginTop:'1.2rem',fontFamily:'monospace',fontSize:'0.58rem',color:'var(--light)'}}>
-          {t3(lang, 'Джерело: NHK (www3.nhk.or.jp) · заголовки мовою оригіналу', 'Source: NHK (www3.nhk.or.jp) · headlines in original language', '出典: NHK (www3.nhk.or.jp)')}
+          {t3(lang, 'Джерело: NHK (www3.nhk.or.jp) · заголовки мовою оригіналу', 'Source: NHK (www3.nhk.or.jp) · headlines in original language', '出典: NHK (www3.nhk.or.jp)', 'Source : NHK (www3.nhk.or.jp) · titres en langue originale')}
         </div>
       </div>
     </main>
   )
 }
+
+/* fr_batch4b_v1 */

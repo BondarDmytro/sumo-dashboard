@@ -100,9 +100,9 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         <div className="th-col" style={{minWidth:0,order:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem'}}>  {/* header_v17 top_align_v1 */}
         <div className="th-title-row" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:'0.75rem'}}>{/* share_inline_v1 share_row_class_v1 */}
         <h1 style={{whiteSpace:'nowrap',fontSize:'clamp(1.3rem,2.2vw,1.9rem)',fontWeight:800,lineHeight:1.1,margin:0}}>
-          {t3(lang, 'Гонка за юшо', 'Yusho Race', '優勝レース')}
+          {t3(lang, 'Гонка за юшо', 'Yusho Race', '優勝レース', 'Course au yusho')}
           <span style={{color:'#fb5050'}}>
-            {t3(lang, ' — наживо', ' — Live', '・ライブ')}
+            {t3(lang, ' — наживо', ' — Live', '・ライブ', ' — En direct')}
           </span>
         </h1>
         <ShareButton />
@@ -111,29 +111,29 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
           {isFinished ? (
             <span style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'4px 14px',borderRadius:2}}>
               <span>🏆</span>
-              <b style={{color:'#b8860b'}}>{t3(lang, 'Турнір завершено', 'Tournament finished', '場所終了')}</b>
+              <b style={{color:'#b8860b'}}>{t3(lang, 'Турнір завершено', 'Tournament finished', '場所終了', 'Tournoi terminé')}</b>
             </span>
           ) : (
             <>
               {bashoStatus(bashoId) === 'upcoming' ? (
-                <span><b style={{color:'#f5f0e8'}}>{t3(lang, 'Не розпочато', 'Not started', '開始前')}</b></span>
+                <span><b style={{color:'#f5f0e8'}}>{t3(lang, 'Не розпочато', 'Not started', '開始前', 'Pas commencé')}</b></span>
               ) : (
               <span>
-                <b style={{color:'#f5f0e8'}}>{t3(lang, 'День', 'Day', '')} {currentDay}</b> {t3(lang, 'з 15', 'of 15', '日目／15')}
+                <b style={{color:'#f5f0e8'}}>{t3(lang, 'День', 'Day', '', 'Jour')} {currentDay}</b> {t3(lang, 'з 15', 'of 15', '日目／15', 'sur 15')}
               </span>
               )}  {/* header_v18 */}
               {daysLeft > 0 && bashoStatus(bashoId) !== 'upcoming' && (  /* header_v19 */
                 <span>
-                  <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {t3(lang, 'днів залишилось', 'days remaining', '日残り')}
+                  <b style={{color:'#f5f0e8'}}>{daysLeft}</b> {t3(lang, 'днів залишилось', 'days remaining', '日残り', 'jours restants')}
                 </span>
               )}
               <span>
-                <b style={{color:'#f5f0e8'}}>{contendersCount}</b> {t3(lang, 'претендентів', 'contenders', '優勝候補')}
+                <b style={{color:'#f5f0e8'}}>{contendersCount}</b> {t3(lang, 'претендентів', 'contenders', '優勝候補', 'prétendants')}
               </span>
               {hasPlayoff && (
                 <span style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(184,134,11,0.2)',border:'1px solid rgba(184,134,11,0.5)',padding:'2px 10px',borderRadius:2}}>
                   <span>⚡</span>
-                  <b style={{color:'#b8860b'}}>{t3(lang, 'Можливий плей-оф!', 'Possible playoff!', '巴戦の可能性！')}</b>
+                  <b style={{color:'#b8860b'}}>{t3(lang, 'Можливий плей-оф!', 'Possible playoff!', '巴戦の可能性！', 'Barrage possible !')}</b>
                 </span>
               )}
             </>
@@ -143,7 +143,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
         </div>
         {(champsEff && champsEff.length > 0) && (  /* champions_hero_v3 champions_filter_v1 */
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>  {/* champions_hero_v2 */}
-            <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0427\u0435\u043C\u043F\u0456\u043E\u043D\u0438', 'Champions', '\u5404\u6BB5\u512A\u52DD')}</div>
+            <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginBottom:10}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0427\u0435\u043C\u043F\u0456\u043E\u043D\u0438', 'Champions', '\u5404\u6BB5\u512A\u52DD', 'Champions')}</div>
             {champsEff.map(c => (
               <div key={c.division} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
                 <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{c.division}</span>
@@ -153,17 +153,17 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
                               background: c.po ? 'rgba(184,134,11,0.25)' : 'rgba(255,255,255,0.08)',
                               color: c.po ? '#f0c060' : '#8a847c',
                               border: '1px solid ' + (c.po ? 'rgba(240,192,96,0.4)' : 'rgba(255,255,255,0.12)')}}>
-                  {c.po ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A') : t3(lang, '\u0441\u043E\u043B\u043E', 'solo', '\u5358\u72EC')}
+                  {c.po ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A', 'B') : t3(lang, '\u0441\u043E\u043B\u043E', 'solo', '\u5358\u72EC', 'solo')}
                 </span>  {/* champions_po_mark_v1 */}
               </div>
             ))}
             <MyRikishi />
             {(sanshoEff && sanshoEff.length > 0) && (  /* sansho_hero_v1 */
               <>
-                <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginTop:12,marginBottom:10}}>{String.fromCodePoint(0x1F3C5)} {t3(lang, '\u0421\u0430\u043D\u043A\u044C\u043E', 'Sansho', '\u4E09\u8CDE')}</div>
+                <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginTop:12,marginBottom:10}}>{String.fromCodePoint(0x1F3C5)} {t3(lang, '\u0421\u0430\u043D\u043A\u044C\u043E', 'Sansho', '\u4E09\u8CDE', 'Sansho')}</div>
                 {sanshoEff.map((p, i) => (
                   <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
-                    <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{(SANSHO_UK[p.type] ? t3(lang, SANSHO_UK[p.type].uk, SANSHO_UK[p.type].en, SANSHO_UK[p.type].ja) : p.type)}</span>
+                    <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{(SANSHO_UK[p.type] ? t3(lang, SANSHO_UK[p.type].uk, SANSHO_UK[p.type].en, SANSHO_UK[p.type].ja, SANSHO_UK[p.type].en) : p.type)}</span>
                     <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',minWidth:0}}><RikishiLink id={String(p.rikishiId)} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && p.shikonaJp ? p.shikonaJp.split(/\s/)[0] : lang === 'uk' ? ukrName(p.shikonaEn) : p.shikonaEn}</RikishiLink></span>
                   </div>
                 ))}
@@ -227,3 +227,5 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
 /* header_mobile_v2 */
 
 /* fr_ternary_sweep_v1 */
+
+/* fr_batch4b_v1 */

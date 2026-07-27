@@ -18,7 +18,7 @@ function directVideo(bashoId, day, myJa, oppJa) {
 }
 
 import { useLang } from './LangProvider'
-import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 */
+import { displayName, displayRank, currentBashoId, bashoInfo, BASHO_LIST, bashoStatus, prevBashoIdOf } from '../lib/bashoCalendar' /* rikishi_basho_selector_v1 hist_live_effbasho_v1 */
 import RikishiTopTable from './RikishiTopTable' /* rikishi_top_table_v1 */
 import FavStar from './FavStar' /* favorites_v1 */
 import VoteButton from './VoteButton' /* votes_v1 */
@@ -232,21 +232,22 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 <div style={tLbl}>{t3(lang, 'Вік', 'Age', '年齢', 'Âge')}</div>
                 <div style={tVal}>{bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳', 'ans')}` : '—') : '…'}</div>
               </div>
-              <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho')}</div>
-                {(bio?.stats?.yusho || 0) > 0 ? (
-                  <>
-                    <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',marginBottom:4}}>
-                      {Array.from({length: Math.min(bio.stats.yusho, 6)}).map((_,i) => (<span key={i} style={{fontSize:'0.8rem'}}>{'🏆'}</span>))}
-                      <span style={{fontFamily:'monospace',fontSize:'0.62rem',color:'#b8860b',marginLeft:2}}>{bio.stats.yusho}{'×'}</span>
-                    </div>
-                    <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                      {Object.entries(bio.stats.yushoByDivision || {}).filter(([, c]) => c > 0).map(([division, count]) => (
+              <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>{/* bio_tiles_split_v3 */}
+                {/* bio_tiles_split_v2: yak Rang/Naivyshchyi */}
+                  <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                    <div style={tLbl}>{t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho')}</div>
+                    {(bio?.stats?.yusho || 0) > 0
+                      ? <div style={{display:'flex',alignItems:'center',gap:4,justifyContent:'center'}}><span style={{fontSize:'1rem'}}>{'🏆'}</span><span style={{fontFamily:'monospace',fontSize:'0.9rem',fontWeight:700,color:'#b8860b'}}>{bio.stats.yusho}{'×'}</span></div>
+                      : <div style={tVal}>{'—'}</div>}
+                  </div>
+                  <div style={{padding:'0.5rem 0.4rem',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                    <div style={tLbl}>{t3(lang, 'Дивізіони', 'Divisions', '階級', 'Divisions')}</div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(3, auto)',gridAutoFlow:'column',gap:3,justifyItems:'start',width:'100%'}}>{/* bio_divs_grid_v1 */}
+                      {(bio?.stats?.yusho || 0) > 0 ? Object.entries(bio.stats.yushoByDivision || {}).filter(([, c]) => c > 0).map(([division, count]) => (
                         <span key={division} style={{fontFamily:'monospace',fontSize:'0.55rem',background: division === 'Makuuchi' ? 'rgba(184,134,11,0.15)' : 'var(--bg)',border:'1px solid var(--border)',color: division === 'Makuuchi' ? '#b8860b' : 'var(--mid)',padding:'1px 5px',borderRadius:2}}>{lang === 'ja' ? (DIVISION_JA[division] || division) : division} {count}{'×'}</span>
-                      ))}
+                      )) : <div style={tVal}>{'—'}</div>}
                     </div>
-                  </>
-                ) : <div style={tVal}>{'—'}</div>}
+                                  </div>
               </div>
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Дебют', 'Debut', '初土俵', 'Débuts')}</div>
@@ -257,15 +258,24 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 <div style={tLbl}>{t3(lang, 'Зріст', 'Height', '身長', 'Taille')}</div>
                 <div style={tVal}>{bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm', 'cm')}` : '—') : '…'}</div>
               </div>
-              <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Санко', 'Sansho', '三賞', 'Sansho')}</div>
-                {sanshoList.length > 0 ? (
-                  <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
-                    {sanshoList.map(([name, count]) => (
-                      <span key={name} style={{fontFamily:'monospace',fontSize:'0.55rem',background:'var(--bg)',border:'1px solid var(--border)',padding:'1px 5px',borderRadius:2,color:'var(--mid)'}}>{lang === 'ja' ? (SANSHO_JA[name] || name) : lang === 'uk' ? ukrName(name) : name} {count}{'×'}</span>
-                    ))}
+              <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>{/* bio_tiles_split_v3 */}
+                {/* bio_tiles_split_v2 */}
+                  <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                    <div style={tLbl}>{t3(lang, 'Санкьо', 'Sansho', '三賞', 'Sansho')}</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:3,alignItems:'center'}}>
+                      {sanshoList.length > 0 ? sanshoList.map(([name, count]) => (
+                        <span key={name} style={{fontFamily:'monospace',fontSize:'0.55rem',background:'var(--bg)',border:'1px solid var(--border)',padding:'1px 5px',borderRadius:2,color:'var(--mid)'}}>{lang === 'ja' ? (SANSHO_JA[name] || name) : lang === 'uk' ? ukrName(name) : name} {count}{'×'}</span>
+                      )) : <div style={tVal}>{'—'}</div>}
+                    </div>
                   </div>
-                ) : <div style={tVal}>{'—'}</div>}
+                  <div style={{padding:'0.5rem 0.4rem',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                    <div style={tLbl}>{t3(lang, 'Кінбоші', 'Kinboshi', '金星', 'Kinboshi')}</div>
+                    <div style={{textAlign:'center'}}>
+                      {(bio?.stats?.kinboshi || 0) > 0
+                        ? <span style={{fontFamily:'monospace',fontSize:'0.85rem',color:'#b8860b',fontWeight:700}}>{'★'}{bio.stats.kinboshi}</span>
+                        : <span style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>{'—'}</span>}
+                    </div>
+                                  </div>
               </div>
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Стайня', 'Stable', '部屋', 'Écurie (heya)')}</div>
@@ -282,7 +292,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
       {/* Кар'єрна статистика */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        {lang === 'ja' ? '通算成績' : lang === 'en' ? 'Career statistics' : "Кар'єрна статистика"}
+        {lang === 'ja' ? '通算成績' : lang === 'en' ? 'Career statistics' : lang === 'fr' ? 'Statistiques de carrière' : "Кар'єрна статистика"}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
@@ -297,7 +307,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
           <div style={{fontSize:'0.7rem',color:'var(--mid)',marginBottom:4}}>
-            {lang === 'ja' ? '通算合計' : lang === 'en' ? 'Career total' : "Кар'єра загалом"}
+            {lang === 'ja' ? '通算合計' : lang === 'en' ? 'Career total' : lang === 'fr' ? 'Carrière totale' : "Кар'єра загалом"}
           </div>
           <div style={{fontFamily:'monospace',fontSize:'1.1rem',fontWeight:700,marginBottom:6}}>
             {bio ? `${bio.stats?.totalWins||0}–${bio.stats?.totalLosses||0}` : '…'}
@@ -311,7 +321,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        <BashoHistoryPicker hist={rikHistory?.[String(r.id)] || []} value={selBasho} onChange={setSelBasho} lang={lang} current={{ b: currentBashoId(), w: r.wins, l: r.losses, r: r.rank }} />  {/* history_picker_wire_v1 */}{pastLoading && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>...</span>}  {/* history_tail_v2 */}
+        <BashoHistoryPicker hist={rikHistory?.[String(r.id)] || []} value={selBasho} onChange={setSelBasho} lang={lang} current={{ b: bashoStatus(currentBashoId()) === 'upcoming' ? prevBashoIdOf(currentBashoId()) : currentBashoId(), w: r.wins, l: r.losses, r: r.rank }} /* hist_live_effbasho_v1: konventsiia 12 - mizhsezonnia */ />  {/* history_picker_wire_v1 */}{pastLoading && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>...</span>}  {/* history_tail_v2 */}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {regularMatches.map(m => {
@@ -341,7 +351,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
                   opacity: isFusen ? 0.5 : 1,
                 }} />
                 <span style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>
-                  {lang === 'ja' ? `${m.day}日目` : (lang === 'en' ? `Day ${m.day}` : `День ${m.day}`)}
+                  {lang === 'ja' ? `${m.day}日目` : (lang === 'en' ? `Day ${m.day}` : lang === 'fr' ? `Jour ${m.day}` : `День ${m.day}`)}
                 </span>
               </div>
               {m.opponent ? (
@@ -481,7 +491,7 @@ export default function RikishiPageClient() {
     <main style={{fontFamily:"'Noto Sans JP',sans-serif",background:'var(--bg)',minHeight:'100vh',color:'var(--ink)'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'2rem 1.5rem 4rem'}}>
         <div style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.5rem'}}>
-          {(lang === 'ja' ? '力士 — ' : lang === 'en' ? 'Rikishi — ' : 'Рікіші — ') + bashoInfo(currentBashoId()).label[lang]}
+          {(lang === 'ja' ? '力士 — ' : lang === 'en' || lang === 'fr' ? 'Rikishi — ' : 'Рікіші — ') + bashoInfo(currentBashoId()).label[lang]}
         </div>
 
         <div style={{display:'flex',gap:8,marginBottom:'1.2rem'}}>

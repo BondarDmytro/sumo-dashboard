@@ -83,35 +83,35 @@ export default function PickemBoard({ bashoId, currentDay, myUid, open, onClose,
   }
   const myIdx = rows.findIndex(r => r.me)
   const shown = rows.slice(0, 10)
-  const guest = (uid) => t3(lang, '\u0413\u0456\u0441\u0442\u044c', 'Guest', '\u30b2\u30b9\u30c8') + '-' + String(uid).replace(/-/g, '').slice(-4).toUpperCase()  /* pickem_guest_i18n_v1 */
+  const guest = (uid) => t3(lang, '\u0413\u0456\u0441\u0442\u044c', 'Guest', '\u30b2\u30b9\u30c8', 'Invité') + '-' + String(uid).replace(/-/g, '').slice(-4).toUpperCase()  /* pickem_guest_i18n_v1 */
   const pct = (h, t) => t > 0 ? Math.round(h / t * 100) + '%' : '\u2014'  /* pickem_pct_v1 */
 
   const card = (
       <div onClick={e => e.stopPropagation()} style={{background:'var(--card)',border:'1px solid rgba(184,134,11,0.4)',borderRadius:6,width: inline ? '100%' : 'min(440px, 100%)',maxWidth: inline ? 520 : undefined,maxHeight: inline ? undefined : '80vh',display:'flex',flexDirection:'column',boxShadow: inline ? 'none' : '0 16px 48px rgba(0,0,0,0.4)'}}>
         <div style={{display:'flex',alignItems:'center',padding:'12px 16px',borderBottom:'1px solid var(--border)'}}>
           <div style={{flex:1,fontFamily:'monospace',fontSize:'0.78rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'var(--ink)',fontWeight:700}}>
-            🎯 {t3(lang, 'Прогноз-челендж', 'Pick challenge', '予想チャレンジ')}
+            🎯 {t3(lang, 'Прогноз-челендж', 'Pick challenge', '予想チャレンジ', 'Défi pronostics')}
           </div>
           {!inline && <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:18,color:'var(--mid)',padding:4}}>{'\u2715'}</button>}
         </div>
         <div style={{display:'flex',gap:6,alignItems:'center',padding:'10px 16px 0',fontFamily:'monospace'}}>{/* pickem_nicks_v1 */}
           <input value={nickDraft} onChange={e => setNickDraft(e.target.value)} maxLength={20}
-            placeholder={t3(lang, 'Твоє ім\u2019я в лідерборді', 'Your leaderboard name', 'ランキング表示名')}
+            placeholder={t3(lang, 'Твоє ім\u2019я в лідерборді', 'Your leaderboard name', 'ランキング表示名', 'Votre nom au classement')}
             style={{flex:1,padding:'6px 10px',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)',fontFamily:'monospace',fontSize:'0.72rem',outline:'none'}} />
           <button onClick={saveNick} disabled={!myUid || !nickDraft.trim()}
             style={{padding:'6px 12px',fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.05em',cursor:'pointer',borderRadius:2,border:'1px solid rgba(184,134,11,0.5)',background: nickSaved ? '#1a6b5c' : '#8a6a00',color:'#fff'}}>
-            {nickSaved ? '\u2713' : t3(lang, 'Зберегти', 'Save', '保存')}
+            {nickSaved ? '\u2713' : t3(lang, 'Зберегти', 'Save', '保存', 'Enregistrer')}
           </button>
         </div>
         <div style={{overflowY:'auto',padding:'10px 16px 16px',fontFamily:'monospace',fontSize:'0.72rem'}}>
-          {(!allDays || !winners) && <div style={{padding:20,textAlign:'center',color:'var(--mid)'}}>{t3(lang, 'Завантаження...', 'Loading...', '読み込み中...')}</div>}
-          {allDays && winners && !rows.length && <div style={{padding:20,textAlign:'center',color:'var(--mid)'}}>{t3(lang, 'Ще нема зафіксованих прогнозів', 'No picks locked yet', 'まだ予想がありません')}</div>}
+          {(!allDays || !winners) && <div style={{padding:20,textAlign:'center',color:'var(--mid)'}}>{t3(lang, 'Завантаження...', 'Loading...', '読み込み中...', 'Chargement...')}</div>}
+          {allDays && winners && !rows.length && <div style={{padding:20,textAlign:'center',color:'var(--mid)'}}>{t3(lang, 'Ще нема зафіксованих прогнозів', 'No picks locked yet', 'まだ予想がありません', 'Aucun pronostic validé pour l\u2019instant')}</div>}
           {rows.length > 0 && (
             <>
               {shown.map((r, i) => (
                 <div key={r.uid} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 6px',borderBottom:'1px solid var(--border)',background: r.me ? 'rgba(184,134,11,0.12)' : 'transparent',borderRadius:2}}>
                   <span style={{width:24,color: i === 0 ? '#b8860b' : 'var(--mid)',fontWeight: i === 0 ? 800 : 400}}>{i + 1}.</span>
-                  <span style={{flex:1,fontWeight: r.me ? 800 : 500,color:'var(--ink)'}}>{r.me ? '\u2605 ' + (nicks[myUid] || t3(lang, 'ти', 'you', 'あなた')) : (nicks[r.uid] || guest(r.uid))}</span>
+                  <span style={{flex:1,fontWeight: r.me ? 800 : 500,color:'var(--ink)'}}>{r.me ? '\u2605 ' + (nicks[myUid] || t3(lang, 'ти', 'you', 'あなた', 'vous')) : (nicks[r.uid] || guest(r.uid))}</span>
                   <span style={{color:'#b8860b',fontWeight:700}}>{r.hits}/{r.total}</span>
                   <span style={{width:44,textAlign:'right',color:'var(--mid)',fontSize:'0.66rem'}}>{pct(r.hits, r.total)}</span>
                 </div>
@@ -119,7 +119,7 @@ export default function PickemBoard({ bashoId, currentDay, myUid, open, onClose,
               {myIdx >= 10 && (
                 <div style={{display:'flex',alignItems:'center',gap:8,padding:'5px 6px',marginTop:6,background:'rgba(184,134,11,0.12)',borderRadius:2}}>
                   <span style={{width:24,color:'var(--mid)'}}>{myIdx + 1}.</span>
-                  <span style={{flex:1,fontWeight:800,color:'var(--ink)'}}>{'\u2605 '}{nicks[myUid] || t3(lang, 'ти', 'you', 'あなた')}</span>
+                  <span style={{flex:1,fontWeight:800,color:'var(--ink)'}}>{'\u2605 '}{nicks[myUid] || t3(lang, 'ти', 'you', 'あなた', 'vous')}</span>
                   <span style={{color:'#b8860b',fontWeight:700}}>{rows[myIdx].hits}/{rows[myIdx].total}</span>
                   <span style={{width:44,textAlign:'right',color:'var(--mid)',fontSize:'0.66rem'}}>{pct(rows[myIdx].hits, rows[myIdx].total)}</span>
                 </div>
@@ -127,13 +127,13 @@ export default function PickemBoard({ bashoId, currentDay, myUid, open, onClose,
               {crowd.total > 0 && (
                 <div style={{display:'flex',alignItems:'center',gap:8,padding:'5px 6px',marginTop:6,borderTop:'1px dashed var(--border)',color:'var(--mid)',fontStyle:'italic'}}>
                   <span style={{width:24}}>{'\ud83e\udd1d'}</span>
-                  <span style={{flex:1}}>{t3(lang, 'Народ (консенсус)', 'The crowd (consensus)', 'みんなの予想')}</span>
+                  <span style={{flex:1}}>{t3(lang, 'Народ (консенсус)', 'The crowd (consensus)', 'みんなの予想', 'La foule (consensus)')}</span>
                   <span style={{fontWeight:700}}>{crowd.hits}/{crowd.total}</span>
                   <span style={{width:44,textAlign:'right',fontSize:'0.66rem'}}>{pct(crowd.hits, crowd.total)}</span>
                 </div>
               )}
               <div style={{marginTop:10,color:'var(--mid)',fontSize:'0.62rem',textAlign:'center'}}>
-                {t3(lang, 'Гравців', 'Players', '参加者')}: {rows.length} · {t3(lang, 'день', 'day', '日目')} {currentDay}/15
+                {t3(lang, 'Гравців', 'Players', '参加者', 'Joueurs')}: {rows.length} · {t3(lang, 'день', 'day', '日目', 'jour')} {currentDay}/15
               </div>
             </>
           )}
@@ -147,3 +147,5 @@ export default function PickemBoard({ bashoId, currentDay, myUid, open, onClose,
     </div>
   )
 }
+
+/* fr_batch4_pb_v1 */

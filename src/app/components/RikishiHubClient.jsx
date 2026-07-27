@@ -20,7 +20,7 @@ export default function RikishiHubClient({ id }) {
   }, [])
   if (!data) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)'}}>
-      {t3(lang, 'Завантаження даних турніру...', 'Loading tournament data...', '読み込み中...')}
+      {t3(lang, 'Завантаження даних турніру...', 'Loading tournament data...', '読み込み中...', 'Chargement des données du tournoi...')}
     </div>
   )
   const r = data?.rikishi?.find(x => String(x.id) === String(id) || String(x._id) === String(id))
@@ -33,3 +33,5 @@ export default function RikishiHubClient({ id }) {
     </div>
   )
 }
+
+/* fr_batch4b_v1 */
