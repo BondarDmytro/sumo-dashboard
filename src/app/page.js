@@ -25,7 +25,8 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export default async function Home() {
   const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
   const juryoData = await getBashoData('Juryo').catch(() => null)  /* top5_juryo_v1 */
-  let champions = null  /* champions_hero_v1+v3 champions_prev_basho_v1 */
+  let champions = null
+  let sansho = (specialPrizes || []).length ? specialPrizes : null  /* sansho_hero_v1 */  /* champions_hero_v1+v3 champions_prev_basho_v1 */
   const curId = currentBashoId()
   const champBashoId = bashoStatus(curId) === 'upcoming' ? prevBashoIdOf(curId) : null
   try {  /* champions_safe_v1: fetch-fail ne valyt bild */
@@ -40,6 +41,7 @@ export default async function Home() {
       return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses, po: Boolean(packs[i]?.playoff) } : null
     }).filter(Boolean)  /* champions_po_mark_v1 */
     if (!champions.length) champions = null
+    if (champBashoId && packs[0] && (packs[0].specialPrizes || []).length) sansho = packs[0].specialPrizes  /* sansho_hero_v1 */
   }
   } catch (e) { champions = null }
   const contenders = rikishi.filter(r => !r.kyujo)
@@ -64,6 +66,7 @@ export default async function Home() {
         hasPlayoff={hasPlayoff}
         isFinished={isFinished}
         champions={champions}
+        sansho={sansho}  /* sansho_hero_v1 */
       />
 
       {/* ticker_layout_v1: VoteTicker pereikhav u layout */}

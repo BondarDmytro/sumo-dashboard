@@ -20,7 +20,7 @@ function t3(lang, uk, en, ja) {
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [], champions = null }) {  /* basho_filter_v2 */  /* header_v3 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [], champions = null, sansho = null }) {  /* basho_filter_v2 */  /* header_v3 */  /* sansho_hero_v1 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -40,9 +40,10 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
   const { lang } = useLang()
   const { selBasho } = useBashoFilter()  /* champions_filter_v1 */
   const [champsView, setChampsView] = useState(null)
+  const [sanshoView, setSanshoView] = useState(null)  /* sansho_hero_v1 */
   useEffect(() => {
     const base = curBashoIdFn()
-    if (!selBasho || selBasho === base || bashoStatusFn(selBasho) !== 'finished') { setChampsView(null); return }
+    if (!selBasho || selBasho === base || bashoStatusFn(selBasho) !== 'finished') { setChampsView(null); setSanshoView(null); return }  /* sansho_hero_v1 */
     let alive = true
     const divs = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
     Promise.all(divs.map(d => fetch(`/api/basho-division?division=${d}&basho=${selBasho}`).then(r => r.json()).catch(() => null)))
@@ -53,10 +54,13 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
           return w ? { division: d, id: String(w._id ?? w.id ?? ''), name: w.name, nameJp: w.nameJp || null, wins: w.wins, losses: w.losses, po: Boolean(packs[i]?.playoff) } : null
         }).filter(Boolean)
         setChampsView(list.length ? list : null)
+        setSanshoView((packs[0]?.specialPrizes || []).length ? packs[0].specialPrizes : null)  /* sansho_hero_v1 */
       })
     return () => { alive = false }
   }, [selBasho])
   const champsEff = champsView || champions
+  const sanshoEff = sanshoView || sansho  /* sansho_hero_v1 */
+  const SANSHO_UK = { 'Shukun-sho': { uk: '\u0428\u044E\u043A\u0443\u043D-\u0448\u043E', en: 'Shukun-sho', ja: '\u6B8A\u52F2\u8CDE' }, 'Kanto-sho': { uk: '\u041A\u0430\u043D\u0442\u043E-\u0448\u043E', en: 'Kanto-sho', ja: '\u6562\u95D8\u8CDE' }, 'Gino-sho': { uk: '\u0413\u0456\u043D\u043E-\u0448\u043E', en: 'Gino-sho', ja: '\u6280\u80FD\u8CDE' } }
   const router = useRouter()
   useEffect(() => {  /* refresh_gate_v1: 60s u vikni boiv (08:00-18:45 JST), 600s poza - ne palymo Vercel unochi */
     if (isFinished) return
@@ -153,6 +157,17 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
               </div>
             ))}
             <MyRikishi />
+            {(sanshoEff && sanshoEff.length > 0) && (  /* sansho_hero_v1 */
+              <>
+                <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',marginTop:12,marginBottom:10}}>{String.fromCodePoint(0x1F3C5)} {t3(lang, '\u0421\u0430\u043D\u043A\u044C\u043E', 'Sansho', '\u4E09\u8CDE')}</div>
+                {sanshoEff.map((p, i) => (
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.78rem'}}>
+                    <span style={{color:'#6b6560',fontSize:'0.58rem',minWidth:76,textTransform:'uppercase',letterSpacing:'0.05em'}}>{(SANSHO_UK[p.type] ? t3(lang, SANSHO_UK[p.type].uk, SANSHO_UK[p.type].en, SANSHO_UK[p.type].ja) : p.type)}</span>
+                    <span style={{color:'#f5f0e8',fontWeight:800,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',minWidth:0}}><RikishiLink id={String(p.rikishiId)} style={{borderBottomColor:'rgba(245,240,232,0.35)'}}>{lang === 'ja' && p.shikonaJp ? p.shikonaJp.split(/\s/)[0] : lang === 'uk' ? ukrName(p.shikonaEn) : p.shikonaEn}</RikishiLink></span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         )}
         {!isFinished && top3.length > 0 && !(champions && champions.length > 0) && (  /* champions_hero_v4 */
