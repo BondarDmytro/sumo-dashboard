@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v4 */
 /* dohyo_rating_tab_v1: tablytsia vsikh rikishi za Dohyo OVR */
 import { useState, useMemo, useEffect } from 'react'
 import { useLang } from './LangProvider'
@@ -81,7 +82,7 @@ export default function DohyoRating() {
     return joined
   }, [div, sortBy, sortDir])
 
-  const dName = (m) => lang === 'ja' ? String(m.nameJp || m.name).split('\u3000')[0].split('(')[0] : m.name
+  const dName = (m) => lang === 'ja' ? String(m.nameJp || m.name).split('\u3000')[0].split('(')[0] : lang === 'uk' ? ukrName(m.name) : m.name  /* ukr_names_v4 */
 
   return (
     <div style={{marginTop:'1rem'}}>

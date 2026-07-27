@@ -1,4 +1,5 @@
 'use client'
+import { ukrName, ukrDivision } from '../lib/translit'  /* ukr_names_v4 */
 /* rikishi_compare_v1: porivniannia dvokh rikishi - bio, kariera, forma, h2h */
 import { useEffect, useState, useMemo, useRef } from 'react' /* compare_anim_v1 */
 import { useLang } from './LangProvider'
@@ -92,7 +93,7 @@ function Avatar({ m, tall, mirror, big }) {  /* compare_v14 compare_mobile_v1 */
     </span>
   )
 }
-const dispName = (m, lang) => lang === 'ja' && m?.nameJp ? trimJp(m.nameJp) : (m?.name || '')
+const dispName = (m, lang) => lang === 'ja' && m?.nameJp ? trimJp(m.nameJp) : lang === 'uk' ? ukrName(m?.name || '') : (m?.name || '')  /* ukr_names_v4 */
 const ageOf = (bd) => bd ? Math.floor((Date.now() - new Date(bd)) / (365.25 * 24 * 3600 * 1000)) : null
 
 function BashoMini({ hist, cur, dimNonMak, lang }) {  /* compare_v13 compare_scope_last9_v1 */
@@ -216,7 +217,7 @@ export default function RikishiCompare() {
             placeholder={t3(lang, 'Пошук рікіші...', 'Search rikishi...', '力士を検索...')}
             style={{flex:1,fontFamily:'monospace',fontSize:'0.72rem',padding:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',borderRadius:2,minWidth:0}} />
           <select value={div} onChange={e => { setDiv(e.target.value); setOpen(true) }} style={{fontFamily:'monospace',fontSize:'0.66rem',padding:'0.5rem 0.3rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:2}}>
-            {DIVS.map(d => <option key={d} value={d}>{d || t3(lang, 'всі', 'all', '全て')}</option>)}
+            {DIVS.map(d => <option key={d} value={d}>{d ? (lang === 'uk' ? ukrDivision(d) : d) : t3(lang, 'всі', 'all', '全て')}</option>)}
           </select>
         </div>
         {open && hits.length > 0 && (
@@ -238,8 +239,8 @@ export default function RikishiCompare() {
     return m?.matches ? Math.round((m.wins / m.matches) * 100) : null
   }
   const rows = (r1 && r2) ? [
-    { l: t3(lang, 'Ранг', 'Rank', '番付'), v: m => lang === 'ja' ? displayRank(m.rank, 'ja') : (m.rank || '—'), cmp: null },
-    { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位'), v: m => lang === 'ja' ? displayRank(m.hiRank, 'ja') : (m.hiRank || '—'), cmp: m => -(m.hiVal || 9999) },
+    { l: t3(lang, 'Ранг', 'Rank', '番付'), v: m => m.rank ? displayRank(m.rank, lang) : '—', cmp: null },  /* ukr_ranks_v2 */
+    { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位'), v: m => m.hiRank ? displayRank(m.hiRank, lang) : '—', cmp: m => -(m.hiVal || 9999) },
     { l: t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング'),  /* dohyo_rating_wire_v1 */ v: m => {
         const e = eloData.ratings[String(m.id)]
         if (e === undefined || e.bouts === 0) return '—'

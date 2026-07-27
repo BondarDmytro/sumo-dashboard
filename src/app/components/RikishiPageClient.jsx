@@ -1,5 +1,6 @@
 /* auto_current_v3 */
-'use client' /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
+'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v4 */ /* ja_gaps_v1  kanji_names_v2 */ /* ja_batch3 */ /* ja_batch2_t */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { HEYA_JA } from '../lib/heyaJa' /* heya_ja_lib_v1 */
 import HeyaLink from './HeyaLink'  /* heya_links_v1 */
@@ -261,7 +262,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 {sanshoList.length > 0 ? (
                   <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                     {sanshoList.map(([name, count]) => (
-                      <span key={name} style={{fontFamily:'monospace',fontSize:'0.55rem',background:'var(--bg)',border:'1px solid var(--border)',padding:'1px 5px',borderRadius:2,color:'var(--mid)'}}>{lang === 'ja' ? (SANSHO_JA[name] || name) : name} {count}{'×'}</span>
+                      <span key={name} style={{fontFamily:'monospace',fontSize:'0.55rem',background:'var(--bg)',border:'1px solid var(--border)',padding:'1px 5px',borderRadius:2,color:'var(--mid)'}}>{lang === 'ja' ? (SANSHO_JA[name] || name) : lang === 'uk' ? ukrName(name) : name} {count}{'×'}</span>
                     ))}
                   </div>
                 ) : <div style={tVal}>{'—'}</div>}
