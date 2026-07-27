@@ -68,7 +68,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
     const isYusho = yushoWinnerId && String(yushoWinnerId) === r._id
     if (isYusho) {
       total += PRIZE_YUSHO
-      breakdown.push({ label: t3(lang, 'Юшо', 'Yusho', '優勝'), amount: PRIZE_YUSHO, color: '#b8860b' })
+      breakdown.push({ label: t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho'), amount: PRIZE_YUSHO, color: '#b8860b' })
     }
 
     // Санко-шо
@@ -88,13 +88,13 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       const winsAmount = r.wins * PRIZE_PER_WIN
       total += winsAmount
       breakdown.push({
-        label: lang === 'ja' ? `${r.wins}勝 × ¥70,000` : lang === 'en' ? `${r.wins} wins × ¥70,000` : `${r.wins} перемог × ¥70,000`,
+        label: lang === 'ja' ? `${r.wins}勝 × ¥70,000` : lang === 'en' ? `${r.wins} wins × ¥70,000` : lang === 'fr' ? `${r.wins} victoires × ¥70,000` : `${r.wins} перемог × ¥70,000`,  /* fr_pm_extras_v1 */
         amount: winsAmount,
         color: '#1a6b5c'
       })
     }
 
-    return { ...r, total, breakdown, flag: bios[r._id]?.country?.flag || '🇯🇵' }
+    return { ...r, total, breakdown, flag: (bios[r._id] || bios[r.id] || bios[String(r._id ?? r.id)])?.country?.flag || '🇯🇵'  /* pm_flag_id_v1 */ }
   })
   .filter(r => r.total > 0)
   .sort((a, b) => b.total - a.total)
@@ -108,12 +108,12 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
         {lang === 'en'
           ? 'Tournament prize money. Includes yusho prize (¥10M), special prizes (¥2M each), and ¥70,000 per win.'
           : lang === 'ja' ? '場所の賞金。優勝賞金（¥10M）、三賞（各¥2M）、勝利給（1勝¥70,000）を含む。'  /* ja_gaps_v3 */
-          : 'Призові за турнір. Включає приз юшо (¥10M), спеціальні призи (¥2M кожен) та ¥70,000 за кожну перемогу.'}
+          : lang === 'fr' ? 'Gains du tournoi. Comprend le prix du yusho (¥10M), les prix spéciaux (¥2M chacun) et ¥70 000 par victoire.' : 'Призові за турнір. Включає приз юшо (¥10M), спеціальні призи (¥2M кожен) та ¥70,000 за кожну перемогу.'}
       </div>
 
       {!isFinished && (
         <div style={{background:'rgba(184,134,11,0.1)',border:'1px solid rgba(184,134,11,0.3)',padding:'0.5rem 1rem',borderRadius:2,marginBottom:'1rem',fontFamily:'monospace',fontSize:'0.68rem',color:'#b8860b'}}>
-          {t3(lang, '⚡ Турнір триває — призові розраховані на основі поточних результатів', '⚡ Tournament in progress — prizes estimated on current results', '⚡ 場所開催中 — 賞金は現時点の成績による推定')}
+          {t3(lang, '⚡ Турнір триває — призові розраховані на основі поточних результатів', '⚡ Tournament in progress — prizes estimated on current results', '⚡ 場所開催中 — 賞金は現時点の成績による推定', '⚡ Tournoi en cours — gains estimés sur les résultats actuels')}
         </div>
       )}
 
@@ -122,16 +122,16 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
           <div style={{display:'grid',gridTemplateColumns:gridCols,gap:6,padding:'0.35rem 0.6rem' /* pm_cols_tune_v2 */,borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.56rem',letterSpacing:'0.08em',textTransform:'uppercase',color:'var(--mid)'}}>{/* pm_headers_v1 */}
             <div style={{textAlign:'center'}}>#</div>
             <div />
-            <div>{t3(lang, 'Рікіші', 'Rikishi', '力士')}</div>
-            <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>
-            <div style={{textAlign:'center'}}>{t3(lang, 'Бал', 'Score', '点')}</div>
-            <div>{t3(lang, 'Складові', 'Breakdown', '内訳')}</div>
-            <div style={{textAlign:'center'}}>{t3(lang, 'В–П', 'W–L', '成績')}</div>
-            <div style={{textAlign:'right'}}>{t3(lang, 'Призові', 'Prize', '賞金')}</div>
-            <div style={{textAlign:'right'}}>{t3(lang, 'USD', 'USD', '米ドル')}</div>{/* pm_career_usd_v1 */}
+            <div>{t3(lang, 'Рікіші', 'Rikishi', '力士', 'Rikishi')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'Ранг', 'Rank', '番付', 'Rang')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'Бал', 'Score', '点', 'Cote')}</div>
+            <div>{t3(lang, 'Складові', 'Breakdown', '内訳', 'Détail')}</div>
+            <div style={{textAlign:'center'}}>{t3(lang, 'В–П', 'W–L', '成績', 'V–D')}</div>
+            <div style={{textAlign:'right'}}>{t3(lang, 'Призові', 'Prize', '賞金', 'Gains')}</div>
+            <div style={{textAlign:'right'}}>{t3(lang, 'USD', 'USD', '米ドル', 'USD')}</div>{/* pm_career_usd_v1 */}
             <div />
-            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'Кар\u2019єра', 'Career', '生涯')}</div>
-            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'USD', 'USD', '米ドル')}</div>
+            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'Кар\u2019єра', 'Career', '生涯', 'Carrière')}</div>
+            <div style={{textAlign:'right'}}>{'\u03a3 '}{t3(lang, 'USD', 'USD', '米ドル', 'USD')}</div>
           </div>
         )}
         {prizes.map((r, i) => (
@@ -172,7 +172,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
               </div>
             </>)}
             {!isMobile && (<>
-              <div title={t3(lang, 'Оцінка призових за кар\u2019єру: перемоги + юшо', 'Career prize estimate: wins + yusho', '生涯賞金の推定：勝利数＋優勝')} style={{textAlign:'right',whiteSpace:'nowrap',fontFamily:'Georgia,serif',fontSize:'1.05rem',fontWeight:700,color:'#b8860b'}}>{/* pm_career_usd_col_v1 */}
+              <div title={t3(lang, 'Оцінка призових за кар\u2019єру: перемоги + юшо', 'Career prize estimate: wins + yusho', '生涯賞金の推定：勝利数＋優勝', 'Estimation des gains de carrière : victoires + yusho')} style={{textAlign:'right',whiteSpace:'nowrap',fontFamily:'Georgia,serif',fontSize:'1.05rem',fontWeight:700,color:'#b8860b'}}>{/* pm_career_usd_col_v1 */}
                 {formatYenShort(CAREER[String(r._id)] || 0)}
               </div>
               <div style={{textAlign:'right',whiteSpace:'nowrap',fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>
@@ -193,3 +193,5 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
   )
 }
 /* fr_ternary_sweep_v1 */
+
+/* fr_batch2_pm_v1 */

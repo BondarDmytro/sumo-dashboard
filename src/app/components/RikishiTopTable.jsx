@@ -57,16 +57,16 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
   const divisions = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
 
   const COLS = [
-    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => displayRank(m.rank, lang), sort: m => rankSortValue(m.rank), asc: true, left: true },
-    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank ? displayRank(m.hiRank, lang) : '\u2014', sort: m => m.hiVal || 99999, asc: true, left: true },  /* cols_v2 + hirank_col_v1 */
-    { key: 'winpct', label: t3(lang,'% \u043f\u0435\u0440\u0435\u043c\u043e\u0433','Win %','\u52dd\u7387'), get: m => m.matches ? Math.round(m.wins / m.matches * 100) + '%' : '\u2014', sort: m => m.matches ? m.wins / m.matches : -1 },
-    { key: 'basho', label: t3(lang,'\u0422\u0443\u0440\u043d\u0456\u0440\u0438','Basho','\u5834\u6240'), get: m => m.basho || '\u2014', sort: m => m.basho || 0 },
-    { key: 'debut', label: t3(lang,'\u0414\u0435\u0431\u044e\u0442','Debut','\u521d\u571f\u4ff5'), get: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4,6)}` : '\u2014', sort: m => Number(m.debut) || 0 },
-    { key: 'age', label: t3(lang,'\u0412\u0456\u043a','Age','\u5e74\u9f62'), get: m => ageOf(m.birthDate) ?? '\u2014', sort: m => ageOf(m.birthDate) ?? -1 },
-    { key: 'height', label: t3(lang,'\u0417\u0440\u0456\u0441\u0442','Height','\u8eab\u9577'), get: m => m.height ? `${m.height}` : '\u2014', sort: m => m.height || 0 },
-    { key: 'weight', label: t3(lang,'\u0412\u0430\u0433\u0430','Weight','\u4f53\u91cd'), get: m => m.weight ? `${m.weight}` : '\u2014', sort: m => m.weight || 0 },
-    { key: 'matches', label: t3(lang,'\u041c\u0430\u0442\u0447\u0456','Matches','\u53d6\u7d44'), get: m => m.matches, sort: m => m.matches },
-    { key: 'yusho', label: t3(lang,'\u042e\u0448\u043e','Yusho','\u512a\u52dd'), get: m => m.yusho || '\u2014', sort: m => m.yusho },
+    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8', 'Rang'), get: m => displayRank(m.rank, lang), sort: m => rankSortValue(m.rank), asc: true, left: true },
+    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d', 'Le plus élevé'), get: m => m.hiRank ? displayRank(m.hiRank, lang) : '\u2014', sort: m => m.hiVal || 99999, asc: true, left: true },  /* cols_v2 + hirank_col_v1 */
+    { key: 'winpct', label: t3(lang,'% \u043f\u0435\u0440\u0435\u043c\u043e\u0433','Win %','\u52dd\u7387', '% victoires'), get: m => m.matches ? Math.round(m.wins / m.matches * 100) + '%' : '\u2014', sort: m => m.matches ? m.wins / m.matches : -1 },
+    { key: 'basho', label: t3(lang,'\u0422\u0443\u0440\u043d\u0456\u0440\u0438','Basho','\u5834\u6240', 'Basho'), get: m => m.basho || '\u2014', sort: m => m.basho || 0 },
+    { key: 'debut', label: t3(lang,'\u0414\u0435\u0431\u044e\u0442','Debut','\u521d\u571f\u4ff5', 'Débuts'), get: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4,6)}` : '\u2014', sort: m => Number(m.debut) || 0 },
+    { key: 'age', label: t3(lang,'\u0412\u0456\u043a','Age','\u5e74\u9f62', 'Âge'), get: m => ageOf(m.birthDate) ?? '\u2014', sort: m => ageOf(m.birthDate) ?? -1 },
+    { key: 'height', label: t3(lang,'\u0417\u0440\u0456\u0441\u0442','Height','\u8eab\u9577', 'Taille'), get: m => m.height ? `${m.height}` : '\u2014', sort: m => m.height || 0 },
+    { key: 'weight', label: t3(lang,'\u0412\u0430\u0433\u0430','Weight','\u4f53\u91cd', 'Poids'), get: m => m.weight ? `${m.weight}` : '\u2014', sort: m => m.weight || 0 },
+    { key: 'matches', label: t3(lang,'\u041c\u0430\u0442\u0447\u0456','Matches','\u53d6\u7d44', 'Combats'), get: m => m.matches, sort: m => m.matches },
+    { key: 'yusho', label: t3(lang,'\u042e\u0448\u043e','Yusho','\u512a\u52dd', 'Yusho'), get: m => m.yusho || '\u2014', sort: m => m.yusho },
   ]
 
   const rows = useMemo(() => {
@@ -84,11 +84,11 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
   return (
     <div style={{marginTop:'2rem'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1rem'}}>{/* toggle_btn_v2 */}
-        <span>{t3(lang, '\u0422\u043e\u043f \u0440\u0456\u043a\u0456\u0448\u0456', 'Top rikishi', '\u529b\u58eb\u30e9\u30f3\u30ad\u30f3\u30b0')}</span>
+        <span>{t3(lang, '\u0422\u043e\u043f \u0440\u0456\u043a\u0456\u0448\u0456', 'Top rikishi', '\u529b\u58eb\u30e9\u30f3\u30ad\u30f3\u30b0', 'Top rikishi')}</span>
         <button onClick={() => setOpen(o => !o)} style={{fontFamily:'monospace',fontSize:'0.62rem',padding:'0.3rem 0.8rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',cursor:'pointer',borderRadius:2,letterSpacing:'normal',textTransform:'none'}}>
           {open
-            ? t3(lang,'\u0417\u0433\u043e\u0440\u043d\u0443\u0442\u0438','Show less','\u9589\u3058\u308b') + ' \u25b4'
-            : t3(lang,'\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u0438 \u0431\u0456\u043b\u044c\u0448\u0435','Show more','\u3082\u3063\u3068\u898b\u308b') + ' \u25be'}
+            ? t3(lang,'\u0417\u0433\u043e\u0440\u043d\u0443\u0442\u0438','Show less','\u9589\u3058\u308b', 'Réduire') + ' \u25b4'
+            : t3(lang,'\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u0438 \u0431\u0456\u043b\u044c\u0448\u0435','Show more','\u3082\u3063\u3068\u898b\u308b', 'Voir plus') + ' \u25be'}
         </button>
       </div>
       {(
@@ -101,15 +101,15 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
                 style={{...selStyle, width:56, textAlign:'right'}} />
             </label>
             <select value={fDiv} onChange={e => setFDiv(e.target.value)} style={selStyle}>
-              <option value="">{t3(lang,'\u0412\u0441\u0456 \u0434\u0438\u0432\u0456\u0437\u0456\u043e\u043d\u0438','All divisions','\u5168\u968e\u7d1a')}</option>
+              <option value="">{t3(lang,'\u0412\u0441\u0456 \u0434\u0438\u0432\u0456\u0437\u0456\u043e\u043d\u0438','All divisions','\u5168\u968e\u7d1a', 'Toutes les divisions')}</option>
               {divisions.map(d => <option key={d} value={d}>{lang === 'ja' ? ({ Makuuchi: '\u5e55\u5185', Juryo: '\u5341\u4e21', Makushita: '\u5e55\u4e0b', Sandanme: '\u4e09\u6bb5\u76ee', Jonidan: '\u5e8f\u4e8c\u6bb5', Jonokuchi: '\u5e8f\u30ce\u53e3' })[d] : d}</option>)}
             </select>
             <select value={fCountry} onChange={e => setFCountry(e.target.value)} style={selStyle}>
-              <option value="">{t3(lang,'\u0412\u0441\u0456 \u043a\u0440\u0430\u0457\u043d\u0438','All countries','\u5168\u56fd\u7c4d')}</option>
+              <option value="">{t3(lang,'\u0412\u0441\u0456 \u043a\u0440\u0430\u0457\u043d\u0438','All countries','\u5168\u56fd\u7c4d', 'Tous les pays')}</option>
               {countries.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select value={fHeya} onChange={e => setFHeya(e.target.value)} style={selStyle}>
-              <option value="">{t3(lang,'\u0412\u0441\u0456 \u0441\u0442\u0430\u0439\u043d\u0456','All stables','\u5168\u90e8\u5c4b')}</option>
+              <option value="">{t3(lang,'\u0412\u0441\u0456 \u0441\u0442\u0430\u0439\u043d\u0456','All stables','\u5168\u90e8\u5c4b', 'Toutes les écuries')}</option>
               {heyas.map(h => <option key={h} value={h}>{h}</option>)}
             </select>
           </div>
@@ -118,7 +118,7 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
               <thead>
                 <tr style={{borderBottom:'2px solid var(--ink)'}}>
                   <th style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'left'}}>#</th>
-                  <th style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'left'}}>{t3(lang,'\u0420\u0456\u043a\u0456\u0448\u0456','Rikishi','\u529b\u58eb')}</th>
+                  <th style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'left'}}>{t3(lang,'\u0420\u0456\u043a\u0456\u0448\u0456','Rikishi','\u529b\u58eb', 'Rikishi')}</th>
                   {COLS.map(c => (
                     <th key={c.key} onClick={() => { if (sortKey === c.key) setSortDir(d => -d); else { setSortKey(c.key); setSortDir(-1) } }}
                       style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color: sortKey===c.key ? '#b8860b' : 'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'center',cursor:'pointer',whiteSpace:'nowrap'}}>
@@ -147,3 +147,5 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
     </div>
   )
 }
+
+/* fr_batch2_rtt_v1 */

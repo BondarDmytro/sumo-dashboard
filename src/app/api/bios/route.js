@@ -41,11 +41,21 @@ function getCountry(shusshin) {
 
 export async function GET() {
   try {
-    const banzukeRes = await fetch(
-      `${SUMO_API}/basho/${currentBashoId()}/banzuke/Makuuchi`,  /* auto_current_v4 */
+    const cur = currentBashoId()  /* bios_fallback_v1: mizhsezonnia - probe current, fallback prev */
+    let banzukeRes = await fetch(
+      `${SUMO_API}/basho/${cur}/banzuke/Makuuchi`,  /* auto_current_v4 */
       { next: { revalidate: 86400 } }
     )
-    const banzuke = await banzukeRes.json()
+    let banzuke = await banzukeRes.json().catch(() => ({}))
+    if (!(banzuke.east || []).length && !(banzuke.west || []).length) {
+      const py = cur.slice(4) === '01' ? String(Number(cur.slice(0,4)) - 1) : cur.slice(0,4)
+      const pm = cur.slice(4) === '01' ? '11' : String(Number(cur.slice(4)) - 2).padStart(2, '0')
+      banzukeRes = await fetch(
+        `${SUMO_API}/basho/${py + pm}/banzuke/Makuuchi`,
+        { next: { revalidate: 86400 } }
+      )
+      banzuke = await banzukeRes.json()
+    }
     const rikishiIds = [
       ...(banzuke.east || []),
       ...(banzuke.west || [])

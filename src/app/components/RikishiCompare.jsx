@@ -214,10 +214,10 @@ export default function RikishiCompare() {
             onFocus={() => { setOpen(true); setQ('') }}
             onBlur={() => setTimeout(() => setOpen(false), 200)}
             onChange={e => { setQ(e.target.value); setOpen(true) }}
-            placeholder={t3(lang, 'Пошук рікіші...', 'Search rikishi...', '力士を検索...')}
+            placeholder={t3(lang, 'Пошук рікіші...', 'Search rikishi...', '力士を検索...', 'Recherche de rikishi...')}
             style={{flex:1,fontFamily:'monospace',fontSize:'0.72rem',padding:'0.5rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--ink)',borderRadius:2,minWidth:0}} />
           <select value={div} onChange={e => { setDiv(e.target.value); setOpen(true) }} style={{fontFamily:'monospace',fontSize:'0.66rem',padding:'0.5rem 0.3rem',background:'var(--bg2)',border:'1px solid var(--border)',color:'var(--mid)',borderRadius:2}}>
-            {DIVS.map(d => <option key={d} value={d}>{d ? (lang === 'uk' ? ukrDivision(d) : d) : t3(lang, 'всі', 'all', '全て')}</option>)}
+            {DIVS.map(d => <option key={d} value={d}>{d ? (lang === 'uk' ? ukrDivision(d) : d) : t3(lang, 'всі', 'all', '全て', 'tous')}</option>)}
           </select>
         </div>
         {open && hits.length > 0 && (
@@ -239,23 +239,23 @@ export default function RikishiCompare() {
     return m?.matches ? Math.round((m.wins / m.matches) * 100) : null
   }
   const rows = (r1 && r2) ? [
-    { l: t3(lang, 'Ранг', 'Rank', '番付'), v: m => m.rank ? displayRank(m.rank, lang) : '—', cmp: null },  /* ukr_ranks_v2 */
-    { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位'), v: m => m.hiRank ? displayRank(m.hiRank, lang) : '—', cmp: m => -(m.hiVal || 9999) },
-    { l: t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング'),  /* dohyo_rating_wire_v1 */ v: m => {
+    { l: t3(lang, 'Ранг', 'Rank', '番付', 'Rang'), v: m => m.rank ? displayRank(m.rank, lang) : '—', cmp: null },  /* ukr_ranks_v2 */
+    { l: t3(lang, 'Найвищий ранг', 'Highest rank', '最高位', 'Rang le plus élevé'), v: m => m.hiRank ? displayRank(m.hiRank, lang) : '—', cmp: m => -(m.hiVal || 9999) },
+    { l: t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング', 'Cote Dohyo'),  /* dohyo_rating_wire_v1 */ v: m => {
         const e = eloData.ratings[String(m.id)]
         if (e === undefined || e.bouts === 0) return '—'
         return e.ovr  /* compare_ovr_v2_plainnum: delta vynesena z compare - lamala CountUp-parsing */
       }, cmp: m => (eloData.ratings[String(m.id)] || {}).ovr || 0, hl: true },  /* compare_ovr_v1 */
-    { l: t3(lang, 'Вік', 'Age', '年齢'), v: m => ageOf(m.birthDate) ?? '—', cmp: m => -(ageOf(m.birthDate) ?? 99) },  /* compare_v2: menshyi vik = krashchyi */
-    { l: t3(lang, 'Зріст', 'Height', '身長'), v: m => m.height ? m.height + ' cm' : '—', cmp: m => m.height || 0 },
-    { l: t3(lang, 'Вага', 'Weight', '体重'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
-    { l: t3(lang, 'Стайня', 'Stable', '部屋'), v: m => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : '—', cmp: null },
-    { l: t3(lang, 'Дебют', 'Debut', '初土俵'), v: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4)}` : '—', cmp: null },
-    { l: t3(lang, 'Башьо', 'Basho', '場所数'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
-    { l: t3(lang, 'Боїв', 'Bouts', '取組数'), v: m => eff(m, 'bouts', m.matches) ?? '—', cmp: m => eff(m, 'bouts', m.matches) || 0 },
-    { l: t3(lang, 'Перемог', 'Wins', '勝利数'), v: m => eff(m, 'wins', m.wins) ?? '—', cmp: m => eff(m, 'wins', m.wins) || 0 },
-    { l: t3(lang, 'Вінрейт', 'Win rate', '勝率'), v: m => winPct(m) !== null ? winPct(m) + '%' : '—', cmp: m => winPct(m) || 0 },
-    { l: t3(lang, 'Юшо', 'Yusho', '優勝'), v: m => eff(m, 'yusho', m.yusho || 0) ?? 0, cmp: m => eff(m, 'yusho', m.yusho || 0) || 0 },
+    { l: t3(lang, 'Вік', 'Age', '年齢', 'Âge'), v: m => ageOf(m.birthDate) ?? '—', cmp: m => -(ageOf(m.birthDate) ?? 99) },  /* compare_v2: menshyi vik = krashchyi */
+    { l: t3(lang, 'Зріст', 'Height', '身長', 'Taille'), v: m => m.height ? m.height + ' cm' : '—', cmp: m => m.height || 0 },
+    { l: t3(lang, 'Вага', 'Weight', '体重', 'Poids'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
+    { l: t3(lang, 'Стайня', 'Stable', '部屋', 'Écurie'), v: m => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : '—', cmp: null },
+    { l: t3(lang, 'Дебют', 'Debut', '初土俵', 'Débuts'), v: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4)}` : '—', cmp: null },
+    { l: t3(lang, 'Башьо', 'Basho', '場所数', 'Basho'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
+    { l: t3(lang, 'Боїв', 'Bouts', '取組数', 'Combats'), v: m => eff(m, 'bouts', m.matches) ?? '—', cmp: m => eff(m, 'bouts', m.matches) || 0 },
+    { l: t3(lang, 'Перемог', 'Wins', '勝利数', 'Victoires'), v: m => eff(m, 'wins', m.wins) ?? '—', cmp: m => eff(m, 'wins', m.wins) || 0 },
+    { l: t3(lang, 'Вінрейт', 'Win rate', '勝率', 'Taux de victoires'), v: m => winPct(m) !== null ? winPct(m) + '%' : '—', cmp: m => winPct(m) || 0 },
+    { l: t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho'), v: m => eff(m, 'yusho', m.yusho || 0) ?? 0, cmp: m => eff(m, 'yusho', m.yusho || 0) || 0 },
   ] : []
 
   return (
@@ -268,7 +268,7 @@ export default function RikishiCompare() {
         <div style={{display:'flex',gap:8,marginBottom:'0.8rem'}}>
           {['career','makuuchi'].map(s => (
             <button key={s} onClick={() => setScope(s)} style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.08em',textTransform:'uppercase',padding:'0.3rem 0.8rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: scope === s ? '#8a6a00' : 'var(--bg2)',color: scope === s ? '#fff' : 'var(--mid)'}}>
-              {s === 'career' ? t3(lang, 'Вся кар\u2019єра', 'Full career', '全キャリア') : t3(lang, 'Макуучі', 'Makuuchi', '幕内')}
+              {s === 'career' ? t3(lang, 'Вся кар\u2019єра', 'Full career', '全キャリア', 'Carrière complète') : t3(lang, 'Макуучі', 'Makuuchi', '幕内', 'Makuuchi')}
             </button>
           ))}
         </div>
@@ -282,9 +282,9 @@ export default function RikishiCompare() {
             <div style={{fontWeight:800,fontSize:'1.05rem'}}>{dispName(r2, lang)}</div>
           </div>
           {h2hView && h2hView.total > 0 && (
-            <div onClick={() => setBoutsOpen(o => !o)} title={t3(lang, 'клік — історія зустрічей', 'click — bout history', 'クリックで対戦履歴')} style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8,padding:'0.6rem 1rem',borderBottom:'1px solid var(--border)',alignItems:'center',background:'rgba(184,134,11,0.06)',cursor:'pointer'}}>
+            <div onClick={() => setBoutsOpen(o => !o)} title={t3(lang, 'клік — історія зустрічей', 'click — bout history', 'クリックで対戦履歴', 'clic — historique des combats')} style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8,padding:'0.6rem 1rem',borderBottom:'1px solid var(--border)',alignItems:'center',background:'rgba(184,134,11,0.06)',cursor:'pointer'}}>
               <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',textAlign:'right',color: h2hView.wins1 > h2hView.wins2 ? '#1a6b5c' : 'var(--ink)'}}>{h2hView.wins1}</div>
-              <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)'}}>{t3(lang, 'очні зустрічі', 'head-to-head', '対戦成績')} ({h2hView.total}) {boutsOpen ? '\u25be' : '\u25b8'}  {/* compare_v6_chevron */}</div>
+              <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)'}}>{t3(lang, 'очні зустрічі', 'head-to-head', '対戦成績', 'face-à-face')} ({h2hView.total}) {boutsOpen ? '\u25be' : '\u25b8'}  {/* compare_v6_chevron */}</div>
               <div style={{fontFamily:'monospace',fontWeight:700,fontSize:'0.95rem',color: h2hView.wins2 > h2hView.wins1 ? '#1a6b5c' : 'var(--ink)'}}>{h2hView.wins2}</div>
             </div>
           )}
@@ -319,7 +319,7 @@ export default function RikishiCompare() {
           {boutsOpen && h2hView && h2hView.bouts && h2hView.bouts.length > 0 && (  /* compare_v7_matrix */
             <div style={{borderTop:'1px solid var(--border)',padding:'0.7rem 1rem',overflowX:'auto'}}>
               <div style={{fontFamily:'monospace',fontSize:'0.56rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',marginBottom:8}}>
-                {t3(lang, 'Очні зустрічі', 'Head-to-head bouts', '対戦履歴')} ({h2hView.total})
+                {t3(lang, 'Очні зустрічі', 'Head-to-head bouts', '対戦履歴', 'Combats face-à-face')} ({h2hView.total})
               </div>
               {(() => {
                 const byBasho = []
@@ -354,3 +354,5 @@ export default function RikishiCompare() {
     </div>
   )
 }
+
+/* fr_batch2_rc_v1 */
