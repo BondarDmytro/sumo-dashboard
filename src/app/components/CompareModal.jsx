@@ -40,7 +40,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
     { l: t3(lang, 'Юшо', 'Yusho', String.fromCharCode(0x512A) + String.fromCharCode(0x52DD)), v1: m1.yusho || 0, v2: m2.yusho || 0, num: true },
     { l: t3(lang, 'Стайня', 'Stable', String.fromCharCode(0x90E8) + String.fromCharCode(0x5C4B)), v1: hl(m1), v2: hl(m2) },
     { l: t3(lang, 'Дебют', 'Debut', String.fromCharCode(0x521D)), v1: m1.debut ? m1.debut.slice(0,4) + '/' + m1.debut.slice(4) : null, v2: m2.debut ? m2.debut.slice(0,4) + '/' + m2.debut.slice(4) : null },
-    { l: t3(lang, 'Басьо', 'Basho', String.fromCharCode(0x5834) + String.fromCharCode(0x6240)), v1: m1.basho, v2: m2.basho, num: true },
+    { l: t3(lang, 'Башьо', 'Basho', String.fromCharCode(0x5834) + String.fromCharCode(0x6240)), v1: m1.basho, v2: m2.basho, num: true },
     { l: t3(lang, 'Боїв', 'Bouts', String.fromCharCode(0x53D6) + String.fromCharCode(0x7D44)), v1: m1.matches, v2: m2.matches, num: true },
     { l: t3(lang, 'Перемог', 'Wins', String.fromCharCode(0x767D) + String.fromCharCode(0x661F)), v1: m1.wins, v2: m2.wins, num: true },
   ]  /* compare_modal_v2 */

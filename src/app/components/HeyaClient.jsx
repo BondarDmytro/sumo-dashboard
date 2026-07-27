@@ -69,7 +69,7 @@ export default function HeyaClient({ members = [], memberIds, heyaName }) {
   return (
     <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1rem 1.25rem',overflowX:'auto'}}>
       <h2 style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',margin:'0 0 0.6rem'}}>
-        {t3(lang, `${ukrName(heyaName)} у поточному басьо`, `${heyaName} in the current basho`, `今場所の${heyaJa(heyaName)}部屋`)}
+        {t3(lang, `${ukrName(heyaName)} у поточному башьо`, `${heyaName} in the current basho`, `今場所の${heyaJa(heyaName)}部屋`)}
       </h2>
       <div style={{minWidth: isMobile ? 0 : 940}}>{/* heya_live_v12 */}
         <div style={{display:'grid',gridTemplateColumns: isMobile ? COLS_M(3) : COLS(BASHO_LIST.length),gap: isMobile ? 2 : 4,alignItems:'end',padding:'2px 2px 4px',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.53rem',letterSpacing:'0.05em',textTransform:'uppercase',color:'var(--mid)'}}>

@@ -38,7 +38,7 @@ export async function generateMetadata({ params }) {
     ja: `${heyaJa(h.name)}部屋 — 所属力士・番付・成績`,
   }[L]
   const description = {
-    uk: `Стайня ${h.name}: ${h.members.length} рікіші. Найвищий ранг — ${top?.rank || '—'} (${top?.name || ''}). Профілі, статистика, живі результати басьо.`,
+    uk: `Стайня ${h.name}: ${h.members.length} рікіші. Найвищий ранг — ${top?.rank || '—'} (${top?.name || ''}). Профілі, статистика, живі результати башьо.`,
     en: `${h.name} stable: ${h.members.length} rikishi. Top rank — ${top?.rank || '—'} (${top?.name || ''}). Profiles, stats and live basho results.`,
     ja: `${heyaJa(h.name)}部屋の所属力士${h.members.length}名。最高位は${top?.rank ? displayRank(top.rank, 'ja') : ''}の${String(top?.nameJp || top?.name || '').split('\u3000')[0].split('(')[0]}。プロフィール・成績・場所の結果。`,
   }[L]

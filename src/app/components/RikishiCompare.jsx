@@ -251,7 +251,7 @@ export default function RikishiCompare() {
     { l: t3(lang, 'Вага', 'Weight', '体重'), v: m => m.weight ? m.weight + ' kg' : '—', cmp: m => m.weight || 0 },
     { l: t3(lang, 'Стайня', 'Stable', '部屋'), v: m => m.heya ? <HeyaLink heya={m.heya} lang={lang} /> : '—', cmp: null },
     { l: t3(lang, 'Дебют', 'Debut', '初土俵'), v: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4)}` : '—', cmp: null },
-    { l: t3(lang, 'Басьо', 'Basho', '場所数'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
+    { l: t3(lang, 'Башьо', 'Basho', '場所数'), v: m => eff(m, 'basho', m.basho) ?? '—', cmp: m => eff(m, 'basho', m.basho) || 0 },
     { l: t3(lang, 'Боїв', 'Bouts', '取組数'), v: m => eff(m, 'bouts', m.matches) ?? '—', cmp: m => eff(m, 'bouts', m.matches) || 0 },
     { l: t3(lang, 'Перемог', 'Wins', '勝利数'), v: m => eff(m, 'wins', m.wins) ?? '—', cmp: m => eff(m, 'wins', m.wins) || 0 },
     { l: t3(lang, 'Вінрейт', 'Win rate', '勝率'), v: m => winPct(m) !== null ? winPct(m) + '%' : '—', cmp: m => winPct(m) || 0 },

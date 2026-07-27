@@ -2,7 +2,7 @@
 /* countdown_x2c */
 /* countdown_x2b */
 /* countdown_x2 */
-// Зворотний відлік до старту басьо: dd:hh:mm:ss + час старту в JST і локальному часі глядача.
+// Зворотний відлік до старту башьо: dd:hh:mm:ss + час старту в JST і локальному часі глядача.
 // basho_countdown_v1
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'

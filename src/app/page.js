@@ -112,7 +112,7 @@ export default async function Home() {
           h2h,
         }} />{/* division_gate_v1 + footer_division_v1 */}
         <HomeGrids others={[]} kyujo={kyujo} currentDay={currentDay} />{/* all_in_table_v1: vybuli teper v osnovnii tablytsi */}
-        <CurrentOnly>  {/* basho_filter_v2_fix: mobile-cards + footer тільки для поточного басьо */}
+        <CurrentOnly>  {/* basho_filter_v2_fix: mobile-cards + footer тільки для поточного башьо */}
         <div className="anim-3 mobile-cards" style={{marginBottom:'2rem'}}>
           {contenders.map((r,i) => <RikishiCard key={r._id} r={r} index={i} />)}
         </div>

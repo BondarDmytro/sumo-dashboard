@@ -8,7 +8,7 @@ const TITLES = {
   ja: '相撲ニュース — Dohyo Legends',
 }
 const DESCS = {
-  uk: 'Останні новини великого сумо від NHK: результати днів басьо, анонси боїв, події навколо рікіші.',
+  uk: 'Останні новини великого сумо від NHK: результати днів башьо, анонси боїв, події навколо рікіші.',
   en: 'Latest grand sumo news from NHK: basho day results, bout previews, rikishi updates.',
   ja: 'NHKによる大相撲の最新ニュース：場所の結果、取組の見どころ、力士の話題。',
 }

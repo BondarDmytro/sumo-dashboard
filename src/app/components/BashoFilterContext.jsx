@@ -1,5 +1,5 @@
 'use client'
-/* basho_filter_v2: спільний стейт обраного басьо між хедером і табами */
+/* basho_filter_v2: спільний стейт обраного башьо між хедером і табами */
 import { createContext, useContext, useState } from 'react'
 
 const Ctx = createContext(null)

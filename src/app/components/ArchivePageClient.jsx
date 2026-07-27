@@ -152,10 +152,10 @@ export default function ArchivePageClient() {
         </div>
         <h1 style={{fontSize:'1.6rem',fontWeight:800,marginBottom:'1.5rem'}}>
           {t3(lang, 'Результати', 'Results', '結果')}
-          <span style={{color:'#b8860b'}}>{t3(lang, ' — Попередні басьо', ' — Previous basho', ' — 過去の場所')}</span>
+          <span style={{color:'#b8860b'}}>{t3(lang, ' — Попередні башьо', ' — Previous basho', ' — 過去の場所')}</span>
         </h1>
 
-        {/* Кнопки вибору басьо */}
+        {/* Кнопки вибору башьо */}
         <div style={{display: isMobile ? 'grid' : 'flex',gridTemplateColumns:'repeat(2, minmax(0,1fr))',gap: isMobile ? 6 : 8,marginBottom:'2rem',flexWrap:'wrap'}}>{/* arch_tabs_mobile_v1 */}
           {ARCHIVE_BASHOS.map(b => (  /* archive_no_current_v1 */
             <button key={b.id} onClick={() => setSelectedBasho(b)} style={{

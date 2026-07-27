@@ -40,8 +40,8 @@ function getCountry(shusshin) {
   const country = Object.keys(COUNTRY_FLAGS).find(c => shusshin.startsWith(c))
   return country ? COUNTRY_FLAGS[country] : { flag: '🌍', name: shusshin.split(',')[0] }
 }
-const CURRENT_BASHO = currentBashoId()
-/* forecast_rules_v1: попередні басьо обчислюються, не хардкодяться */
+/* rf_offseason_v1: basho resolution moved into GET handler (convention 8) */
+/* forecast_rules_v1: попередні башьо обчислюються, не хардкодяться */
 function prevBashoId(bashoId) {
   const y = parseInt(String(bashoId).slice(0, 4), 10)
   const m = parseInt(String(bashoId).slice(4, 6), 10)
@@ -49,9 +49,6 @@ function prevBashoId(bashoId) {
   const py = m === 1 ? y - 1 : y
   return String(py) + String(pm).padStart(2, '0')
 }
-const PREV_BASHOS = [prevBashoId(CURRENT_BASHO)]
-PREV_BASHOS.push(prevBashoId(PREV_BASHOS[0]))
-PREV_BASHOS.push(prevBashoId(PREV_BASHOS[1]))
 
 async function getRikishiMatches(id) {
   const res = await fetch(`${SUMO_API}/rikishi/${id}/matches?limit=60`, {
@@ -85,14 +82,14 @@ function getMaegashiraNum(rank) {
   return m ? parseInt(m[1]) : 99
 }
 
-function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoLosses, prevRank) {
+function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoLosses, prevRank, PREV_BASHOS) {
   const rank = rikishi.rank
   const rankType = getRankType(rank)
   const forecasts = []
 
-  const prev1 = matchHistory[PREV_BASHOS[0]] // минуле басьо
+  const prev1 = matchHistory[PREV_BASHOS[0]] // минуле башьо
   const prev2 = matchHistory[PREV_BASHOS[1]] // 202601
-  const prev3 = matchHistory[PREV_BASHOS[2]] // 3 басьо тому
+  const prev3 = matchHistory[PREV_BASHOS[2]] // 3 башьо тому
 
   if (rankType === 'yokozuna') {
     const makekoshi = currentBashoLosses > currentBashoWins
@@ -109,7 +106,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
   if (rankType === 'ozeki') {
     const currentWins = currentBashoWins
     const currentLosses = currentBashoLosses
-    const prevKachikoshi = prev1 && prev1.wins >= 8  /* forecast_rules_v1: кюджо/часткове басьо = теж кадобан */
+    const prevKachikoshi = prev1 && prev1.wins >= 8  /* forecast_rules_v1: кюджо/часткове башьо = теж кадобан */
     const isKadoban = !prevKachikoshi
 
     // Кюджо на кадо-бані = автоматичний виліт
@@ -167,7 +164,7 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
     const maxTotal = (winsThisBasho + remaining) + winsPrev1 + winsPrev2
 
     if (total3 >= 33) {
-      forecasts.push({ type: 'good', text: { uk: `✓ Озекі-кандидат — ${total3}/33 за 3 басьо в санʼяку`, en: `✓ Ozeki candidate — ${total3}/33 over 3 basho in san'yaku`, ja: `✓ 大関候補 — 三役で3場所${total3}/33` } })
+      forecasts.push({ type: 'good', text: { uk: `✓ Озекі-кандидат — ${total3}/33 за 3 башьо в санʼяку`, en: `✓ Ozeki candidate — ${total3}/33 over 3 basho in san'yaku`, ja: `✓ 大関候補 — 三役で3場所${total3}/33` } })
     } else if (maxTotal >= 33) {
       forecasts.push({ type: 'info', text: { uk: `Озекі-тест: ${total3}/33 — потрібно ще ${needed} перемог`, en: `Ozeki test: ${total3}/33 — ${needed} more wins needed`, ja: `大関取り: ${total3}/33 — あと${needed}勝必要`  }, need: needed })
     } else {
@@ -218,11 +215,25 @@ function calcRankForecast(rikishi, matchHistory, currentBashoWins, currentBashoL
 
 export async function GET() {
   try {
-    const banzukeRes = await fetch(
-      `${SUMO_API}/basho/${CURRENT_BASHO}/banzuke/Makuuchi`,
+    const cur = currentBashoId()  /* rf_offseason_v1 */
+    let effBasho = cur
+    let banzukeRes = await fetch(
+      `${SUMO_API}/basho/${effBasho}/banzuke/Makuuchi`,
       { next: { revalidate: 3600 } }
     )
-    const banzuke = await banzukeRes.json()
+    let banzuke = await banzukeRes.json().catch(() => null)
+    const bzEmpty = b => !b || (!(b.east || []).length && !(b.west || []).length)
+    if (bzEmpty(banzuke)) {
+      effBasho = prevBashoId(cur)
+      banzukeRes = await fetch(
+        `${SUMO_API}/basho/${effBasho}/banzuke/Makuuchi`,
+        { next: { revalidate: 3600 } }
+      )
+      banzuke = await banzukeRes.json()
+    }
+    const PREV_BASHOS = [prevBashoId(effBasho)]
+    PREV_BASHOS.push(prevBashoId(PREV_BASHOS[0]))
+    PREV_BASHOS.push(prevBashoId(PREV_BASHOS[1]))
     const prevBanzukeRes = await fetch(`${SUMO_API}/basho/${PREV_BASHOS[0]}/banzuke/Makuuchi`, { next: { revalidate: 3600 } })  /* forecast_rules_v1 */
     const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
     const prevRankById = {}
@@ -245,7 +256,7 @@ export async function GET() {
           fetch(`${SUMO_API}/rikishi/${r.rikishiID}`, { next: { revalidate: 86400 } })
         ])
         const info = await infoRes.json()
-        const forecasts = calcRankForecast(r, history, wins, losses, prevRankById[String(r.rikishiID)])
+        const forecasts = calcRankForecast(r, history, wins, losses, prevRankById[String(r.rikishiID)], PREV_BASHOS)
 
         const birthDate = info.birthDate ? new Date(info.birthDate) : null
         const age = birthDate ? Math.floor((new Date() - birthDate) / (1000 * 60 * 60 * 24 * 365.25)) : null
@@ -281,7 +292,7 @@ export async function GET() {
 
     results.sort((a, b) => (a.rankValue || 999) - (b.rankValue || 999))
 
-    return Response.json({ rikishi: results })
+    return Response.json({ rikishi: results, srcBasho: effBasho })
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 })
   }

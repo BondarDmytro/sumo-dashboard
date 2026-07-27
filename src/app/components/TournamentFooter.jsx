@@ -48,7 +48,7 @@ export default function TournamentFooter({ contenders, h2h, allRikishi = null })
         ) : lang === 'en' ? (
           <><b style={{color:'var(--ink)'}}>Data:</b> sumo-api.com · updates every 60 seconds · <b style={{color:'var(--ink)'}}>Methodology:</b> logistic model trained on 36 basho (2020–2026): record, gap to leader, rank, 5-day form. Day-10 top-1 accuracy ≈ 50–60% (holdout). Fusen (✦) — win by opponent withdrawal. Free statistical fan site.</>
         ) : (  /* footer_ja_v1 + footer_model_v1 */
-          <><b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 60 секунд · <b style={{color:'var(--ink)'}}>Методологія:</b> логістична модель, навчена на 36 басьо (2020–2026): рекорд, відставання від лідера, ранг, форма 5 днів. Точність top-1 на дні 10 ≈ 50–60% (holdout). Fusen (✦) — перемога через знімання суперника. Безкоштовний статистичний фан-сайт.</>
+          <><b style={{color:'var(--ink)'}}>Дані:</b> sumo-api.com · оновлення кожні 60 секунд · <b style={{color:'var(--ink)'}}>Методологія:</b> логістична модель, навчена на 36 башьо (2020–2026): рекорд, відставання від лідера, ранг, форма 5 днів. Точність top-1 на дні 10 ≈ 50–60% (holdout). Fusen (✦) — перемога через знімання суперника. Безкоштовний статистичний фан-сайт.</>
         )}
       </div>
     </>

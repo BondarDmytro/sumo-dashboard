@@ -1,5 +1,5 @@
 'use client'
-/* basho_filter_v2: гріди головної тільки для поточного басьо */
+/* basho_filter_v2: гріди головної тільки для поточного башьо */
 import CompactGrid from './CompactGrid'
 import { useBashoFilter, CURRENT_BASHO } from './BashoFilterContext'
 

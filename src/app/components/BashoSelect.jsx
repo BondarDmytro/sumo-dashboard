@@ -56,7 +56,7 @@ export default function BashoSelect() {
           background: '#161006', border: '1px solid rgba(240,192,96,0.35)', borderRadius: 4, padding: 12, boxShadow: '0 12px 34px rgba(0,0,0,0.6)' }}>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
             <button style={mode === 'year' ? btnActive : btn} onClick={() => setMode('year')}>{t3(lang, 'За роком', 'By year', '年別')}</button>
-            <button style={mode === 'basho' ? btnActive : btn} onClick={() => setMode('basho')}>{t3(lang, 'За басьо', 'By basho', '場所別')}</button>
+            <button style={mode === 'basho' ? btnActive : btn} onClick={() => setMode('basho')}>{t3(lang, 'За башьо', 'By basho', '場所別')}</button>
           </div>
 
           {mode === 'year' && (

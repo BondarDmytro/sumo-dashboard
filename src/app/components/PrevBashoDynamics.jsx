@@ -1,7 +1,7 @@
 'use client' /* ja_batch2_t rank_color_dyn_v1 */
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
 import { rankColor } from '../lib/rankColors' /* rank_color_dyn_v1 */
-// Динаміка попереднього басьо по днях: слайдер дня 1-15 (+плей-оф),
+// Динаміка попереднього башьо по днях: слайдер дня 1-15 (+плей-оф),
 // повна таблиця всіх учасників зі станом W-L на обраний день. prev_dynamics_v1
 import { useEffect, useState, useMemo } from 'react'
 import { useLang } from './LangProvider'

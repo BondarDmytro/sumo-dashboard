@@ -1,17 +1,17 @@
 import { ukrName, ukrRankLong } from './translit'  /* ukr_names_v1 */
 // src/app/lib/bashoCalendar.js
-// Календар басьо за правилами JSA: 6 турнірів/рік (січ/бер/тра/лип/вер/лис),
+// Календар башьо за правилами JSA: 6 турнірів/рік (січ/бер/тра/лип/вер/лис),
 // старт = друга неділя місяця, 15 днів. Єдине джерело назв/міст/дат. basho_calendar_v1
 
 const BASHO_MONTHS = [1, 3, 5, 7, 9, 11]
 
 const META = {
-  1:  { kanji: '初場所',   uk: 'Хатсу Басьо',  en: 'Hatsu Basho',  ja: '初場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
-  3:  { kanji: '春場所',   uk: 'Хару Басьо',   en: 'Haru Basho',   ja: '春場所',   cityUk: 'Осака',   cityEn: 'Osaka',   cityJa: '大阪' },
-  5:  { kanji: '夏場所',   uk: 'Натсу Басьо',  en: 'Natsu Basho',  ja: '夏場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
-  7:  { kanji: '名古屋場所', uk: 'Наґоя Басьо', en: 'Nagoya Basho', ja: '名古屋場所', cityUk: 'Наґоя',  cityEn: 'Nagoya',  cityJa: '名古屋' },
-  9:  { kanji: '秋場所',   uk: 'Акі Басьо',    en: 'Aki Basho',    ja: '秋場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
-  11: { kanji: '九州場所', uk: 'Кюшю Басьо',   en: 'Kyushu Basho', ja: '九州場所', cityUk: 'Фукуока', cityEn: 'Fukuoka', cityJa: '福岡' },
+  1:  { kanji: '初場所',   uk: 'Хатсу Башьо',  en: 'Hatsu Basho',  ja: '初場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
+  3:  { kanji: '春場所',   uk: 'Хару Башьо',   en: 'Haru Basho',   ja: '春場所',   cityUk: 'Осака',   cityEn: 'Osaka',   cityJa: '大阪' },
+  5:  { kanji: '夏場所',   uk: 'Натсу Башьо',  en: 'Natsu Basho',  ja: '夏場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
+  7:  { kanji: '名古屋場所', uk: 'Наґоя Башьо', en: 'Nagoya Basho', ja: '名古屋場所', cityUk: 'Наґоя',  cityEn: 'Nagoya',  cityJa: '名古屋' },
+  9:  { kanji: '秋場所',   uk: 'Акі Башьо',    en: 'Aki Basho',    ja: '秋場所',   cityUk: 'Токіо',   cityEn: 'Tokyo',   cityJa: '東京' },
+  11: { kanji: '九州場所', uk: 'Кюшю Башьо',   en: 'Kyushu Basho', ja: '九州場所', cityUk: 'Фукуока', cityEn: 'Fukuoka', cityJa: '福岡' },
 }
 
 // День місяця другої неділі
@@ -112,11 +112,11 @@ export const BASHO_LIST = [
   { id: '202503', label: 'Хару 2025', labelEn: 'Haru 2025', labelJa: '春場所 2025', location: 'Осака', locationEn: 'Osaka' },
 ]
 
-export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 басьо/рік з 1958 */
+export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 башьо/рік з 1958 */
 export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
 
 export function bashoIdsOfYear(year) {
-  // Всі басьо року, що вже завершились або live (мають дані), без скасованих.
+  // Всі башьо року, що вже завершились або live (мають дані), без скасованих.
   const out = []
   for (const m of BASHO_MONTHS) {
     const id = String(year) + String(m).padStart(2, '0')
@@ -128,7 +128,7 @@ export function bashoIdsOfYear(year) {
 }
 
 export function bashoListOfYear(year, includeUpcomingCurrent = true) {
-  // Басьо року, що вже стартували (мають дані в API) + опційно найближчий upcoming.
+  // Башьо року, що вже стартували (мають дані в API) + опційно найближчий upcoming.
   const now = new Date()
   const out = []
   for (const m of BASHO_MONTHS) {
@@ -160,7 +160,7 @@ export function nextBashoId(bashoId) {
   return String(ny) + String(nm).padStart(2, '0')
 }
 
-// Статус басьо відносно моменту (Date або ms)
+// Статус башьо відносно моменту (Date або ms)
 export function bashoStatus(bashoId, now) {
   const t = now instanceof Date ? now.getTime() : (now || Date.now())
   const b = bashoInfo(bashoId)

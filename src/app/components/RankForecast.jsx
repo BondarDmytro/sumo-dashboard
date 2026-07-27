@@ -1,8 +1,9 @@
 'use client'
 import RikishiLink from './RikishiLink' /* rikishi_links_batch2_v1 */
+import OvrBadge from './OvrBadge'  /* rf_client_offseason_v1 */
 import { HEYA_JA } from '../lib/heyaJa'
 import HeyaLink from './HeyaLink'  /* heya_links_v1 */
-import { displayName, displayRank, currentBashoId } from '../lib/bashoCalendar' /* ja_names_sweep_v1 rf_polish_v1 */
+import { displayName, displayRank, currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* ja_names_sweep_v1 rf_polish_v1 rf_source_label_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
@@ -84,8 +85,15 @@ export default function RankForecast() {
 
   if (!data?.rikishi?.length) return null
 
+  const srcB = String(data.srcBasho || currentBashoId())  /* rf_client_offseason_v1 */
+
   return (
     <div style={{marginBottom:'1rem'}}>
+      {data.srcBasho && (
+        <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
+          {t3(lang, 'Прогноз за: ', 'Forecast from: ', '予想元：')}{(lang === 'ja' ? bashoInfo(srcB).label.ja : lang === 'en' ? bashoInfo(srcB).label.en : bashoInfo(srcB).label.uk)}
+        </div>
+      )}
       {data.rikishi.map(r => {
         const mainType = r.forecasts[0]?.type || 'info'
         const st = TYPE_STYLES[mainType] || TYPE_STYLES.info
@@ -108,7 +116,7 @@ export default function RankForecast() {
               }}>
                 <div style={{flex:1, padding:'0.5rem 0.75rem'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    <span style={{fontSize:'1rem'}}>{r.bio?.country?.flag}</span>
+                    <span style={{fontSize:'1rem'}}>{r.bio?.country?.flag}</span><OvrBadge id={String(r.id)} size='sm' />
                     <div style={{fontWeight:700,fontSize:'0.9rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
                   </div>
                   <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:2}}>{displayRank(r.rank, lang)}</div>
@@ -141,7 +149,7 @@ export default function RankForecast() {
                 </div>
               </div>
 
-              {/* Рядок 2: результати басьо */}
+              {/* Рядок 2: результати башьо */}
               <div style={{
                 padding:'0.4rem 0.75rem',
                 display:'flex',alignItems:'center',
@@ -151,9 +159,9 @@ export default function RankForecast() {
               }}>
                 {(() => {  /* rf_mobile_v1: 3 ostannikh z last9 + potochne, gridom */
                   const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 }))).slice(-3)
-                  const cur = { b: String(currentBashoId()), w: r.wins, l: r.losses }
+                  const cur = { b: srcB, w: r.wins, l: r.losses }  /* rf_client_offseason_v1 */
                   const played = r.wins + r.losses
-                  const pKachi = played > 0 ? chancePct(8 - r.wins, r.wins, r.losses, r.last9) : null
+                  const pKachi = played > 0 && srcB === String(currentBashoId()) ? chancePct(8 - r.wins, r.wins, r.losses, r.last9) : null  /* rf_hide_pct_final_v1 */
                   return (
                     <div style={{flex:1}}>
                       <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:4,alignItems:'start'}}>
@@ -201,7 +209,7 @@ export default function RankForecast() {
           }}>
             <div style={{padding:'0.5rem 1rem',borderRight:'1px solid var(--border)'}}>
               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
-                <span style={{fontSize:'1.1rem'}}>{r.bio?.country?.flag}</span>
+                <span style={{fontSize:'1.1rem'}}>{r.bio?.country?.flag}</span><OvrBadge id={String(r.id)} size='sm' />
                 <div style={{fontWeight:700,fontSize:'0.9rem'}}><RikishiLink id={r.id}>{displayName(r, lang)}</RikishiLink></div>
               </div>
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:3}}>{displayRank(r.rank, lang)}</div>
@@ -239,7 +247,7 @@ export default function RankForecast() {
                       )
                     })}
                     <div style={{textAlign:'center',borderLeft:'1px solid var(--border)'}}>
-                      <div style={{fontFamily:'monospace',fontSize:'0.53rem',color:'#1a6b5c',marginBottom:2,whiteSpace:'nowrap'}}>{String(currentBashoId()).slice(0,4)}/{String(currentBashoId()).slice(4)}</div>
+                      <div style={{fontFamily:'monospace',fontSize:'0.53rem',color:'#1a6b5c',marginBottom:2,whiteSpace:'nowrap'}}>{srcB.slice(0,4)}/{srcB.slice(4)}</div>
                       <div style={{fontFamily:'monospace',fontSize:'0.92rem',fontWeight:700,whiteSpace:'nowrap',color: (r.wins + r.losses) === 0 ? 'var(--light)' : 'var(--ink)'}}>{(r.wins + r.losses) === 0 ? '\u4f11' : r.wins + '\u2013' + r.losses}</div>
                       <div style={{fontFamily:'monospace',fontSize:'0.5rem',color:'var(--mid)',whiteSpace:'nowrap',marginTop:1}}>{shortR(r.rank)}</div>
                     </div>
@@ -270,7 +278,7 @@ export default function RankForecast() {
                   </div>
                 )
               })}
-              {(r.wins + r.losses) > 0 && (() => {  /* rf_updown_v1 */
+              {(r.wins + r.losses) > 0 && srcB === String(currentBashoId()) && (() => {  /* rf_updown_v1 rf_hide_pct_final_v1 */
                 const pKachi = chancePct(8 - r.wins, r.wins, r.losses, r.last9)
                 return (
                   <div style={{fontFamily:'monospace',fontSize:'0.62rem',display:'flex',gap:10,justifyContent:'center',marginTop:2}}>
