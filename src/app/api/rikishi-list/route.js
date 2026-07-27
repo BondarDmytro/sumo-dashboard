@@ -1,11 +1,15 @@
 /* all_divisions_v1: 6 banzuke-zapytiv zamist 84+ per-rikishi; lehkyi spysok, bio - v /api/rikishi-info */
-import { currentBashoId } from '../../lib/bashoCalendar'
+import { currentBashoId, prevBashoIdOf } from '../../lib/bashoCalendar'  /* list_fallback_v1 */
 const SUMO_API = 'https://sumo-api.com/api'
-const CURRENT_BASHO = currentBashoId()
+
 const DIVISIONS = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
 
 export async function GET() {
   try {
+    const cur = currentBashoId()  /* list_fallback_v1: vseredyni GET, ne modul */
+    const probe = await fetch(`${SUMO_API}/basho/${cur}/banzuke/Makuuchi`, { next: { revalidate: 3600 } })
+    const probeData = await probe.json().catch(() => ({}))
+    const CURRENT_BASHO = ((probeData.east || []).length || (probeData.west || []).length) ? cur : prevBashoIdOf(cur)
     const results = await Promise.all(DIVISIONS.map(async (div, di) => {
       const res = await fetch(`${SUMO_API}/basho/${CURRENT_BASHO}/banzuke/${div}`, { next: { revalidate: 3600 } })
       const banzuke = await res.json()
