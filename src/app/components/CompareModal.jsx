@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v2 */
 import { useState, useEffect } from 'react'
 /* compare_modal_v1: mini-porivniannia pary z torikumi */
 import meta from '../lib/rikishiMeta.json'
@@ -49,9 +50,9 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
       <div onClick={e => e.stopPropagation()} style={{background:'var(--bg)',border:'1px solid var(--border)',borderRadius:6,maxWidth:680,width:'100%',padding:'1rem 1.2rem',boxShadow:'0 8px 30px rgba(0,0,0,0.3)',maxHeight:'90vh',overflowY:'auto'}}>
         <div style={{position:'relative',textAlign:'center',marginBottom:10}}>  {/* compare_modal_v4 */}
           <div style={{fontWeight:800,fontSize:'0.95rem',display:'inline-block'}}>
-            <RikishiLink id={String(eastId)}>{m1.name}</RikishiLink>
+            <RikishiLink id={String(eastId)}>{lang === 'uk' ? ukrName(m1.name) : m1.name}</RikishiLink>
             <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',margin:'0 6px'}}>vs</span>
-            <RikishiLink id={String(westId)}>{m2.name}</RikishiLink>
+            <RikishiLink id={String(westId)}>{lang === 'uk' ? ukrName(m2.name) : m2.name}</RikishiLink>
           </div>
           <button onClick={onClose} style={{position:'absolute',right:0,top:0,background:'none',border:'none',fontSize:'1.1rem',cursor:'pointer',color:'var(--mid)',padding:'0 4px'}}>{String.fromCharCode(0x2715)}</button>
         </div>

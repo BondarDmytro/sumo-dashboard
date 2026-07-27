@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v2 */
 /* votes_v1 -> ticker_v4: zavzhdy vydymyi, fixed pid navbarom + spacer, neprozoryi */
 import { useVotes } from './useVotes'
 import { useLang } from './LangProvider'
@@ -53,7 +54,7 @@ export default function VoteTicker() {
   const items = top.map((r, i) => (
     <span key={r.id} style={{marginRight:28,whiteSpace:'nowrap'}}>
       <span style={{color: i === 0 ? '#b8860b' : 'var(--mid)',fontWeight: i === 0 ? 700 : 400}}>{i + 1}.</span>{' '}
-      <span style={{color:'var(--ink)',fontWeight:600}}>{r.name}</span>{' '}
+      <span style={{color:'var(--ink)',fontWeight:600}}>{lang === 'uk' ? ukrName(r.name) : r.name}</span>{' '}
       <span style={{color:'#b8860b',fontWeight:700}}>{r.pct}%</span>{' '}
       <span style={{color:'var(--mid)',fontSize:'0.62rem'}}>({r.n})</span>
     </span>

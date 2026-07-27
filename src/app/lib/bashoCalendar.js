@@ -1,3 +1,4 @@
+import { ukrName, ukrRankLong } from './translit'  /* ukr_names_v1 */
 // src/app/lib/bashoCalendar.js
 // Календар басьо за правилами JSA: 6 турнірів/рік (січ/бер/тра/лип/вер/лис),
 // старт = друга неділя місяця, 15 днів. Єдине джерело назв/міст/дат. basho_calendar_v1
@@ -71,9 +72,11 @@ export function currentBashoId(now = new Date()) {  /* auto_current_v1: live, і
   return lastFinished
 }
 
-export function displayName(r, lang) {  /* kanji_names_v1 */
+export function displayName(r, lang) {  /* kanji_names_v1 ukr_names_v1 */
   if (lang === 'ja' && (r?.nameJp || r?.shikonaJp)) return r.nameJp || r.shikonaJp
-  return r?.name || r?.shikonaEn || ''
+  const en = r?.name || r?.shikonaEn || ''
+  if (lang === 'uk' && en) return ukrName(en)
+  return en
 }
 
 const RANK_JA = { Yokozuna: '横綱', Ozeki: '大関', Sekiwake: '関脇', Komusubi: '小結', Maegashira: '前頭', Juryo: '十両' , Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' /* rank_ja_lower_v1 */ }
@@ -87,6 +90,7 @@ export function shortRank(rank, lang) {
 }
 
 export function displayRank(rank, lang) {
+  if (lang === 'uk') return ukrRankLong(rank)  /* ukr_ranks_v1 */
   // "Sekiwake 2 East" -> ja: "東 関脇 2"; інші мови — як є
   if (lang !== 'ja' || !rank) return rank
   const m = String(rank).match(/^(\w+)\s*(\d*)\s*(East|West)?$/)

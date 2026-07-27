@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v2 */
 
 import { useBios } from './BiosProvider'
 import { useLang } from './LangProvider' /* country_name_i18n_v1 */
@@ -27,7 +28,7 @@ export default function FlagName({ id, name, size = '0.95rem' }) {
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>
       <span title={country} style={{fontSize:'1rem',lineHeight:1,flexShrink:0}}>{flag}</span>
       {isFav(id) && <span style={{color:'#b8860b',fontSize:'0.7em',flexShrink:0}}>{'\u2605'}</span>}{/* favorites_v1 */}
-      <span style={{fontSize:size,fontWeight:700}}><RikishiLink id={id}>{lang === 'ja' ? String(bio?.nameJp || metaR?.nameJp || name).split('(')[0] : name}</RikishiLink></span>  {/* kanji_names_v2 */}
+      <span style={{fontSize:size,fontWeight:700}}><RikishiLink id={id}>{lang === 'ja' ? String(bio?.nameJp || metaR?.nameJp || name).split('(')[0] : lang === 'uk' ? ukrName(name) : name}</RikishiLink></span>  {/* kanji_names_v2 */}
     </span>
   )
 }

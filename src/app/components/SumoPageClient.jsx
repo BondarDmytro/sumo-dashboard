@@ -1,5 +1,6 @@
 /* auto_current_v3 */
-'use client' /* ja_kimarite_ui_v1 */
+'use client'
+import { ukrName } from '../lib/translit'  /* ukr_kimarite_v1 */ /* ja_kimarite_ui_v1 */
 import { KIMARITE_INFO, kimariteKanji } from '../lib/kimarite' /* ja_names_sweep_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
@@ -132,7 +133,7 @@ function KimariteModal({ item, onClose, lang }) {
         <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--light)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:4}}>
           {getKimariteCategory(item.kimarite, lang)}
         </div>
-        <h2 style={{fontSize:'1.4rem',fontWeight:800,marginBottom: lang === 'ja' ? 0 : '0.75rem'}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : item.kimarite}</h2>
+        <h2 style={{fontSize:'1.4rem',fontWeight:800,marginBottom: lang === 'ja' ? 0 : '0.75rem'}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : lang === 'uk' ? ukrName(item.kimarite) : item.kimarite}</h2>  {/* ukr_kimarite_v1 */}
         {lang === 'ja' && <div style={{fontFamily:'monospace',fontSize:'0.65rem',color:'var(--mid)',marginBottom:'0.75rem'}}>{item.kimarite}</div>}
         {(lang === 'ja' ? (info?.ja || info?.en) : lang === 'en' ? info?.en : info?.ua) && (
           <p style={{fontSize:'0.85rem',color:'var(--mid)',lineHeight:1.6,marginBottom:'1rem'}}>
@@ -189,7 +190,7 @@ function KimariteView({ data, lang }) {
               {i+1}
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontWeight:600,fontSize:'0.85rem',marginBottom:1}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : item.kimarite}</div>
+              <div style={{fontWeight:600,fontSize:'0.85rem',marginBottom:1}}>{lang === 'ja' ? kimariteKanji(item.kimarite) : lang === 'uk' ? ukrName(item.kimarite) : item.kimarite}</div>
               {lang === 'ja' && <div style={{fontFamily:'monospace',fontSize:'0.55rem',color:'var(--light)'}}>{item.kimarite}</div>}
               <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',marginBottom:3}}>{getKimariteCategory(item.kimarite, lang)}</div>
               <div style={{height:3,background:'var(--bg2)',borderRadius:1}}>

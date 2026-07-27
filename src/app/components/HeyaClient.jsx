@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_heya_v1 */
 /* heya_live_v5: grid - rang pislia imeni, 9 basho-kolonok z nazvamy, potochne basho v zaholovku */
 import { useEffect, useState } from 'react'
 import { heyaJa } from '../lib/heyaJa' /* heya_ja_lib_v1 */
@@ -68,7 +69,7 @@ export default function HeyaClient({ members = [], memberIds, heyaName }) {
   return (
     <div style={{background:'var(--card)',border:'1px solid var(--border)',padding:'1rem 1.25rem',overflowX:'auto'}}>
       <h2 style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',margin:'0 0 0.6rem'}}>
-        {t3(lang, `${heyaName} у поточному басьо`, `${heyaName} in the current basho`, `今場所の${heyaJa(heyaName)}部屋`)}
+        {t3(lang, `${ukrName(heyaName)} у поточному басьо`, `${heyaName} in the current basho`, `今場所の${heyaJa(heyaName)}部屋`)}
       </h2>
       <div style={{minWidth: isMobile ? 0 : 940}}>{/* heya_live_v12 */}
         <div style={{display:'grid',gridTemplateColumns: isMobile ? COLS_M(3) : COLS(BASHO_LIST.length),gap: isMobile ? 2 : 4,alignItems:'end',padding:'2px 2px 4px',borderBottom:'2px solid var(--border)',fontFamily:'monospace',fontSize:'0.53rem',letterSpacing:'0.05em',textTransform:'uppercase',color:'var(--mid)'}}>
@@ -86,7 +87,7 @@ export default function HeyaClient({ members = [], memberIds, heyaName }) {
             )
           })}
           <span style={{textAlign:'center',lineHeight:1.25,color:'#8a6a00',fontWeight:700}}>
-            <span style={{display:'block'}}>{lang === 'ja' ? jpName(cur.id, cur.name) : cur.name}</span>
+            <span style={{display:'block'}}>{lang === 'ja' ? jpName(cur.id, cur.name) : lang === 'uk' ? ukrName(cur.name) : cur.name}</span>
             <span style={{display:'block'}}>{cur.date}</span>
           </span>
           {!isMobile && <span>{t3(lang, 'Бої', 'Bouts', '取組')}</span>}{/* heya_live_v12 */}
@@ -100,7 +101,7 @@ export default function HeyaClient({ members = [], memberIds, heyaName }) {
             <div key={r._id || r.id} style={{display:'grid',gridTemplateColumns: isMobile ? COLS_M(3) : COLS(BASHO_LIST.length),gap: isMobile ? 2 : 4,alignItems:'center',padding:'4px 2px',borderBottom:'1px solid var(--border)',fontFamily:'monospace',fontSize: isMobile ? '0.66rem' : '0.72rem'}}>
               <span style={{textAlign:'right',color:'var(--mid)',fontSize:'0.62rem'}}>{i + 1}.</span>
               <span style={{textAlign:'center',fontSize:'0.8rem'}}>{flag}</span>
-              <span style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lang === 'ja' ? jpName(r.id, r.name) : r.name}</span>{/* heya_live_v10 */}
+              <span style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lang === 'ja' ? jpName(r.id, r.name) : lang === 'uk' ? ukrName(r.name) : r.name}</span>{/* heya_live_v10 */}
               <span style={{color:'var(--mid)',fontSize:'0.62rem',whiteSpace:'nowrap'}}>{isMobile ? shortRank(r.rank, lang) : (lang === 'ja' ? displayRank(r.rank, 'ja') : r.rank)}</span>{/* heya_live_v12 */}
               {(isMobile ? BASHO_LIST.slice(-3) : BASHO_LIST).map(b => {
                 const h = histBy[b]

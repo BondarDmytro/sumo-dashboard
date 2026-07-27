@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v2 */
 import OvrBadge from './OvrBadge' /* ovr_in_tables_v1 */
 /* rank_badge_color_v1 */
 import { useState, useEffect, useRef } from 'react' /* table_timetravel_v1 result_wave_v1 */
@@ -166,9 +167,9 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
           )}
           {divisionPlayoff.bouts.map((b, i) => (
             <div key={i} style={{display:'flex',alignItems:'center',gap:8,fontFamily:'monospace',fontSize:'0.72rem',padding:'3px 0'}}>
-              <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{b.east}</span>
+              <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{lang === 'uk' ? ukrName(b.east) : b.east}</span>
               <span style={{color:'var(--light)',fontSize:'0.6rem'}}>vs</span>
-              <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{b.west}</span>
+              <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{lang === 'uk' ? ukrName(b.west) : b.west}</span>
               {b.kimarite && <span style={{color:'var(--mid)',fontSize:'0.6rem'}}>{'\u00b7'} {b.kimarite}</span>}
               {!b.winnerId && <span style={{color:'#b8860b',fontSize:'0.6rem'}}>{t3(lang, '\u0442\u0440\u0438\u0432\u0430\u0454...', 'in progress...', '\u9032\u884C\u4E2D')}</span>}
             </div>

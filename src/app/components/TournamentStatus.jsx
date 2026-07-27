@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_names_v2 */
 import { useLang } from './LangProvider'
 
 function t3(lang, uk, en, ja) {
@@ -22,16 +23,16 @@ export default function TournamentStatus({ leaders, chasers, currentDay, maxWins
             style={{width:96,height:168,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid #b8860b',flexShrink:0}} />}
           <div style={{flex:1,minWidth:200,display:'flex',flexDirection:'column',justifyContent:'center',gap:4}}>
             <div style={{fontFamily:'monospace',fontSize:'0.58rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'#b8860b'}}>{String.fromCodePoint(0x1F3C6)} {t3(lang, 'Юшо', 'Yusho champion', '\u512A\u52DD')}</div>
-            <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1.1}}>{winner.name}</div>
+            <div style={{fontWeight:800,fontSize:'1.4rem',lineHeight:1.1}}>{lang === 'uk' ? ukrName(winner.name) : winner.name}</div>
             <div style={{fontFamily:'monospace',fontSize:'0.72rem',color:'var(--mid)'}}>{winner.rank || ''}{winner.wins != null ? ` \u00b7 ${winner.wins}\u2013${winner.losses}` : ''}</div>
             {playoff?.bouts?.length > 0 && (
               <div style={{marginTop:6,paddingTop:6,borderTop:'1px solid var(--border)'}}>
                 <div style={{fontFamily:'monospace',fontSize:'0.52rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',marginBottom:3}}>{t3(lang, 'Плей-оф', 'Playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226')}</div>
                 {playoff.bouts.map((b, i) => (
                   <div key={i} style={{fontFamily:'monospace',fontSize:'0.66rem',padding:'1px 0'}}>
-                    <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{b.east}</span>
+                    <span style={{fontWeight: String(b.winnerId) === String(b.eastId) ? 800 : 400,color: String(b.winnerId) === String(b.eastId) ? '#1a6b5c' : 'var(--ink)'}}>{lang === 'uk' ? ukrName(b.east) : b.east}</span>
                     <span style={{color:'var(--light)'}}> vs </span>
-                    <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{b.west}</span>
+                    <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{lang === 'uk' ? ukrName(b.west) : b.west}</span>
                     {b.kimarite && <span style={{color:'var(--mid)'}}> {'\u00b7'} {b.kimarite}</span>}
                   </div>
                 ))}

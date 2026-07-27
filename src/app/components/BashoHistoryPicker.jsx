@@ -7,7 +7,7 @@ const MONTHS = ['01', '03', '05', '07', '09', '11']
 
 export default function BashoHistoryPicker({ hist, value, onChange, lang, current = null }) {  /* history_grid_v2 */
   const [expanded, setExpanded] = useState(false)
-  const mShort = { '01': t3(lang,'Хацу','Hatsu','\u521D'), '03': t3(lang,'Хару','Haru','\u6625'), '05': t3(lang,'Нацу','Natsu','\u590F'), '07': t3(lang,'Наґоя','Nagoya','\u540D'), '09': t3(lang,'Акі','Aki','\u79CB'), '11': t3(lang,'Кюсю','Kyushu','\u4E5D') }
+  const mShort = { '01': t3(lang,'Хацу','Hatsu','\u521D'), '03': t3(lang,'Хару','Haru','\u6625'), '05': t3(lang,'Нацу','Natsu','\u590F'), '07': t3(lang,'Наґоя','Nagoya','\u540D'), '09': t3(lang,'Акі','Aki','\u79CB'), '11': t3(lang,'Кюшю','Kyushu','\u4E5D') }
   const byKey = Object.fromEntries((hist || []).map(h => [h.b, h]))
   if (current && current.b && !byKey[current.b]) byKey[current.b] = current
   const years = [...new Set([...(hist || []).map(h => h.b.slice(0, 4)), ...(current && current.b ? [current.b.slice(0, 4)] : [])])].sort((a, b) => b.localeCompare(a))

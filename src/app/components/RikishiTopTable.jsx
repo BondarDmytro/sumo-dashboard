@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* ukr_toptable_v1 */
 /* rikishi_top_table_v1: top-N z sortuvanniam i filtramy, dani z lokalnogo rikishiMeta.json */
 import { useState, useMemo } from 'react'
 import meta from '../lib/rikishiMeta.json'
@@ -56,8 +57,8 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
   const divisions = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
 
   const COLS = [
-    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => displayRank(m.rank, lang), sort: m => rankSortValue(m.rank), asc: true },
-    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank ? displayRank(m.hiRank, lang) : '\u2014', sort: m => m.hiVal || 99999, asc: true },  /* cols_v2 + hirank_col_v1 */
+    { key: 'rank', label: t3(lang,'\u0420\u0430\u043d\u0433','Rank','\u756a\u4ed8'), get: m => displayRank(m.rank, lang), sort: m => rankSortValue(m.rank), asc: true, left: true },
+    { key: 'hirank', label: t3(lang,'\u041d\u0430\u0439\u0432\u0438\u0449\u0438\u0439','Highest','\u6700\u9ad8\u4f4d'), get: m => m.hiRank ? displayRank(m.hiRank, lang) : '\u2014', sort: m => m.hiVal || 99999, asc: true, left: true },  /* cols_v2 + hirank_col_v1 */
     { key: 'winpct', label: t3(lang,'% \u043f\u0435\u0440\u0435\u043c\u043e\u0433','Win %','\u52dd\u7387'), get: m => m.matches ? Math.round(m.wins / m.matches * 100) + '%' : '\u2014', sort: m => m.matches ? m.wins / m.matches : -1 },
     { key: 'basho', label: t3(lang,'\u0422\u0443\u0440\u043d\u0456\u0440\u0438','Basho','\u5834\u6240'), get: m => m.basho || '\u2014', sort: m => m.basho || 0 },
     { key: 'debut', label: t3(lang,'\u0414\u0435\u0431\u044e\u0442','Debut','\u521d\u571f\u4ff5'), get: m => m.debut ? `${String(m.debut).slice(0,4)}/${String(m.debut).slice(4,6)}` : '\u2014', sort: m => Number(m.debut) || 0 },
@@ -120,7 +121,7 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
                   <th style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color:'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'left'}}>{t3(lang,'\u0420\u0456\u043a\u0456\u0448\u0456','Rikishi','\u529b\u58eb')}</th>
                   {COLS.map(c => (
                     <th key={c.key} onClick={() => { if (sortKey === c.key) setSortDir(d => -d); else { setSortKey(c.key); setSortDir(-1) } }}
-                      style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color: sortKey===c.key ? '#b8860b' : 'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'right',cursor:'pointer',whiteSpace:'nowrap'}}>
+                      style={{fontFamily:'monospace',fontSize:'0.58rem',textTransform:'uppercase',color: sortKey===c.key ? '#b8860b' : 'var(--mid)',padding:'0.4rem 0.5rem',textAlign:'center',cursor:'pointer',whiteSpace:'nowrap'}}>
                       {c.label}{sortKey === c.key ? (sortDir === -1 ? ' \u2193' : ' \u2191') : ''}
                     </th>
                   ))}
@@ -130,9 +131,9 @@ export default function RikishiTopTable({ onSelect, lang: langProp }) {
                 {rows.map((m, i) => (
                   <tr key={m.id} onClick={() => onSelect?.(m.id)} style={{borderBottom:'1px solid var(--border)',cursor:'pointer'}}>
                     <td style={{padding:'0.45rem 0.5rem',fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)'}}>{i + 1}</td>
-                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}><FavStar id={m.id} size={13} /> {flagOf(m.shusshin)} {lang === 'ja' && m.nameJp ? m.nameJp.split(/\s/)[0] : m.name}</td>
+                    <td style={{padding:'0.45rem 0.5rem',fontWeight:700,whiteSpace:'nowrap'}}><FavStar id={m.id} size={13} /> {flagOf(m.shusshin)} {lang === 'ja' && m.nameJp ? m.nameJp.split(/\s/)[0] : lang === 'uk' ? ukrName(m.name) : m.name}</td>
                     {COLS.map(c => (
-                      <td key={c.key} style={{padding:'0.45rem 0.5rem',textAlign:'right',fontFamily:'monospace',fontSize:'0.7rem',whiteSpace:'nowrap'}}>{c.get(m)}</td>
+                      <td key={c.key} style={{padding:'0.45rem 0.5rem',textAlign: c.left ? 'left' : 'center',fontFamily:'monospace',fontSize:'0.7rem',whiteSpace:'nowrap'}}>{c.get(m)}</td>
                     ))}
                   </tr>
                 ))}

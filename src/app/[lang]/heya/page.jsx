@@ -1,3 +1,4 @@
+import { ukrName } from '../../lib/translit'  /* ukr_heya_v1 */
 /* heya_index_v1: indeks 45 stainei */
 import rikishiMeta from '../../lib/rikishiMeta.json'
 import { heyaSlug, rankVal } from '../../lib/heya' /* heya_lib_v1 */
@@ -54,7 +55,7 @@ export default async function HeyaIndex({ params }) {
           {heyas.map(h => (
             <a key={h.slug} href={`/${L}/heya/${h.slug}`} style={{display:'block',background:'var(--card)',border:'1px solid var(--border)',padding:'0.7rem 0.9rem',borderRadius:3,textDecoration:'none',color:'var(--ink)'}}>
               <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-                <span style={{fontWeight:700,fontSize:'0.9rem'}}>{L === 'ja' ? `${heyaJa(h.name)}部屋` : h.name}</span>
+                <span style={{fontWeight:700,fontSize:'0.9rem'}}>{L === 'ja' ? `${heyaJa(h.name)}部屋` : L === 'uk' ? ukrName(h.name) : h.name}</span>  {/* ukr_heya_v1 */}
                 <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)'}}>{h.members.length} {lbl[0]}</span>
                 {h.yusho > 0 && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'#8a6a00',fontWeight:700}}>{'\ud83c\udfc6'} {h.yusho} {lbl[1]}</span>}{/* heya_visual_v1 */}
               </div>
@@ -63,7 +64,7 @@ export default async function HeyaIndex({ params }) {
                 const isMak = ['Yokozuna','Ozeki','Sekiwake','Komusubi','Maegashira'].includes(div)
                 return (
               <div style={{marginTop:4,fontFamily:'monospace',fontSize:'0.62rem',color: isMak ? '#8a6a00' : 'var(--mid)',fontWeight: isMak ? 700 : 400}}>
-                {L === 'ja' ? String(h.members[0]?.nameJp || h.members[0]?.name || '').split('\u3000')[0].split('(')[0] : h.members[0]?.name} — {h.members[0]?.rank}
+                {L === 'ja' ? String(h.members[0]?.nameJp || h.members[0]?.name || '').split('\u3000')[0].split('(')[0] : L === 'uk' ? ukrName(h.members[0]?.name) : h.members[0]?.name} — {h.members[0]?.rank}
               </div>
                 )
               })()}

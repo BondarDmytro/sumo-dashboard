@@ -250,7 +250,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Дебют', 'Debut', '初土俵')}</div>
                 <div style={tVal}>{bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…')}</div>
-                {bio?.debut && <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{({'01':t3(lang,'Хацу','Hatsu','初'),'03':t3(lang,'Хару','Haru','春'),'05':t3(lang,'Нацу','Natsu','夏'),'07':t3(lang,'Наґоя','Nagoya','名古屋'),'09':t3(lang,'Акі','Aki','秋'),'11':t3(lang,'Кюсю','Kyushu','九州')})[bio.debut.slice(4)] || ''}</div>}
+                {bio?.debut && <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{({'01':t3(lang,'Хацу','Hatsu','初'),'03':t3(lang,'Хару','Haru','春'),'05':t3(lang,'Нацу','Natsu','夏'),'07':t3(lang,'Наґоя','Nagoya','名古屋'),'09':t3(lang,'Акі','Aki','秋'),'11':t3(lang,'Кюшю','Kyushu','九州')})[bio.debut.slice(4)] || ''}</div>}
               </div>
               <div style={tile}>
                 <div style={tLbl}>{t3(lang, 'Зріст', 'Height', '身長')}</div>
