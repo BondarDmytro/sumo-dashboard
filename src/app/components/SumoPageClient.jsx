@@ -1,12 +1,15 @@
 /* auto_current_v3 */
 'use client'
-import { ukrName } from '../lib/translit'  /* ukr_kimarite_v1 */ /* ja_kimarite_ui_v1 */
+import RikishiLink from './RikishiLink'  /* banzuke_layout_v3 */
+import OvrBadge from './OvrBadge'  /* banzuke_layout_v1 */
+import rikishiMetaBz from '../lib/rikishiMeta.json'  /* banzuke_flags_v1 */
+import { ukrName, ukrDivision } from '../lib/translit'  /* ukr_kimarite_v1 */ /* ja_kimarite_ui_v1 */
 import { KIMARITE_INFO, kimariteKanji } from '../lib/kimarite' /* ja_names_sweep_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
-import { currentBashoId, bashoInfo } from '../lib/bashoCalendar' /* basho_labels_v1 */
+import { currentBashoId, bashoInfo, prevBashoIdOf, shortRank } from '../lib/bashoCalendar' /* basho_labels_v1 */
 
 const RANK_ORDER = ['Yokozuna', 'Ozeki', 'Sekiwake', 'Komusubi', 'Maegashira']
 const RANK_COLORS = {  /* banzuke_rank_colors_v1: kanon = lib/rankColors */
@@ -54,7 +57,7 @@ const NSK_IMG = (name) => KIMARITE_EXT[name] ? `/kimarite/${name}.${KIMARITE_EXT
 
 /* KIMARITE_INFO -> lib/kimarite.js (kimarite_lib_v1) */
 
-function BanzukeView({ data, lang }) {
+function BanzukeView({ data, lang, prevRanks = {} }) {  /* banzuke_layout_v1 */
   if (!data) return null
   const { east, west } = data
   const ranks = {}
@@ -88,27 +91,21 @@ function BanzukeView({ data, lang }) {
             {Array.from({length: rows}).map((_, i) => {
               const er = e[i]
               const wr = w[i]
+              const num = (r) => { const m = String(r?.rank || '').match(/(\d+)/); return m ? m[1] : '' }
+              const pInfo = (r) => { const p = prevRanks[String(r?.rikishiID)]; return (p ? shortRank(p, lang) : '\u2013') + ' \u00b7 ' + r.wins + '\u2013' + r.losses }
+              const nm = (r) => lang === 'ja' && r.shikonaJp ? r.shikonaJp : lang === 'uk' ? ukrName(r.shikonaEn) : r.shikonaEn
+              const C = {display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}
               return (
-                <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,borderBottom:'1px solid var(--border)',background: i % 2 === 0 ? 'var(--card)' : 'var(--bg2)'}}>
-                  <div style={{padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8,justifyContent:'flex-end'}}>
-                    {er && (<>
-                      <div style={{textAlign:'right'}}>
-                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{lang === 'ja' && er.shikonaJp ? er.shikonaJp : er.shikonaEn}</div>
-                        <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{er.wins}–{er.losses}</div>
-                      </div>
-                      <span style={{fontSize:'0.9rem'}}>{er.flag || '🇯🇵'}</span>
-                    </>)}
-                  </div>
-
-                  <div style={{padding:'0.5rem 0.75rem',display:'flex',alignItems:'center',gap:8}}>
-                    {wr && (<>
-                      <span style={{fontSize:'0.9rem'}}>{wr.flag || '🇯🇵'}</span>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:'0.85rem'}}>{lang === 'ja' && wr.shikonaJp ? wr.shikonaJp : wr.shikonaEn}</div>
-                        <div style={{fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)'}}>{wr.wins}–{wr.losses}</div>
-                      </div>
-                    </>)}
-                  </div>
+                <div key={i} style={{display:'grid',gridTemplateColumns:'34px 44px 84px 1fr 36px 1fr 84px 44px 34px',gap:3,alignItems:'center',borderBottom:'1px solid var(--border)',background: i % 2 === 0 ? 'var(--card)' : 'var(--bg2)',padding:'0.3rem 0.4rem',minHeight:34}}>{/* banzuke_layout_v3 */}
+                  <span style={{...C,fontSize:'1.15rem',lineHeight:1}}>{er ? (er.flag || '\u{1F1EF}\u{1F1F5}') : ''}</span>
+                  <span style={C}>{er && <OvrBadge id={String(er.rikishiID)} size='md' />}</span>
+                  <span style={{...C,fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{er ? pInfo(er) : ''}</span>
+                  <span style={{fontWeight:700,fontSize:'0.85rem',textAlign:'center',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{er ? <RikishiLink id={String(er.rikishiID)}>{nm(er)}</RikishiLink> : ''}</span>
+                  <span style={{...C,fontFamily:'monospace',fontSize:'0.72rem',fontWeight:700,color:RANK_COLORS[rankType]}}>{num(er) || num(wr)}</span>
+                  <span style={{fontWeight:700,fontSize:'0.85rem',textAlign:'center',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{wr ? <RikishiLink id={String(wr.rikishiID)}>{nm(wr)}</RikishiLink> : ''}</span>
+                  <span style={{...C,fontFamily:'monospace',fontSize:'0.58rem',color:'var(--mid)',whiteSpace:'nowrap'}}>{wr ? pInfo(wr) : ''}</span>
+                  <span style={C}>{wr && <OvrBadge id={String(wr.rikishiID)} size='md' />}</span>
+                  <span style={{...C,fontSize:'1.15rem',lineHeight:1}}>{wr ? (wr.flag || '\u{1F1EF}\u{1F1F5}') : ''}</span>
                 </div>
               )
             })}
@@ -211,28 +208,49 @@ function KimariteView({ data, lang }) {
   )
 }
 
+const BZ_META = new Map(rikishiMetaBz.map(m => [String(m.id), m]))  /* banzuke_flags_v1 */
+const BZ_FLAGS = [['Mongolia','\u{1F1F2}\u{1F1F3}'],['Ukraine','\u{1F1FA}\u{1F1E6}'],['Georgia','\u{1F1EC}\u{1F1EA}'],['Kazakhstan','\u{1F1F0}\u{1F1FF}'],['China','\u{1F1E8}\u{1F1F3}'],['Brazil','\u{1F1E7}\u{1F1F7}'],['Russia','\u{1F3F3}\uFE0F'],['Bulgaria','\u{1F1E7}\u{1F1EC}'],['Kyrgyzstan','\u{1F1F0}\u{1F1EC}'],['Uzbekistan','\u{1F1FA}\u{1F1FF}'],['Philippines','\u{1F1F5}\u{1F1ED}'],['Egypt','\u{1F1EA}\u{1F1EC}'],['Tonga','\u{1F1F9}\u{1F1F4}'],['Hungary','\u{1F1ED}\u{1F1FA}'],['USA','\u{1F1FA}\u{1F1F8}']]
+const bzFlag = (shusshin) => { const s = String(shusshin || ''); if (s.includes('Russia')) return '\u{1F3F3}\uFE0F'; const hit = BZ_FLAGS.find(([p]) => s.startsWith(p)); return hit ? hit[1] : '\u{1F1EF}\u{1F1F5}' }  /* banzuke_flags_v2 */
 export default function SumoPageClient() {
   const [tab, setTab] = useState('banzuke')
   const [banzuke, setBanzuke] = useState(null)
+  const [bzDiv, setBzDiv] = useState('Makuuchi')  /* banzuke_divisions_v1 */
+  const BZ_DIVS = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
   const [kimarite, setKimarite] = useState(null)
   const [loading, setLoading] = useState(true)
   const { lang } = useLang()
 
   useEffect(() => {
     Promise.all([
-      fetch(`https://sumo-api.com/api/basho/${currentBashoId()}/banzuke/Makuuchi`).then(r => r.json()),  /* auto_current_v4 */
+      (async () => {  /* banzuke_chain_v2: efektyvne basho + prev vid noho */
+        const cur = currentBashoId()
+        let bid = cur
+        let d = await fetch(`https://sumo-api.com/api/basho/${cur}/banzuke/${bzDiv}`).then(r => r.json()).catch(() => ({}))  /* banzuke_divisions_v1 */
+        if (!(d.east || []).length && !(d.west || []).length) {
+          bid = prevBashoIdOf(cur)
+          d = await fetch(`https://sumo-api.com/api/basho/${bid}/banzuke/${bzDiv}`).then(r => r.json()).catch(() => ({}))
+        }
+        const prevRanks = {}  /* banzuke_prev2div_v1: Makuuchi + Juryo - pidyomy z nyzhchoho */
+        const divIdx = BZ_DIVS.indexOf(bzDiv)
+        const prevDivs = [bzDiv, BZ_DIVS[divIdx + 1]].filter(Boolean)
+        for (const pd of prevDivs) {
+          const pb = await fetch(`https://sumo-api.com/api/basho/${prevBashoIdOf(bid)}/banzuke/${pd}`).then(r => r.json()).catch(() => ({}))
+          ;[...(pb.east || []), ...(pb.west || [])].forEach(r => { if (!prevRanks[String(r.rikishiID)]) prevRanks[String(r.rikishiID)] = r.rank || '' })
+        }
+        return { ...d, prevRanks, srcBasho: bid }  /* banzuke_source_label_v1 */
+      })(),
       fetch('https://sumo-api.com/api/kimarite?sortField=count&sortOrder=desc').then(r => r.json()),
       fetch('/api/bios').then(r => r.json()),
     ]).then(([b, k, biosData]) => {
-      const addFlags = (list) => (list||[]).map(r => ({...r, flag: biosData[r.rikishiID]?.country?.flag || '🇯🇵'}))
-      setBanzuke({ east: addFlags(b.east), west: addFlags(b.west) })
+      const addFlags = (list) => (list||[]).map(r => ({...r, flag: biosData[r.rikishiID]?.country?.flag || bzFlag(BZ_META.get(String(r.rikishiID))?.shusshin)}))  /* banzuke_flags_v1 */
+      setBanzuke({ east: addFlags(b.east), west: addFlags(b.west), prevRanks: b.prevRanks || {}, srcBasho: b.srcBasho })
       setKimarite(k)
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [])
+  }, [bzDiv])
 
   const tabs = [
-    { id: 'banzuke', label: t3(lang, 'Банзуке', 'Banzuke', '番付') },
+    { id: 'banzuke', label: t3(lang, 'Бандзуке', 'Banzuke', '番付') },  /* banzuke_fallback_v1 */
     { id: 'kimarite', label: t3(lang, 'Кімаріте', 'Kimarite', '決まり手') },
   ]
 
@@ -267,8 +285,19 @@ export default function SumoPageClient() {
                   {lang === 'en'
                     ? 'Banzuke is the official ranking list of wrestlers before the tournament. East is traditionally considered the stronger side.'
                     : lang === 'ja' ? '番付は場所前に発表される公式の力士ランキング。伝統的に東が格上とされる。'  /* ja_final_tails */
-                    : 'Банзуке — офіційна таблиця рангів борців перед початком турніру. Схід (East) традиційно вважається сильнішою стороною.'}
+                    : 'Бандзуке — офіційна таблиця рангів борців перед початком турніру. Схід (East) традиційно вважається сильнішою стороною.'}
                 </p>
+                <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:'0.8rem'}}>{/* banzuke_divisions_v1 */}
+                  {BZ_DIVS.map(d => (
+                    <button key={d} onClick={() => setBzDiv(d)}
+                      style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.06em',padding:'4px 10px',borderRadius:2,cursor:'pointer',
+                        background: bzDiv === d ? '#b8860b' : 'var(--card)',
+                        color: bzDiv === d ? '#1a120a' : 'var(--mid)',
+                        border: '1px solid ' + (bzDiv === d ? '#b8860b' : 'var(--border)')}}>
+                      {lang === 'uk' ? ukrDivision(d) : d}
+                    </button>
+                  ))}
+                </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,marginBottom:4}}>
                   <div style={{padding:'0.4rem 0.75rem',fontFamily:'monospace',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.1em',textAlign:'right',color:'var(--mid)'}}>
                     {t3(lang, 'СХІД (EAST)', 'EAST', '東')}
@@ -278,7 +307,12 @@ export default function SumoPageClient() {
                     {t3(lang, 'ЗАХІД (WEST)', 'WEST', '西')}
                   </div>
                 </div>
-                <BanzukeView data={banzuke} lang={lang} />
+                {banzuke?.srcBasho && (
+                  <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
+                    {t3(lang, 'Бандзуке: ', 'Banzuke: ', '\u756A\u4ED8\uFF1A')}{(lang === 'ja' ? bashoInfo(banzuke.srcBasho).label.ja : lang === 'en' ? bashoInfo(banzuke.srcBasho).label.en : bashoInfo(banzuke.srcBasho).label.uk)}
+                  </div>
+                )}
+                <BanzukeView data={banzuke} lang={lang} prevRanks={banzuke?.prevRanks || {}} />
               </div>
             )}
             {tab === 'kimarite' && (
