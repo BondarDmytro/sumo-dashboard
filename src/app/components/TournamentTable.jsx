@@ -111,9 +111,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     ? computeStandings(allRikishi, Math.min(viewDayEff, 15))  /* tt_playoff_tab_v1: den 16 = pislia-pleiof */
     : null
   const shown = retro
-    ? (viewDayEff === 16 && divisionPlayoff?.bouts?.length
-        ? (() => { const ids = new Set(divisionPlayoff.bouts.flatMap(b => [String(b.eastId), String(b.westId)])); return retro.rikishi.filter(r => ids.has(String(r._id))) })()
-        : retro.rikishi.filter(r => !r.kyujo))  /* retro_all_v1 tt_playoff_filter_v1 */
+    ? retro.rikishi.filter(r => !r.kyujo)  /* retro_all_v1 tt_po_fulllist_v1: den 16 = povnyi spysok, uchasnyky P-O vydni v paneli */
     : contenders
 
   const dayLabel = t3(lang, `День ${viewDayEff}`, `Day ${viewDayEff}`, `${viewDayEff}日目`)
@@ -192,7 +190,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
               const barColor = i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
               const statusLabel = r.status === 'lead'
-                ? ((divisionWinner && (String(divisionWinner._id ?? divisionWinner.id ?? divisionWinner) === String(r._id) || divisionWinner.name === r.name)) ? t3(lang, '\u044E\u0448\u043E ' , 'yusho ', '\u512A\u52DD ') + String.fromCodePoint(0x1F3C6) : (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ')))  /* tt_mob_final_v1 division_winner_v1 */
+                ? ((viewDayEff >= 15 && divisionWinner && (String(divisionWinner._id ?? divisionWinner.id ?? divisionWinner) === String(r._id) || divisionWinner.name === r.name)) ? /* tt_yusho_day_gate_v1 */ t3(lang, '\u044E\u0448\u043E ' , 'yusho ', '\u512A\u52DD ') + String.fromCodePoint(0x1F3C6) : (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ')))  /* tt_mob_final_v1 division_winner_v1 */
                 : r.status === 'chase'
                 ? (isMobileTT ? t3(lang, '\u041F', 'C', '\u8FFD') : t3(lang, 'переслідувач', 'chaser', '追走'))
                 : (!r.kyujo && (r.yushoChance ?? 1) <= 0)
