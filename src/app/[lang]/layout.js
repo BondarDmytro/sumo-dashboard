@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation'
 
 export function generateStaticParams() {
-  return [{ lang: 'en' }, { lang: 'ja' }, { lang: 'uk' }]
+  return [{ lang: 'en' }, { lang: 'ja' }, { lang: 'uk' }, { lang: 'fr' }] /* fr_locale_v1 */
 }
 
 const META = {
@@ -29,13 +29,13 @@ export async function generateMetadata({ params }) {
     description: m.description,
     alternates: {
       canonical: `${base}/${lang}`,
-      languages: { en: `${base}/en`, ja: `${base}/ja`, uk: `${base}/uk`, 'x-default': `${base}/en` },
+      languages: { en: `${base}/en`, ja: `${base}/ja`, uk: `${base}/uk`, fr: `${base}/fr`, 'x-default': `${base}/en` },
     },
   }
 }
 
 export default async function LangLayout({ children, params }) {
   const { lang } = await params
-  if (!['en', 'ja', 'uk'].includes(lang)) notFound()
+  if (!['en', 'ja', 'uk', 'fr'].includes(lang)) notFound()  /* fr_locale_v1 */
   return children
 }

@@ -19,7 +19,7 @@ export default function BurgerMenu({ tabs = [], langPrefix = '', lang = 'uk' }) 
       <div onClick={e => e.stopPropagation()} style={{position:'absolute',top:0,left:0,right:0,background:'var(--header)',borderBottom:'1px solid rgba(255,255,255,0.12)',padding:'0.6rem 1rem 1rem',display:'flex',flexDirection:'column'}}>
         {tabs.map(tab => (
           <Link key={tab.href} onClick={() => setOpen(false)}
-            href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja'].includes(lang) ? lang : 'en') : langPrefix) + tab.href}
+            href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja','fr'].includes(lang) ? lang : 'en') : langPrefix) + tab.href}
             style={{padding:'0.7rem 0.4rem',fontFamily:'monospace',fontSize:'0.78rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'#f5f0e8',textDecoration:'none',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
             {tab.label}
           </Link>

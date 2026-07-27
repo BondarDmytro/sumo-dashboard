@@ -7,7 +7,7 @@ import { useLang } from './LangProvider'
 import { displayRank } from '../lib/bashoCalendar' /* ja_toptable_v1 */
 import FavStar from './FavStar' /* favorites_v1 */
 
-function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
+function t3(lang, uk, en, ja, fr) { return lang === 'en' ? en : lang === 'ja' ? ja : lang === 'fr' ? (fr !== undefined ? fr : en) : uk }  /* fr_local_t3_v1 */
 
 const DIV_ORDER = ['Yokozuna','Ozeki','Sekiwake','Komusubi','Maegashira','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
 function divisionOf(rank) {

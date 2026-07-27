@@ -51,7 +51,7 @@ function IconBtn({ href, onClick, title, color, children }) {
 
 export default function NavBar() {
   const path = usePathname()
-  const isHome = ['/','/en','/ja','/uk'].includes(path)  /* basho_nav_v1 */
+  const isHome = ['/','/en','/ja','/uk','/fr'].includes(path)  /* basho_nav_v1 fr_navbar_v1 */
   const isStudio = path.startsWith('/studio')
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -86,13 +86,13 @@ useEffect(() => {
   /* navbar_lang_prefix_v1: на мовному шляху таби зберігають префікс */
   const _seg = (path || '').split('/')[1]  /* navbar_lang_prefix_v2: через usePathname — без гідраційних розбіжностей */
   /* navbar_active_v1 */
-  const langPrefix = ['uk','en','ja'].includes(_seg) ? '/' + _seg : ''
+  const langPrefix = ['uk','en','ja','fr'].includes(_seg) ? '/' + _seg : ''
   const tabs = [
     { href: '/', label: t?.nav?.tournament || 'Турнір' },
     { href: '/ranks', label: t?.nav?.ranks || 'Ранги' },
     { href: '/rikishi', label: t?.nav?.rikishi || 'Рікіші' },
-    { href: '/heya', label: t?.nav?.heya || (lang === 'ja' ? '部屋' : lang === 'en' ? 'Stables' : 'Стайні'), deep: true },  /* nav_heya_v1 */
-    { href: '/news', label: lang === 'ja' ? 'ニュース' : lang === 'en' ? 'News' : 'Новини', deep: true },  /* nav_news_v1 */
+    { href: '/heya', label: t?.nav?.heya || (lang === 'ja' ? '部屋' : lang === 'en' ? 'Stables' : lang === 'fr' ? 'Écuries' : 'Стайні') /* fr_nav_items_v1 */, deep: true },  /* nav_heya_v1 */
+    { href: '/news', label: lang === 'ja' ? 'ニュース' : lang === 'en' ? 'News' : lang === 'fr' ? 'Actualités' : 'Новини', deep: true },  /* nav_news_v1 */
     { href: '/archive', label: t?.nav?.archive || 'Архів' },
     { href: '/sumo', label: t?.nav?.sumo || 'Про сумо' },
   ]
@@ -119,7 +119,7 @@ useEffect(() => {
           <button className="nav-burger" onClick={() => window.dispatchEvent(new CustomEvent('nav-burger-toggle'))} aria-label="menu" style={{display:'none',background:'none',border:'1px solid rgba(255,255,255,0.25)',borderRadius:3,color:'#f5f0e8',fontSize:'1rem',padding:'0.2rem 0.5rem',cursor:'pointer',marginRight:6}}>{'\u2630'}</button>
           <span className="nav-tabs-inline" style={{display:'contents'}}>
           {tabs.map(tab => (
-            <Link key={tab.href} href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja'].includes(lang) ? lang : 'en') : langPrefix) + tab.href} className="nav-tab" style={{/* nav_heya_v2: deep-taby zavzhdy z movnym prefiksom */
+            <Link key={tab.href} href={(tab.deep && !langPrefix ? '/' + (['uk','en','ja','fr'].includes(lang) ? lang : 'en') : langPrefix) + tab.href} className="nav-tab" style={{/* nav_heya_v2: deep-taby zavzhdy z movnym prefiksom */
               display: 'inline-block',
               padding: '0.7rem 0.9rem',
               fontFamily: 'monospace',
@@ -160,7 +160,7 @@ useEffect(() => {
               <div style={{position:'relative'}}>
   <IconBtn onClick={(e)=>{e.stopPropagation();setLangMenuOpen(v=>!v)}} title="Language" color="#f5f0e8">
     <span style={{fontSize:'0.85rem'}}>
-      {lang==='uk'?'🇺🇦':lang==='en'?'🇬🇧':'🇯🇵'}
+      {lang==='uk'?'🇺🇦':lang==='en'?'🇬🇧':lang==='fr'?'🇫🇷':'🇯🇵'}
     </span>
   </IconBtn>
   {langMenuOpen&&(
@@ -174,6 +174,7 @@ useEffect(() => {
                       {code:'uk',flag:'🇺🇦',label:'Українська'},
                       {code:'en',flag:'🇬🇧',label:'English'},
                       {code:'ja',flag:'🇯🇵',label:'日本語'},
+                      {code:'fr',flag:'🇫🇷',label:'Français'},
                     ].map(l=>(
                       <div key={l.code} onClick={()=>{setLanguage(l.code);setLangMenuOpen(false)}} style={{
                         display:'flex',alignItems:'center',gap:8,

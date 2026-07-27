@@ -15,7 +15,7 @@ export default function sitemap() {
     { path: '/news', changeFrequency: 'daily', priority: 0.7 },  /* sitemap_news_v1 */
     ...[...new Set(rikishiMeta.filter(r => r.heya).map(r => String(r.heya).toLowerCase().replace(/[^a-z0-9]/g, '')))].map(s => ({ path: `/heya/${s}`, changeFrequency: 'weekly', priority: 0.6 })),
   ]
-  const langs = ['en', 'ja', 'uk']
+  const langs = ['en', 'ja', 'uk', 'fr'] /* fr_locale_v1 */
   const out = [{ url: base, lastModified: now, changeFrequency: 'daily', priority: 1 }]
   for (const l of langs) {
     for (const p of pages) {

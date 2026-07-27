@@ -91,7 +91,7 @@ export default function RankForecast() {
     <div style={{marginBottom:'1rem'}}>
       {data.srcBasho && (
         <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
-          {t3(lang, 'Прогноз за: ', 'Forecast from: ', '予想元：')}{(lang === 'ja' ? bashoInfo(srcB).label.ja : lang === 'en' ? bashoInfo(srcB).label.en : bashoInfo(srcB).label.uk)}
+          {t3(lang, 'Прогноз за: ', 'Forecast from: ', '予想元：')}{(lang === 'ja' ? bashoInfo(srcB).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(srcB).label.en : bashoInfo(srcB).label.uk)}
         </div>
       )}
       {data.rikishi.map(r => {
@@ -215,7 +215,7 @@ export default function RankForecast() {
               <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:3}}>{displayRank(r.rank, lang)}</div>
               <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                 {r.bio?.country?.flag && r.bio.country.flag !== '🇯🇵' && (  /* country_name_i18n_v1: порівнюємо прапор, не назву */
-                  <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{typeof r.bio.country.name === 'object' ? (r.bio.country.name[lang] || r.bio.country.name.uk) : r.bio.country.name}</span>
+                  <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{typeof r.bio.country.name === 'object' ? (r.bio.country.name[lang] || r.bio.country.name.en || r.bio.country.name.uk) : r.bio.country.name}</span>
                 )}
                 {r.bio?.age && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.age} {t3(lang, 'р.', 'y.o.', '歳')}</span>}
                 {r.bio?.height && <span style={{fontFamily:'monospace',fontSize:'0.56rem',color:'var(--mid)',background:'var(--bg2)',padding:'1px 4px',borderRadius:2}}>{r.bio.height} {t3(lang, 'см', 'cm', 'cm')}</span>}
@@ -295,3 +295,5 @@ export default function RankForecast() {
   )
 }
 /* rankforecast_verdict_fixed_v1 */
+
+/* fr_ternary_sweep_v1 */

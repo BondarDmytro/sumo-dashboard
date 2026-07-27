@@ -1,9 +1,64 @@
 export const translations = {
+  fr: {  /* fr_locale_v1 */
+    nav: {
+      tournament: 'Tournoi',
+      rikishi: 'Rikishi',
+      ranks: 'Classements',
+      heya: 'Écuries', news: 'Actualités',
+      archive: 'Archives',
+      sumo: 'Le sumo',
+    },
+    header: {
+      subtitle: 'Grand tournoi de sumo \u00b7 Tokyo \u00b7 2026',
+      title: 'Pronostic Yusho',
+      titleSub: 'Makuuchi',
+      dayOf: 'sur 15',
+      daysLeft: 'jours restants',
+      contenders: 'pr\u00e9tendants',
+    },
+    table: {
+      title: 'Classement \u2014 tous les rikishi Makuuchi',
+      day: 'Jour',
+      rikishi: 'Rikishi',
+      rank: 'Rang',
+      record: 'Bilan',
+      matches: 'Combats',
+      status: 'Statut',
+      chance: 'Chance de yusho',
+      leader: 'leader',
+      eliminated: '\u00e9limin\u00e9',
+    },
+    status: {
+      leaders: 'Leaders',
+      chasers: 'Poursuivants',
+      daysLeft: 'Jours restants',
+      toFinal: 'avant la finale',
+      kyujo: 'Kyujo',
+      absent: 'absents',
+      contenders: 'Pr\u00e9tendants',
+      chanceAbove: 'chance > 0%',
+      record: 'bilan',
+    },
+    sections: {
+      tournament: '\u00c9tat du tournoi',
+      chart: 'Probabilit\u00e9s de yusho',
+      chartSub: '\u00c9volution des chances de yusho par jour',
+      h2h: 'Face-\u00e0-face \u2014 ce tournoi (top pr\u00e9tendants)',
+      eliminated: '\u00c9limin\u00e9s de la course au yusho',
+      kyujo: 'Kyujo \u2014 absents',
+    },
+    misc: {
+      loading: 'Chargement...',
+      expected: '\u00e0 venir',
+      today: 'Aujourd\u2019hui',
+    }
+  },
   uk: {
     nav: {
       tournament: 'Турнір',
       rikishi: 'Рікіші',
       ranks: 'Ранги',  /* nav_ranks_short_v1 */
+      heya: 'Стайні', news: 'Новини',  /* nav_heya_news_dict_v1 */
       archive: 'Архів',
       sumo: 'Про сумо',
     },
@@ -57,6 +112,7 @@ export const translations = {
       tournament: 'Tournament',
       rikishi: 'Rikishi',
       ranks: 'Ranks',
+      heya: 'Stables', news: 'News',
       archive: 'Archive',
       sumo: 'About Sumo',
     },
@@ -110,6 +166,7 @@ export const translations = {
       tournament: '場所',
       rikishi: '力士',
       ranks: '番付予想',
+      heya: '部屋', news: 'ニュース',
       archive: 'アーカイブ',
       sumo: '相撲について',
     },
@@ -161,8 +218,9 @@ export const translations = {
 }
 
 export const defaultLang = 'uk'
-export function t3(lang, uk, en, ja) {
+export function t3(lang, uk, en, ja, fr) {  /* fr_locale_v1: fr z folbekom na en */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }

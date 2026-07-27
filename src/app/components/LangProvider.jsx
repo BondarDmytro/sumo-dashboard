@@ -12,7 +12,7 @@ export function LangProvider({ children }) {
     /* lang_path_v1: pathname-префікс /en|/ja|/uk має НАЙВИЩИЙ пріоритет */
     try {
       const seg = window.location.pathname.split('/')[1]
-      if (['uk','en','ja'].includes(seg)) {
+      if (['uk','en','ja','fr'].includes(seg)) {
         setLang(seg)
         localStorage.setItem('lang', seg)
         return
@@ -22,7 +22,7 @@ export function LangProvider({ children }) {
     try {
       const q = new URLSearchParams(window.location.search).get('lang')
       if (q) {
-        const l = ['uk','en','ja'].includes(q) ? q : 'en'
+        const l = ['uk','en','ja','fr'].includes(q) ? q : 'en'
         setLang(l)
         localStorage.setItem('lang', l)
         return
@@ -38,7 +38,7 @@ export function LangProvider({ children }) {
     /* lang_path_v1: на мовному шляху — навігація між префіксами */
     try {
       const parts = window.location.pathname.split('/')
-      if (['uk','en','ja'].includes(parts[1])) {
+      if (['uk','en','ja','fr'].includes(parts[1])) {
         parts[1] = l
         window.location.pathname = parts.join('/')
       }

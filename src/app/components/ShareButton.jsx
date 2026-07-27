@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { useLang } from './LangProvider'
 
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 

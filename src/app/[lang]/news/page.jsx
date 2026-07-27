@@ -1,7 +1,7 @@
 /* news_page_v1 */
 import NewsPageClient from '../../components/NewsPageClient'
 
-const LANGS = ['uk', 'en', 'ja']
+const LANGS = ['uk', 'en', 'ja', 'fr'] /* fr_locale_v1 */
 const TITLES = {
   uk: 'Новини сумо — Dohyo Legends',
   en: 'Sumo News — Dohyo Legends',

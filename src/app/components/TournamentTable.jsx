@@ -15,9 +15,10 @@ const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 
@@ -26,7 +27,7 @@ function TodayCell({ record, currentDay, t, lang }) {  /* today_opponent_jp_v1 *
   const todayWin = todayMatch && RESULTS_WIN.includes(todayMatch.result)
   const todayLoss = todayMatch && RESULTS_LOSS.includes(todayMatch.result)
   if (!todayMatch || !todayMatch.result) {
-    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>{t3(lang,'очікується','upcoming','予定')}</span>
+    return <span style={{color:'var(--light)',fontSize:'0.68rem',fontFamily:'monospace'}}>{t3(lang,'очікується','upcoming','予定', 'à venir')}</span>
   }
   if (todayWin) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
@@ -114,23 +115,23 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     ? retro.rikishi.filter(r => !r.kyujo)  /* retro_all_v1 tt_po_fulllist_v1: den 16 = povnyi spysok, uchasnyky P-O vydni v paneli */
     : contenders
 
-  const dayLabel = t3(lang, `День ${viewDayEff}`, `Day ${viewDayEff}`, `${viewDayEff}日目`)
+  const dayLabel = t3(lang, `День ${viewDayEff}`, `Day ${viewDayEff}`, `${viewDayEff}日目`, `Jour ${viewDayEff}`)
   const headers = [
     dayLabel,
     '#',
-    t3(lang, 'Рікіші', 'Rikishi', '力士'),
-    t3(lang, 'Ранг', 'Rank', '番付'),
-    t3(lang, 'Бал', 'Score', '点'),  /* ovr_col_tt_v1 tt_mob_rank_score_v1 */
-    t3(lang, 'Рекорд', 'Record', '成績'),
-    t3(lang, 'Матчі', 'Matches', '取組'),
-    t3(lang, 'Статус', 'Status', '状態'),
-    t3(lang, 'Шанс на юшо', 'Yusho chance', '優勝確率'),
+    t3(lang, 'Рікіші', 'Rikishi', '力士', 'Rikishi'),
+    t3(lang, 'Ранг', 'Rank', '番付', 'Rang'),
+    t3(lang, 'Бал', 'Score', '点', 'Cote'),  /* ovr_col_tt_v1 tt_mob_rank_score_v1 */
+    t3(lang, 'Рекорд', 'Record', '成績', 'Bilan'),
+    t3(lang, 'Матчі', 'Matches', '取組', 'Combats'),
+    t3(lang, 'Статус', 'Status', '状態', 'Statut'),
+    t3(lang, 'Шанс на юшо', 'Yusho chance', '優勝確率', 'Chance de yusho'),
   ]  /* delta_col_removed_v1 */
 
   return (
     <>
       <div className="anim-2" style={{fontFamily:'monospace',fontSize:'0.72rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.5rem',marginBottom:'1.2rem'}}>
-        {t3(lang, 'Турнірна таблиця — всі рікіші макуучі', 'Standings — all Makuuchi rikishi', '幕内力士 全員成績表')}
+        {t3(lang, 'Турнірна таблиця — всі рікіші макуучі', 'Standings — all Makuuchi rikishi', '幕内力士 全員成績表', 'Classement — tous les rikishi Makuuchi')}
       </div>
       <div className="tt-slider" style={{display:'flex',alignItems:'center',gap:8,marginBottom:'0.5rem'}}>{/* table_timetravel_v1 */}
         <button onClick={() => setDay(d => Math.max(1, d - 1))} disabled={viewDayEff <= 1}
@@ -139,7 +140,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
           style={{flex:1,minWidth:120,accentColor:'#b8860b'}} />
         <button onClick={() => setDay(d => Math.min(dayMax, d + 1))} disabled={viewDayEff >= dayMax}
           style={{fontFamily:'monospace',padding:'2px 10px',cursor:'pointer',background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:2,color:'var(--ink)'}}>{'\u203a'}</button>
-        <span style={{fontFamily:'monospace',fontSize:'0.7rem',fontWeight:700,whiteSpace:'nowrap'}}>{viewDayEff === 16 ? t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444', 'Playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226') : t3(lang,'\u0414\u0435\u043d\u044c','Day','\u65e5\u76ee') + ' ' + viewDayEff + '/' + currentDay}</span>
+        <span style={{fontFamily:'monospace',fontSize:'0.7rem',fontWeight:700,whiteSpace:'nowrap'}}>{viewDayEff === 16 ? t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444', 'Playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226', 'Barrage') : t3(lang,'\u0414\u0435\u043d\u044c','Day','\u65e5\u76ee', 'Jour') + ' ' + viewDayEff + '/' + currentDay}</span>
       </div>
       <div className="tt-days" style={{display:'flex',gap:3,marginBottom:'0.6rem'}}>{/* table_timetravel_v1 */}
         {Array.from({length: divisionPlayoff ? 16 : 15},(_,k)=>k+1).map(d => (
@@ -149,17 +150,17 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               background: d === viewDayEff ? '#b8860b' : d <= currentDay ? 'rgba(184,134,11,0.18)' : 'var(--bg2)',
               border: '1px solid ' + (d === viewDayEff ? '#b8860b' : d <= dayMax ? 'rgba(184,134,11,0.4)' : 'var(--border)'),
               fontFamily:'monospace',fontSize:'0.55rem',fontWeight:700,color: d === viewDayEff ? '#1a120a' : 'var(--mid)'}}>
-            {d === 16 ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A') : d}
+            {d === 16 ? t3(lang, '\u041F-\u041E', 'P-O', '\u512A\u6C7A', 'B') : d}
           </div>
         ))}
       </div>
       {viewDayEff === 16 && divisionPlayoff?.bouts?.length > 0 && (
         <div style={{marginBottom:'1rem',padding:'0.7rem 0.9rem',background:'var(--card)',border:'1px solid #b8860b',borderRadius:4}}>  {/* tt_playoff_panel_v1 */}
-          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'#b8860b',marginBottom:6}}>{t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444 \u0437\u0430 \u044E\u0448\u043E', 'Yusho playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226')}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.14em',textTransform:'uppercase',color:'#b8860b',marginBottom:6}}>{t3(lang, '\u041F\u043B\u0435\u0439-\u043E\u0444 \u0437\u0430 \u044E\u0448\u043E', 'Yusho playoff', '\u512A\u52DD\u6C7A\u5B9A\u6226', 'Barrage pour le yusho')}</div>
           {divisionWinner && (
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,paddingBottom:8,borderBottom:'1px solid var(--border)'}}>  {/* tt_playoff_champion_v1 */}
               <span style={{fontSize:'1.1rem'}}>{String.fromCodePoint(0x1F3C6)}</span>
-              <span style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>{t3(lang, '\u042E\u0448\u043E', 'Yusho', '\u512A\u52DD')}:</span>
+              <span style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--mid)'}}>{t3(lang, '\u042E\u0448\u043E', 'Yusho', '\u512A\u52DD', 'Yusho')}:</span>
               <span style={{fontWeight:800,fontSize:'0.95rem',color:'#b8860b'}}>{divisionWinner.name || divisionWinner}</span>
             </div>
           )}
@@ -169,7 +170,7 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               <span style={{color:'var(--light)',fontSize:'0.6rem'}}>vs</span>
               <span style={{fontWeight: String(b.winnerId) === String(b.westId) ? 800 : 400,color: String(b.winnerId) === String(b.westId) ? '#1a6b5c' : 'var(--ink)'}}>{lang === 'uk' ? ukrName(b.west) : b.west}</span>
               {b.kimarite && <span style={{color:'var(--mid)',fontSize:'0.6rem'}}>{'\u00b7'} {b.kimarite}</span>}
-              {!b.winnerId && <span style={{color:'#b8860b',fontSize:'0.6rem'}}>{t3(lang, '\u0442\u0440\u0438\u0432\u0430\u0454...', 'in progress...', '\u9032\u884C\u4E2D')}</span>}
+              {!b.winnerId && <span style={{color:'#b8860b',fontSize:'0.6rem'}}>{t3(lang, '\u0442\u0440\u0438\u0432\u0430\u0454...', 'in progress...', '\u9032\u884C\u4E2D', 'en cours...')}</span>}
             </div>
           ))}
         </div>
@@ -190,13 +191,13 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
               const textColor = i < 3 ? '#fff' : 'var(--mid)'
               const barColor = i===0?'#1a6b5c':i===1?'#1a4a7a':i===2?'#c0392b':'#888'
               const statusLabel = r.status === 'lead'
-                ? ((viewDayEff >= 15 && divisionWinner && (String(divisionWinner._id ?? divisionWinner.id ?? divisionWinner) === String(r._id) || divisionWinner.name === r.name)) ? /* tt_yusho_day_gate_v1 */ t3(lang, '\u044E\u0448\u043E ' , 'yusho ', '\u512A\u52DD ') + String.fromCodePoint(0x1F3C6) : (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8') : t3(lang, 'лідер', 'leader', 'トップ')))  /* tt_mob_final_v1 division_winner_v1 */
+                ? ((viewDayEff >= 15 && divisionWinner && (String(divisionWinner._id ?? divisionWinner.id ?? divisionWinner) === String(r._id) || divisionWinner.name === r.name)) ? /* tt_yusho_day_gate_v1 */ t3(lang, '\u044E\u0448\u043E ' , 'yusho ', '\u512A\u52DD ', 'yusho ') + String.fromCodePoint(0x1F3C6) : (isMobileTT ? t3(lang, '\u041B', 'L', '\u30C8', 'L') : t3(lang, 'лідер', 'leader', 'トップ', 'leader')))  /* tt_mob_final_v1 division_winner_v1 */
                 : r.status === 'chase'
-                ? (isMobileTT ? t3(lang, '\u041F', 'C', '\u8FFD') : t3(lang, 'переслідувач', 'chaser', '追走'))
+                ? (isMobileTT ? t3(lang, '\u041F', 'C', '\u8FFD', 'P') : t3(lang, 'переслідувач', 'chaser', '追走', 'poursuivant'))
                 : (!r.kyujo && (r.yushoChance ?? 1) <= 0)
                 ? (r.eliminatedDay
-                    ? (isMobileTT ? t3(lang, `\u0414-${r.eliminatedDay}`, `D-${r.eliminatedDay}`, `\u8131${r.eliminatedDay}`) : t3(lang, `вибув (д. ${r.eliminatedDay})`, `out (d. ${r.eliminatedDay})`, `脱落（${r.eliminatedDay}日目）`))
-                    : (isMobileTT ? t3(lang, '\u0412', 'O', '\u8131') : t3(lang, 'вибув', 'out', '脱落')))  /* tt_elim_day_v1 tt_mob_elim_v1 */
+                    ? (isMobileTT ? t3(lang, `\u0414-${r.eliminatedDay}`, `D-${r.eliminatedDay}`, `\u8131${r.eliminatedDay}`, `J-${r.eliminatedDay}`) : t3(lang, `вибув (д. ${r.eliminatedDay})`, `out (d. ${r.eliminatedDay})`, `脱落（${r.eliminatedDay}日目）`, `éliminé (j. ${r.eliminatedDay})`))
+                    : (isMobileTT ? t3(lang, '\u0412', 'O', '\u8131', 'É') : t3(lang, 'вибув', 'out', '脱落', 'éliminé')))  /* tt_elim_day_v1 tt_mob_elim_v1 */
                 : `${r.wins}–${r.losses}`
               const isOut = !r.kyujo && (r.yushoChance ?? 1) <= 0 && r.status !== 'lead' && r.status !== 'chase'
               return (
@@ -245,3 +246,5 @@ export default function TournamentTable({ contenders, currentDay, allRikishi = n
     </>
   )
 }
+
+/* fr_batch1_tt_v1 */

@@ -11,9 +11,10 @@ import CompactGrid from './CompactGrid' /* dyn_compactgrid_v1 */
 const WIN = ['win', 'fusen win']
 const LOSS = ['loss', 'fusen loss']
 
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 
@@ -87,7 +88,7 @@ export default function PrevBashoDynamics({ bashoId, liveDay = null /* live_dyna
   if (err) return <div style={{ padding: '2rem', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem' }}>API error: {err}</div>
   if (!data) return <div style={{ padding: '2rem', color: 'var(--mid)', fontFamily: 'monospace', fontSize: '0.72rem' }}>{t3(lang, 'Завантаження…', 'Loading…', '読み込み中…')}</div>
 
-  const label = lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : bi.label.uk
+  const label = lang === 'en' ? bi.label.en : lang === 'ja' ? bi.label.ja : lang === 'fr' ? bi.label.fr : bi.label.uk  /* fr_ternary_sweep_v1 */
 
   return (
     <div>

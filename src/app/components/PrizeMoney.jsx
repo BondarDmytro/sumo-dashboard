@@ -77,7 +77,7 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
       total += PRIZE_SPECIAL
       const name = SPECIAL_PRIZE_NAMES[p.type]
       breakdown.push({
-        label: lang === 'ja' ? (name?.ja || p.type) : lang === 'en' ? (name?.en || p.type) : (name?.uk || p.type),
+        label: lang === 'ja' ? (name?.ja || p.type) : lang === 'en' || lang === 'fr' ? (name?.en || p.type) : (name?.uk || p.type),
         amount: PRIZE_SPECIAL,
         color: '#1a4a7a'
       })
@@ -192,3 +192,4 @@ export default function PrizeMoney({ rikishi, specialPrizes = [], yushoData = []
     </div>
   )
 }
+/* fr_ternary_sweep_v1 */

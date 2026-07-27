@@ -22,7 +22,7 @@ export default function FlagName({ id, name, size = '0.95rem' }) {
   const metaR = bio ? null : META_BY_ID.get(String(id))  /* flagname_meta_fallback_v1 */
   const flag = bio?.country?.flag || (metaR ? metaFlag(metaR.shusshin) : '🇯🇵')
   const _n = bio?.country?.name
-  const country = (_n && typeof _n === 'object') ? (_n[lang] || _n.uk) : (_n || (lang === 'ja' ? '日本' : lang === 'en' ? 'Japan' : 'Японія'))  /* country_name_i18n_v1 */
+  const country = (_n && typeof _n === 'object') ? (_n[lang] || _n.en || _n.uk) : (_n || (lang === 'ja' ? '日本' : lang === 'en' || lang === 'fr' ? 'Japan' : 'Японія'))  /* country_name_i18n_v1 */
 
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:5}}>

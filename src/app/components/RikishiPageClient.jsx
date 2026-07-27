@@ -148,7 +148,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
   if (!r) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300,color:'var(--mid)',fontFamily:'monospace',fontSize:'0.8rem'}}>
-      {t3(lang, '← Виберіть рікіші зі списку', '← Select a rikishi from the list', '← 一覧から力士を選択')}
+      {t3(lang, '← Виберіть рікіші зі списку', '← Select a rikishi from the list', '← 一覧から力士を選択', '← Choisissez un rikishi dans la liste')}
     </div>
   )
 
@@ -158,10 +158,10 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
     : lang === 'ja' ? ['出身', '年齢', '身長', '体重', '部屋', '初土俯', '最高位']  /* ja_tails_v1 */
     : ['Країна', 'Вік', 'Зріст', 'Вага', 'Стайня', 'Дебют', 'Найвищий ранг']
   const bioValues = [
-    (bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : '…'),  /* country_name_i18n_v1 */
-    bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—') : '…',
-    bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—') : '…',
-    bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…',
+    (bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.en || bio.country.name.uk) : bio.country?.name) : '…'),  /* country_name_i18n_v1 */
+    bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳', 'ans')}` : '—') : '…',
+    bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm', 'cm')}` : '—') : '…',
+    bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg', 'kg')}` : '—') : '…',
     bio ? ((lang === 'ja' && bio.heya && HEYA_JA[bio.heya]) ? HEYA_JA[bio.heya] : (bio.heya || '—')) : '…',
     bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…'),
     (() => { const h = rikishiMeta.find(m => m.id === r.id)?.hiRank; return h ? displayRank(h, lang) : '—' })(),  /* hirank_ja_v1 */
@@ -181,7 +181,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
           cursor:'pointer',padding:'0 0 1rem 0',
           letterSpacing:'0.05em',
         }}>
-          {'‹'} {t3(lang, 'До списку', 'Back to list', '一覧に戻る')}
+          {'‹'} {t3(lang, 'До списку', 'Back to list', '一覧に戻る', 'Retour à la liste')}
         </button>
       )}
 
@@ -193,7 +193,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
         const tLbl = {fontFamily:'monospace',fontSize: isMobile ? '0.44rem' : '0.7rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom: isMobile ? 1 : 4}
         const tVal = {fontWeight:700,fontSize: isMobile ? '0.6rem' : '1.1rem'}
         const hiRank = (() => { const h = rikishiMeta.find(m => m.id === r.id)?.hiRank; return h ? displayRank(h, lang) : null })()
-        const cName = bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.uk) : bio.country?.name) : null
+        const cName = bio ? (typeof bio.country?.name === 'object' ? (bio.country.name[lang] || bio.country.name.en || bio.country.name.uk) : bio.country?.name) : null
         return (
           <div style={{display:'flex',alignItems:'flex-start',gap: isMobile ? '0.5rem' : '1rem',marginBottom:'1rem',flexWrap: isMobile ? 'nowrap' : 'wrap'}}>  {/* profile_mobile_v2 */}
             <div style={{flexShrink:0,width: isMobile ? 72 : 108,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
@@ -207,7 +207,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
               </div>
               {eRt && eRt.bouts > 0 && (
                 <div style={{width:'100%',background:tcRt,color:'#fff',borderRadius:6,padding:'0.45rem 0.4rem',textAlign:'center'}}>
-                  <div style={{fontFamily:'monospace',fontSize:'0.46rem',letterSpacing:'0.1em',textTransform:'uppercase',opacity:0.85,marginBottom:2}}>{t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', 'レーティング')}</div>
+                  <div style={{fontFamily:'monospace',fontSize:'0.46rem',letterSpacing:'0.1em',textTransform:'uppercase',opacity:0.85,marginBottom:2}}>{t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', 'レーティング', 'Cote Dohyo')}</div>
                   <div style={{fontFamily:'monospace',fontWeight:800,fontSize:'1.4rem',lineHeight:1}}>{eRt.ovr}</div>
                   {eRt.delta !== 0 && <div style={{fontFamily:'monospace',fontSize:'0.6rem',fontWeight:700,marginTop:2,opacity:0.95}}>{eRt.delta > 0 ? '↑' + eRt.delta : '↓' + Math.abs(eRt.delta)}</div>}
                 </div>
@@ -216,24 +216,24 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
             <div style={{flex:1,minWidth:0,display:'grid',gridTemplateColumns: 'repeat(3,1fr)',gap: isMobile ? 3 : 6,gridAutoRows:'1fr',alignSelf:'stretch'  /* profile_mobile_v4 */}}>
               <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>
                 <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
-                  <div style={tLbl}>{t3(lang, 'Ранг', 'Rank', '番付')}</div>
+                  <div style={tLbl}>{t3(lang, 'Ранг', 'Rank', '番付', 'Rang')}</div>
                   <div style={{...tVal,fontFamily:'monospace'}}>{displayRank(r.rank, lang)}</div>
                 </div>
                 <div style={{padding:'0.5rem 0.4rem',display:'flex',flexDirection:'column',justifyContent:'center'}}>
-                  <div style={tLbl}>{t3(lang, 'Найвищий ранг', 'Highest rank', '最高位')}</div>
+                  <div style={tLbl}>{t3(lang, 'Найвищий ранг', 'Highest rank', '最高位', 'Rang le plus élevé')}</div>
                   <div style={{...tVal,fontFamily:'monospace'}}>{hiRank || '—'}</div>
                 </div>
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Країна', 'Country', '出身')}</div>
+                <div style={tLbl}>{t3(lang, 'Країна', 'Country', '出身', 'Pays')}</div>
                 <div style={tVal}>{bio?.country?.flag ? bio.country.flag + ' ' : ''}{cName || (bio ? '—' : '…')}</div>
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Вік', 'Age', '年齢')}</div>
-                <div style={tVal}>{bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳')}` : '—') : '…'}</div>
+                <div style={tLbl}>{t3(lang, 'Вік', 'Age', '年齢', 'Âge')}</div>
+                <div style={tVal}>{bio ? (bio.age ? `${bio.age} ${t3(lang, 'р.', 'y.o.', '歳', 'ans')}` : '—') : '…'}</div>
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Юшо', 'Yusho', '優勝')}</div>
+                <div style={tLbl}>{t3(lang, 'Юшо', 'Yusho', '優勝', 'Yusho')}</div>
                 {(bio?.stats?.yusho || 0) > 0 ? (
                   <>
                     <div style={{display:'flex',alignItems:'center',gap:3,flexWrap:'wrap',marginBottom:4}}>
@@ -249,16 +249,16 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 ) : <div style={tVal}>{'—'}</div>}
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Дебют', 'Debut', '初土俵')}</div>
+                <div style={tLbl}>{t3(lang, 'Дебют', 'Debut', '初土俵', 'Débuts')}</div>
                 <div style={tVal}>{bio?.debut ? `${bio.debut.slice(0,4)}/${bio.debut.slice(4)}` : (bio ? '—' : '…')}</div>
-                {bio?.debut && <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{({'01':t3(lang,'Хацу','Hatsu','初'),'03':t3(lang,'Хару','Haru','春'),'05':t3(lang,'Нацу','Natsu','夏'),'07':t3(lang,'Наґоя','Nagoya','名古屋'),'09':t3(lang,'Акі','Aki','秋'),'11':t3(lang,'Кюшю','Kyushu','九州')})[bio.debut.slice(4)] || ''}</div>}
+                {bio?.debut && <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginTop:2}}>{({'01':t3(lang,'Хацу','Hatsu','初', 'Hatsu'),'03':t3(lang,'Хару','Haru','春', 'Haru'),'05':t3(lang,'Нацу','Natsu','夏', 'Natsu'),'07':t3(lang,'Наґоя','Nagoya','名古屋', 'Nagoya'),'09':t3(lang,'Акі','Aki','秋', 'Aki'),'11':t3(lang,'Кюшю','Kyushu','九州', 'Kyushu')})[bio.debut.slice(4)] || ''}</div>}
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Зріст', 'Height', '身長')}</div>
-                <div style={tVal}>{bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm')}` : '—') : '…'}</div>
+                <div style={tLbl}>{t3(lang, 'Зріст', 'Height', '身長', 'Taille')}</div>
+                <div style={tVal}>{bio ? (bio.height ? `${bio.height} ${t3(lang, 'см', 'cm', 'cm', 'cm')}` : '—') : '…'}</div>
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Санко', 'Sansho', '三賞')}</div>
+                <div style={tLbl}>{t3(lang, 'Санко', 'Sansho', '三賞', 'Sansho')}</div>
                 {sanshoList.length > 0 ? (
                   <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                     {sanshoList.map(([name, count]) => (
@@ -268,12 +268,12 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                 ) : <div style={tVal}>{'—'}</div>}
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Стайня', 'Stable', '部屋')}</div>
+                <div style={tLbl}>{t3(lang, 'Стайня', 'Stable', '部屋', 'Écurie (heya)')}</div>
                 <div style={tVal}>{bio ? (bio.heya ? <HeyaLink heya={bio.heya} lang={lang} /> : '—') : '…'}</div>
               </div>
               <div style={tile}>
-                <div style={tLbl}>{t3(lang, 'Вага', 'Weight', '体重')}</div>
-                <div style={tVal}>{bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg')}` : '—') : '…'}</div>
+                <div style={tLbl}>{t3(lang, 'Вага', 'Weight', '体重', 'Poids')}</div>
+                <div style={tVal}>{bio ? (bio.weight ? `${bio.weight} ${t3(lang, 'кг', 'kg', 'kg', 'kg')}` : '—') : '…'}</div>
               </div>
             </div>
           </div>
@@ -292,7 +292,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
           </div>
           <WinRate wins={bio?.stats?.makuuchiWins||0} total={bio?.stats?.makuuchiMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {bio?.stats?.makuuchiBasho ?? '…'} {t3(lang, 'турнірів', 'tournaments', '場所')}
+            {bio?.stats?.makuuchiBasho ?? '…'} {t3(lang, 'турнірів', 'tournaments', '場所', 'tournois')}
           </div>
         </div>
         <div style={{background:'var(--bg2)',padding:'0.75rem 1rem',borderRadius:2}}>
@@ -304,7 +304,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
           </div>
           <WinRate wins={bio?.stats?.totalWins||0} total={bio?.stats?.totalMatches||0} />
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginTop:4}}>
-            {bio?.stats?.totalMatches ?? '…'} {t3(lang, 'матчів', 'matches', '番')}
+            {bio?.stats?.totalMatches ?? '…'} {t3(lang, 'матчів', 'matches', '番', 'combats')}
           </div>
         </div>
       </div>
@@ -360,7 +360,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
               )}
               {isAbsent && (
                 <div style={{fontFamily:'monospace',fontSize:'0.56rem',color:'#c0392b',marginTop:2}}>
-                  {t3(lang, 'кюджо', 'kyujo', '休場')}
+                  {t3(lang, 'кюджо', 'kyujo', '休場', 'kyujo')}
                 </div>
               )}
             </div>
@@ -371,7 +371,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
       {playoffMatches.length > 0 && (
         <div style={{marginTop:'1rem'}}>
           <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-            {t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦')}
+            {t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦', 'Barrage')}
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
             {playoffMatches.map((m, pi) => {
@@ -381,7 +381,7 @@ border: isWin ? '1.5px solid var(--ink)' : isLoss ? '1.5px solid var(--ink)' : i
               const oppJa = m.opponentJp || jpMap?.[m.opponent] || m.opponent || ''
               const ytQuery = encodeURIComponent(`${r.nameJp || r.name} ${oppJa} ${bashoJa(selBasho)} 優勝決定戦`)
               const ytUrl = pinnedUrl || `https://www.youtube.com/@sumo-video/search?query=${ytQuery}`
-              const label = t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦') + (playoffMatches.length > 1 ? ` ${pi+1}` : '')
+              const label = t3(lang, 'Плей-оф', 'Playoff', '優勝決定戦', 'Barrage') + (playoffMatches.length > 1 ? ` ${pi+1}` : '')
               return (
                 <div key={`po-${m.day}-${pi}`} style={{background:'var(--bg2)',border:`1px solid ${isWin ? 'rgba(184,134,11,0.5)' : 'rgba(192,57,43,0.4)'}`,padding:'0.4rem 0.6rem',borderRadius:2}}>
                   <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:3}}>
@@ -446,7 +446,7 @@ export default function RikishiPageClient() {
     if (window.innerWidth <= 860) setOpenDivs({})
   }, [])
   const DIVS = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
-  const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内'), Juryo: t3(lang,'Джюрьо','Juryo','十両'), Makushita: t3(lang,'Макушіта','Makushita','幕下'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口') }
+  const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内', 'Makuuchi'), Juryo: t3(lang,'Джюрьо','Juryo','十両', 'Juryo'), Makushita: t3(lang,'Макушіта','Makushita','幕下', 'Makushita'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目', 'Sandanme'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段', 'Jonidan'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口', 'Jonokuchi') }
   const renderSections = (onClickFn) => DIVS.map(div => {
     const items = (filtered || []).filter(x => x.division === div)
     if (!items.length) return null
@@ -487,7 +487,7 @@ export default function RikishiPageClient() {
         <div style={{display:'flex',gap:8,marginBottom:'1.2rem'}}>
           {['list','compare','rating'].map(v => (  /* dohyo_rating_wire_v1 */
             <button key={v} onClick={() => setPageView(v)} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background: pageView === v ? '#8a6a00' : 'var(--bg2)',color: pageView === v ? '#fff' : 'var(--mid)'}}>
-              {v === 'list' ? t3(lang, 'Список', 'List', '一覧') : v === 'compare' ? t3(lang, 'Порівняти', 'Compare', '比較') : t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング')}
+              {v === 'list' ? t3(lang, 'Список', 'List', '一覧', 'Liste') : v === 'compare' ? t3(lang, 'Порівняти', 'Compare', '比較', 'Comparer') : t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング', 'Cote Dohyo')}
             </button>
           ))}
         </div>
@@ -498,7 +498,7 @@ export default function RikishiPageClient() {
           <RikishiCompare />
         ) : loading ? (
           <div style={{padding:'3rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)'}}>
-            {t3(lang, 'Завантаження даних...', 'Loading...', '読み込み中...')}
+            {t3(lang, 'Завантаження даних...', 'Loading...', '読み込み中...', 'Chargement...')}
           </div>
         ) : isMobile ? (
           /* Мобільний layout */
@@ -516,7 +516,7 @@ export default function RikishiPageClient() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...')}
+                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...', 'Recherche...')}
                 style={{
                   width:'100%',padding:'0.5rem 0.75rem',
                   background:'var(--bg2)',border:'1px solid var(--border)',
@@ -540,7 +540,7 @@ export default function RikishiPageClient() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...')}
+                placeholder={t3(lang, 'Пошук...', 'Search...', '検索...', 'Recherche...')}
                 style={{
                   width:'100%',padding:'0.5rem 0.75rem',
                   background:'var(--bg2)',border:'1px solid var(--border)',
@@ -582,3 +582,5 @@ export default function RikishiPageClient() {
 /* yt_query_ja_v1 */
 
 /* yt_direct_videos_v1 */
+
+/* fr_batch1_rpc_v1 */

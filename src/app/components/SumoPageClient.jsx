@@ -35,7 +35,7 @@ const KIMARITE_CATS = [  /* kimarite_ja_v1 */
 
 function getKimariteCategory(name, lang) {
   for (const c of KIMARITE_CATS) {
-    if (c.moves.includes(name)) return c.label[lang] || c.label.uk
+    if (c.moves.includes(name)) return c.label[lang] || c.label.en || c.label.uk
   }
   return t3(lang, 'Інші', 'Other', 'その他')
 }
@@ -309,7 +309,7 @@ export default function SumoPageClient() {
                 </div>
                 {banzuke?.srcBasho && (
                   <div style={{fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',marginBottom:8}}>
-                    {t3(lang, 'Бандзуке: ', 'Banzuke: ', '\u756A\u4ED8\uFF1A')}{(lang === 'ja' ? bashoInfo(banzuke.srcBasho).label.ja : lang === 'en' ? bashoInfo(banzuke.srcBasho).label.en : bashoInfo(banzuke.srcBasho).label.uk)}
+                    {t3(lang, 'Бандзуке: ', 'Banzuke: ', '\u756A\u4ED8\uFF1A')}{(lang === 'ja' ? bashoInfo(banzuke.srcBasho).label.ja : lang === 'en' || lang === 'fr' ? bashoInfo(banzuke.srcBasho).label.en : bashoInfo(banzuke.srcBasho).label.uk)}
                   </div>
                 )}
                 <BanzukeView data={banzuke} lang={lang} prevRanks={banzuke?.prevRanks || {}} />
@@ -333,3 +333,5 @@ export default function SumoPageClient() {
   )
 }
 /* kimarite_ja_v2 */
+
+/* fr_ternary_sweep_v1 */

@@ -5,7 +5,7 @@ import { useVotes } from './useVotes'
 import { useLang } from './LangProvider'
 import meta from '../lib/rikishiMeta.json'
 
-function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
+function t3(lang, uk, en, ja, fr) { return lang === 'en' ? en : lang === 'ja' ? ja : lang === 'fr' ? (fr !== undefined ? fr : en) : uk }  /* fr_local_t3_v1 */
 
 export default function VoteFab() {
   const { lang } = useLang()

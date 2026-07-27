@@ -31,6 +31,6 @@ export const config = {
   matcher: [
     '/',
     '/ranks', '/rikishi', '/archive', '/sumo',
-    '/:lang(en|ja|uk)/:path*',
+    '/:lang(en|ja|uk|fr)/:path*' /* fr_locale_v1 */,
   ],
 }

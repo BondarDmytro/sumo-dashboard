@@ -7,9 +7,10 @@
 import { useEffect, useState } from 'react'
 import { useLang } from './LangProvider'
 
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 
@@ -35,10 +36,10 @@ export default function BashoCountdown({ startUtcMs, bashoLabel }) {
   const s = Math.floor((diff % 60000) / 1000)
 
   const startDate = new Date(startUtcMs)
-  const jst = startDate.toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ja' ? 'ja-JP' : 'uk-UA', {
+  const jst = startDate.toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ja' ? 'ja-JP' : lang === 'fr' ? 'fr-FR' : 'uk-UA', {
     timeZone: 'Asia/Tokyo', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
   })
-  const local = startDate.toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ja' ? 'ja-JP' : 'uk-UA', {
+  const local = startDate.toLocaleString(lang === 'en' ? 'en-GB' : lang === 'ja' ? 'ja-JP' : lang === 'fr' ? 'fr-FR' : 'uk-UA', {
     day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
   })
 
@@ -67,3 +68,5 @@ export default function BashoCountdown({ startUtcMs, bashoLabel }) {
     </div>
   )
 }
+
+/* fr_ternary_sweep_v1 */

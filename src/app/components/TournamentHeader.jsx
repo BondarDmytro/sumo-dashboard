@@ -14,9 +14,10 @@ import ShareButton from './ShareButton' /* share_button_v1 */
 import MyRikishi from './MyRikishi' /* favorites_v1 */
 
 /* top5_classes_v1 */
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 
@@ -82,7 +83,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
       <div className={(champion || (champions && champions.length > 0) || (!isFinished && top3.length > 0)) ? 'th-grid th-grid-3' : 'th-grid th-grid-2'}  /* champions_grid3_v1 */ style={{maxWidth:1280,margin:'0 auto',position:'relative',zIndex:1,alignItems:'center'}}>  {/* header_mobile_v1 */}  {/* header_v10 */}
         <div className="th-col" style={{order:2,display:'flex',flexDirection:'column',alignItems:'center',justifySelf:'center',width:'100%',textAlign:'center'}}>
           <img src={bi.venue.img} alt={bi.venue.name} onError={e => { e.currentTarget.style.display = 'none' }} style={{width:'100%',flex:1,minHeight:0,objectFit:'cover',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
-          <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : bi.city.uk)}</div>
+          <div style={{fontSize:'0.85rem',fontWeight:700,color:'#f0c060',marginTop:10}}>{bi.venue.name + ' · ' + (lang === 'en' ? bi.city.en : lang === 'ja' ? bi.city.ja : lang === 'fr' ? bi.city.fr : bi.city.uk)}</div>
           {bi.venue.credit && (
             <div style={{fontSize:'0.55rem',fontFamily:'monospace',color:'#f5f0e8',opacity:0.45,marginTop:3}}>  {/* venue_credits_v1 */}
               Photo: {bi.venue.credit.author
@@ -94,7 +95,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
                 : bi.venue.credit.license}
             </div>
           )}
-          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{lang === 'ja' ? bi.label.ja : bi.kanji + ' ' + (lang === 'en' ? bi.label.en : bi.label.uk)}  {/* kanji_dedup_v1 */}</div>
+          <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.15em',color:'#6b6560',marginTop:2}}>{lang === 'ja' ? bi.label.ja : bi.kanji + ' ' + (lang === 'en' || lang === 'fr' ? bi.label.en : bi.label.uk)}  {/* kanji_dedup_v1 */}</div>
         </div>
         <div className="th-col" style={{minWidth:0,order:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem'}}>  {/* header_v17 top_align_v1 */}
         <div className="th-title-row" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:'0.75rem'}}>{/* share_inline_v1 share_row_class_v1 */}
@@ -138,7 +139,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             </>
           )}
         </div>
-      {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : cdTarget.label.uk} />}
+      {cdTarget && <BashoCountdown startUtcMs={cdTarget.startUtcMs} bashoLabel={lang === 'en' ? cdTarget.label.en : lang === 'ja' ? cdTarget.label.ja : lang === 'fr' ? cdTarget.label.fr : cdTarget.label.uk} />}
         </div>
         {(champsEff && champsEff.length > 0) && (  /* champions_hero_v3 champions_filter_v1 */
           <div className="th-col th-col-leaders" style={{order:3,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:'0.5rem',minWidth:0}}>  {/* champions_hero_v2 */}
@@ -210,7 +211,7 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             <img src={'/rikishi/' + champion.id + '.webp'} alt={champion.name} onError={e => { e.currentTarget.style.display = 'none' }}
               style={{height:'100%',width:'auto',objectFit:'cover',objectPosition:'top',borderRadius:4,border:'1px solid rgba(240,192,96,0.25)'}} />
             <div style={{maxWidth:420,minWidth:0,textAlign:'right'}}>
-              <div style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',color:'#f0c060',marginBottom:6}}>{(lang === 'en' ? bashoInfo(prevBashoIdOf(bashoId)).label.en : lang === 'ja' ? bashoInfo(prevBashoIdOf(bashoId)).label.ja : bashoInfo(prevBashoIdOf(bashoId)).label.uk) + (lang === 'en' ? ' \u2014 yusho' : lang === 'ja' ? '\u3000\u512a\u52dd' : ' \u2014 \u044e\u0448\u043e')}</div>
+              <div style={{fontSize:'1rem',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',color:'#f0c060',marginBottom:6}}>{(lang === 'en' ? bashoInfo(prevBashoIdOf(bashoId)).label.en : lang === 'ja' ? bashoInfo(prevBashoIdOf(bashoId)).label.ja : lang === 'fr' ? bashoInfo(prevBashoIdOf(bashoId)).label.fr : bashoInfo(prevBashoIdOf(bashoId)).label.uk) + (lang === 'en' || lang === 'fr' ? ' \u2014 yusho' : lang === 'ja' ? '\u3000\u512a\u52dd' : ' \u2014 \u044e\u0448\u043e')}</div>
               <div style={{fontSize:'1.8rem',fontWeight:800,lineHeight:1.15,whiteSpace:'nowrap'}}>{lang === 'ja' && champion.nameJp ? champion.nameJp : champion.name}</div>  {/* ja_champ_render */}
               <div style={{fontFamily:'Georgia,serif',fontSize:'2rem',fontWeight:800,color:'#f0c060',marginTop:8}}>{champion.wins}{'\u2013'}{champion.losses}</div>
               <div style={{fontFamily:'monospace',fontSize:'0.85rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'#6b6560',marginTop:4}}>{lang === 'en' ? 'Final record' : lang === 'ja' ? '最終成績' : 'Фінальний рекорд'}</div>
@@ -224,3 +225,5 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
 }
 
 /* header_mobile_v2 */
+
+/* fr_ternary_sweep_v1 */

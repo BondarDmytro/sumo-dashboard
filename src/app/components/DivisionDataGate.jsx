@@ -8,7 +8,7 @@ import { computeStandings } from '../lib/chanceEngine' /* ts_timetravel_v1 */
 import TournamentTabsWrapper from './TournamentTabsWrapper'
 import TournamentFooter from './TournamentFooter' /* footer_division_v1 */
 
-function t3(lang, uk, en, ja) { return lang === 'en' ? en : lang === 'ja' ? ja : uk }
+function t3(lang, uk, en, ja, fr) { return lang === 'en' ? en : lang === 'ja' ? ja : lang === 'fr' ? (fr !== undefined ? fr : en) : uk }  /* fr_local_t3_v1 */
 
 export default function DivisionDataGate({ makuuchi }) {
   const [tableDay, setTableDay] = useState(null)  /* ts_timetravel_v1 */

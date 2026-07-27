@@ -47,8 +47,8 @@ export function bashoInfo(bashoId) {
     startUtcMs, endUtcMs,
     startIso: new Date(startUtcMs).toISOString(),
     kanji: m.kanji,
-    label:  { uk: m.uk + ' ' + year,  en: m.en + ' ' + year,  ja: m.ja + ' ' + year },
-    city:   { uk: m.cityUk, en: m.cityEn, ja: m.cityJa },
+    label:  { uk: m.uk + ' ' + year,  en: m.en + ' ' + year,  ja: m.ja + ' ' + year,  fr: m.en + ' ' + year },  /* fr_basho_labels_v1 */
+    city:   { uk: m.cityUk, en: m.cityEn, ja: m.cityJa, fr: m.cityEn },
     venue:  VENUES[month],
   }
 }

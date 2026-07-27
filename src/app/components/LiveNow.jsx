@@ -22,7 +22,7 @@ export default function LiveNow({ currentDay: dayProp = null }) {
   const path = usePathname()
   const router = useRouter()
   const _seg = (path || '').split('/')[1]
-  const langPrefix = ['uk','en','ja'].includes(_seg) ? '/' + _seg : ''
+  const langPrefix = ['uk','en','ja','fr'].includes(_seg) ? '/' + _seg : ''
   const goLive = () => {  /* live_click_v3: push + podiia dlia toho zh pathname */
     router.push(langPrefix + '/?tab=torikumi' + (live?.division ? '&div=' + live.division : ''))
     setTimeout(() => window.dispatchEvent(new Event('livenav')), 150)

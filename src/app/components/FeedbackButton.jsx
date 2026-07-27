@@ -6,9 +6,10 @@ import { ref, push } from 'firebase/database'
 import { useLang } from './LangProvider'
 import VoteFab from './VoteFab' /* votes_v1 */
 
-function t3(lang, uk, en, ja) {
+function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   if (lang === 'en') return en
   if (lang === 'ja') return ja
+  if (lang === 'fr') return fr !== undefined ? fr : en
   return uk
 }
 
