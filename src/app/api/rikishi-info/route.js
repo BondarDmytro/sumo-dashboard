@@ -39,7 +39,8 @@ export async function GET(request) {
     const info = await infoRes.json()
     const stats = await statsRes.json()
     const birthDate = info.birthDate ? new Date(info.birthDate) : null
-    const age = birthDate ? Math.floor((new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000)) : null
+    const ageEnd = info.intai ? new Date(info.intai) : new Date()  /* intai_age_v1: vik na kinets kariery dlia zavershenykh */
+    const age = birthDate ? Math.floor((ageEnd - birthDate) / (365.25 * 24 * 60 * 60 * 1000)) : null
     return Response.json({
       country: getCountry(info.shusshin),
       age,

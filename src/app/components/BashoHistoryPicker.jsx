@@ -5,11 +5,12 @@ import { t3 } from '../i18n'
 
 const MONTHS = ['01', '03', '05', '07', '09', '11']
 
-export default function BashoHistoryPicker({ hist, value, onChange, lang, current = null }) {  /* history_grid_v2 */
+export default function BashoHistoryPicker({ hist, value, onChange, lang, current: currentProp = null, noLive = false }) {  /* legends_history_v1 */
+  const current = noLive ? null : currentProp  /* history_grid_v2 */
   const [expanded, setExpanded] = useState(false)
   const mShort = { '01': t3(lang,'Хацу','Hatsu','\u521D', 'Hatsu'), '03': t3(lang,'Хару','Haru','\u6625', 'Haru'), '05': t3(lang,'Нацу','Natsu','\u590F', 'Natsu'), '07': t3(lang,'Наґоя','Nagoya','\u540D', 'Nagoya'), '09': t3(lang,'Акі','Aki','\u79CB', 'Aki'), '11': t3(lang,'Кюшю','Kyushu','\u4E5D', 'Kyushu') }
   const byKey = Object.fromEntries((hist || []).map(h => [h.b, h]))
-  if (current && current.b && !byKey[current.b]) byKey[current.b] = current
+  if (current && current.b && !byKey[current.b]) byKey[current.b] = current  /* legends_history_v1: current znulovanyi cherez noLive dlia lehend */
   const years = [...new Set([...(hist || []).map(h => h.b.slice(0, 4)), ...(current && current.b ? [current.b.slice(0, 4)] : [])])].sort((a, b) => b.localeCompare(a))
   if (!years.length) return null
   const shown = expanded ? years : years.slice(0, 1)

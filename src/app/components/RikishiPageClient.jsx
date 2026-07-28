@@ -24,6 +24,7 @@ import FavStar from './FavStar' /* favorites_v1 */
 import VoteButton from './VoteButton' /* votes_v1 */
 import BashoHistoryPicker from './BashoHistoryPicker' /* history_picker_wire_v1 */
 import rikishiMeta from '../lib/rikishiMeta.json' /* hirank_bio_v1 */
+import historicalRikishi from '../lib/historicalRikishi.json'  /* legends_section_v1 */
 
 const RESULTS_WIN = ['win', 'fusen win']
 const RESULTS_LOSS = ['loss', 'fusen loss']
@@ -187,7 +188,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
       {/* Верхній блок: фото-колонка + сітка плиток 3x3 (profile_hero_v4) */}
       {(() => {
-        const eRt = eloData.ratings[String(r.id || r._id)]
+        const eRt = eloData.ratings[String(r.id || r._id)] || (r._hist?.peakOvr ? { ovr: r._hist.peakOvr, delta: 0, bouts: r._hist.bouts || 1, _histPeak: true } : null)  /* legends_ovr_v1 */
         const tcRt = eRt ? (eRt.ovr >= 90 ? '#c0392b' : eRt.ovr >= 75 ? '#7d3c98' : eRt.ovr >= 60 ? '#1a4a7a' : eRt.ovr >= 40 ? '#1a6b5c' : '#5a544a') : null
         const tile = {background:'var(--bg2)',padding: isMobile ? '0.3rem 0.4rem' : '0.5rem 0.6rem',borderRadius:2,textAlign:'center',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}  /* profile_hero_v5 profile_mobile_v3 */
         const tLbl = {fontFamily:'monospace',fontSize: isMobile ? '0.44rem' : '0.7rem',color:'var(--mid)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom: isMobile ? 1 : 4}
@@ -201,7 +202,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
               <img src={`/rikishi/${r.id}.webp`} alt={r.name}
                 style={{width:'100%',height: isMobile ? 158 : 189,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'}}
                 onError={e => { e.target.style.display = 'none' }}
-                onLoad={e => { e.target.style.display = 'block' }} />
+                onLoad={e => { e.target.style.display = 'block' }} onError={ev => { ev.target.outerHTML = '<div style="width:100%;aspect-ratio:270/474;border-radius:3px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--mid)">\u6a2a</div>' }} />  {/* legends_photo_ph_v1 */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                 <FavStar id={r.id || r._id} size={20} /><VoteButton id={r.id || r._id} />
               </div>
@@ -217,11 +218,11 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
               <div style={{...tile,padding:0,display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'stretch'}}>
                 <div style={{padding:'0.5rem 0.4rem',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',justifyContent:'center'}}>
                   <div style={tLbl}>{t3(lang, 'Ранг', 'Rank', '番付', 'Rang')}</div>
-                  <div style={{...tVal,fontFamily:'monospace'}}>{displayRank(r.rank, lang)}</div>
+                  <div style={{...tVal,fontFamily:'monospace'}}>{r._hist ? t3(lang, 'Завершив кар\u2019єру', 'Retired', '引退', 'Retraité') : displayRank(r.rank, lang)}</div>
                 </div>
                 <div style={{padding:'0.5rem 0.4rem',display:'flex',flexDirection:'column',justifyContent:'center'}}>
                   <div style={tLbl}>{t3(lang, 'Найвищий ранг', 'Highest rank', '最高位', 'Rang le plus élevé')}</div>
-                  <div style={{...tVal,fontFamily:'monospace'}}>{hiRank || '—'}</div>
+                  <div style={{...tVal,fontFamily:'monospace'}}>{r._hist ? displayRank(r._hist.hiRank, lang) : (hiRank || '—')}</div>
                 </div>
               </div>
               <div style={tile}>
@@ -321,7 +322,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
 
       {/* Результати турніру */}
       <div style={{fontFamily:'monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--mid)',borderBottom:'1px solid var(--border)',paddingBottom:'0.4rem',marginBottom:'0.75rem'}}>
-        <BashoHistoryPicker hist={rikHistory?.[String(r.id)] || []} value={selBasho} onChange={setSelBasho} lang={lang} current={{ b: bashoStatus(currentBashoId()) === 'upcoming' ? prevBashoIdOf(currentBashoId()) : currentBashoId(), w: r.wins, l: r.losses, r: r.rank }} /* hist_live_effbasho_v1: konventsiia 12 - mizhsezonnia */ />  {/* history_picker_wire_v1 */}{pastLoading && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>...</span>}  {/* history_tail_v2 */}
+        {<BashoHistoryPicker hist={r._hist ? (r._hist.hist || []) : (rikHistory?.[String(r.id)] || [])} value={selBasho} onChange={setSelBasho} lang={lang} noLive={!!r._hist} current={{ b: bashoStatus(currentBashoId()) === 'upcoming' ? prevBashoIdOf(currentBashoId()) : currentBashoId(), w: r.wins, l: r.losses, r: r.rank }} /* hist_live_effbasho_v1 legends_profile_polish_v1 */ />}  {/* history_picker_wire_v1 */}{pastLoading && <span style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginLeft:6}}>...</span>}  {/* history_tail_v2 */}
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:4}}>
         {regularMatches.map(m => {
@@ -455,8 +456,8 @@ export default function RikishiPageClient() {
   useEffect(() => {  /* divs_mobile_collapsed_v2: mob - vse zghorneno pislia mauntu, bez hidratsiinoho mismatchu */
     if (window.innerWidth <= 860) setOpenDivs({})
   }, [])
-  const DIVS = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi']
-  const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内', 'Makuuchi'), Juryo: t3(lang,'Джюрьо','Juryo','十両', 'Juryo'), Makushita: t3(lang,'Макушіта','Makushita','幕下', 'Makushita'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目', 'Sandanme'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段', 'Jonidan'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口', 'Jonokuchi') }
+  const DIVS = ['Makuuchi','Juryo','Makushita','Sandanme','Jonidan','Jonokuchi','legends']  /* legends_section_v1 */
+  const DIV_LABEL = { Makuuchi: t3(lang,'Макуучі','Makuuchi','幕内', 'Makuuchi'), Juryo: t3(lang,'Джюрьо','Juryo','十両', 'Juryo'), Makushita: t3(lang,'Макушіта','Makushita','幕下', 'Makushita'), Sandanme: t3(lang,'Сандамме','Sandanme','三段目', 'Sandanme'), Jonidan: t3(lang,'Джонідан','Jonidan','序二段', 'Jonidan'), Jonokuchi: t3(lang,'Джонокучі','Jonokuchi','序ノ口', 'Jonokuchi'), legends: t3(lang,'Легенди минулого','Legends of the past','歴代の名力士', 'Légendes du passé') }  /* legends_section_v1 */
   const renderSections = (onClickFn) => DIVS.map(div => {
     const items = (filtered || []).filter(x => x.division === div)
     if (!items.length) return null
@@ -474,7 +475,11 @@ export default function RikishiPageClient() {
       </div>
     )
   })
-  const filtered = data?.rikishi?.filter(r =>
+  const legendItems = Object.entries(historicalRikishi.rikishi || {})
+    .filter(([id]) => !data?.rikishi?.some(x => String(x.id) === String(id)))
+    .map(([id, p]) => ({ id, name: p.name, rank: p.hiRank || '—', division: 'legends', country: null, _hist: p }))
+    .sort((a, b) => (b._hist.yusho - a._hist.yusho) || (b._hist.wins - a._hist.wins))  /* legends_section_v1: aktyvni ne dublyuiutsia */
+  const filtered = [...(data?.rikishi || []), ...legendItems].filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase()) ||
     r.rank.toLowerCase().includes(search.toLowerCase()) ||
     (typeof r.country?.name === 'object' ? Object.values(r.country.name).join(' ') : (r.country?.name || '')).toLowerCase().includes(search.toLowerCase())  /* rikishi_page_fixes_v1 */
