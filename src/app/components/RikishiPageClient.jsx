@@ -272,7 +272,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
                     <div style={tLbl}>{t3(lang, 'Кінбоші', 'Kinboshi', '金星', 'Kinboshi')}</div>
                     <div style={{textAlign:'center'}}>
                       {(bio?.stats?.kinboshi || 0) > 0
-                        ? <span style={{fontFamily:'monospace',fontSize:'0.85rem',color:'#b8860b',fontWeight:700}}>{'★'}{bio.stats.kinboshi}</span>
+                        ? <><span style={{fontFamily:'monospace',fontSize:'0.85rem',color:'#b8860b',fontWeight:700}}>{'★'}{bio.stats.kinboshi}</span><div style={{fontFamily:'monospace',fontSize:'0.48rem',color:'var(--mid)',marginTop:2}}>{t3(lang, 'з 2020', 'since 2020', '2020年以降', 'depuis 2020')}</div></>
                         : <span style={{fontFamily:'monospace',fontSize:'0.75rem',color:'var(--mid)'}}>{'—'}</span>}
                     </div>
                                   </div>

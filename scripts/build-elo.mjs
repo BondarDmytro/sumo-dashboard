@@ -80,6 +80,13 @@ for (const bid of bashos) {
   // 2) register rikishi (seed on first appearance) + collect bouts, dedupe globally
   const bouts = new Map()  // key -> { day, winId, loseId, divW, divL }
   let anyBout = false
+  /* elo_kinboshi_v1: rang kozhnoho uchasnyka TSOHO basho (dlia zirok) */
+  const rankThisBasho = {}
+  for (const div of DIVISIONS) {
+    const bz0 = banzukes[div]
+    if (!bz0) continue
+    for (const r0 of [...(bz0.east || []), ...(bz0.west || [])]) rankThisBasho[String(r0.rikishiID)] = r0.rank || ''
+  }
   for (const div of DIVISIONS) {
     const bz = banzukes[div]
     if (!bz) continue
@@ -88,9 +95,13 @@ for (const bid of bashos) {
       const id = String(r.rikishiID)
       ensure(id, r.shikonaEn, r.rank, div)
       const record = r.record || []
+      const isMaeg = (r.rank || '').startsWith('Maegashira')  /* elo_kinboshi_v1 */
       record.forEach((m, i) => {
         const day = i + 1
         if (!WIN.includes(m.result) && !LOSS.includes(m.result)) return
+        if (isMaeg && m.result === 'win' && (rankThisBasho[String(m.opponentID ?? m.opponentId ?? '')] || '').startsWith('Yokozuna')) {
+          R[id].kinboshi = (R[id].kinboshi || 0) + 1  /* elo_kinboshi_v1 */
+        }
         if (m.result.startsWith('fusen')) return  /* fusen: zero information */
         const oppId = String(m.opponentID ?? m.opponentId ?? '')
         if (!oppId || oppId === 'undefined' || oppId === '0') return
@@ -133,6 +144,7 @@ for (const [id, p] of Object.entries(R)) {
     peak: OVR(Math.max(p.peak, p.elo)),
     delta: OVR(p.elo) - OVR(p.lastBashoStartElo ?? p.elo),
     bouts: p.bouts,
+    kinboshi: p.kinboshi || 0,  /* elo_kinboshi_v1 */
   }
 }
 const out = { generated: new Date().toISOString(), baseBasho: BASE_BASHO, lastBasho: latestBashoWithBouts, ratings }

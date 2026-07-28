@@ -49,6 +49,7 @@ export async function GET(request) {
       heya: info.heya,
       shusshin: info.shusshin,
       stats: {
+        kinboshi: eloData.ratings?.[String(id)]?.kinboshi || 0,  /* info_kinboshi_v1: z 2020, build-elo */
         totalMatches: stats.totalMatches || 0,
         totalWins: stats.totalWins || 0,
         totalLosses: stats.totalLosses || 0,
@@ -63,4 +64,5 @@ export async function GET(request) {
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 })
   }
-}
+}import eloData from '../../lib/eloRatings.json'  /* info_kinboshi_v1 */
+

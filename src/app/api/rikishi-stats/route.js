@@ -1,4 +1,5 @@
 /* rikishi_stats_v1: per-division stats dlia compare */
+import eloData from '../../lib/eloRatings.json'  /* stats_kinboshi_v1 */
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
@@ -17,6 +18,7 @@ export async function GET(request) {
         yusho: d.yushoByDivision?.[div] ?? null,
       },
       sansho: d.sansho || {},
+      kinboshi: eloData.ratings?.[String(id)]?.kinboshi || 0,  /* stats_kinboshi_v1: z 2020, build-elo */
     })
   } catch {
     return Response.json({})
