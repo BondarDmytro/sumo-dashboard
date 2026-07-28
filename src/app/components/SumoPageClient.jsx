@@ -217,10 +217,17 @@ export default function SumoPageClient() {
   const [bzDiv, setBzDiv] = useState('Makuuchi')  /* banzuke_divisions_v1 */
   const BZ_DIVS = ['Makuuchi', 'Juryo', 'Makushita', 'Sandanme', 'Jonidan', 'Jonokuchi']
   const [kimarite, setKimarite] = useState(null)
+  const [biosMap, setBiosMap] = useState(null)  /* spc_effect_split_v1 */
   const [loading, setLoading] = useState(true)
   const { lang } = useLang()
 
+  useEffect(() => {  /* spc_effect_split_v1: kimarite+bios - razovo */
+    fetch('https://sumo-api.com/api/kimarite?sortField=count&sortOrder=desc').then(r => r.json()).then(setKimarite).catch(() => {})
+    fetch('/api/bios').then(r => r.json()).then(setBiosMap).catch(() => setBiosMap({}))
+  }, [])
+
   useEffect(() => {
+    if (!biosMap) return  /* spc_effect_split_v1: chekaiemo bios dlia praporiv */
     Promise.all([
       (async () => {  /* banzuke_chain_v2: efektyvne basho + prev vid noho */
         const cur = currentBashoId()
@@ -239,15 +246,13 @@ export default function SumoPageClient() {
         }
         return { ...d, prevRanks, srcBasho: bid }  /* banzuke_source_label_v1 */
       })(),
-      fetch('https://sumo-api.com/api/kimarite?sortField=count&sortOrder=desc').then(r => r.json()),
-      fetch('/api/bios').then(r => r.json()),
-    ]).then(([b, k, biosData]) => {
+    ]).then(([b]) => {
+      const biosData = biosMap
       const addFlags = (list) => (list||[]).map(r => ({...r, flag: biosData[r.rikishiID]?.country?.flag || bzFlag(BZ_META.get(String(r.rikishiID))?.shusshin)}))  /* banzuke_flags_v1 */
       setBanzuke({ east: addFlags(b.east), west: addFlags(b.west), prevRanks: b.prevRanks || {}, srcBasho: b.srcBasho })
-      setKimarite(k)
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [bzDiv])
+  }, [bzDiv, biosMap])  /* spc_effect_split_v1 */
 
   const tabs = [
     { id: 'banzuke', label: t3(lang, 'Бандзуке', 'Banzuke', '番付', 'Banzuke') },  /* banzuke_fallback_v1 */
