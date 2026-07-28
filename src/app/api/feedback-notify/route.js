@@ -13,7 +13,7 @@ export async function POST(request) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Dohyo Feedback <onboarding@resend.dev>',
+        from: 'Dohyo Feedback <feedback@dohyo-legends.com>',  /* resend_domain_v1 */
         to: ['bondardmytromail@gmail.com'],  /* resend acct addr; forward -> panterra */
         reply_to: email || undefined,
         subject: `[sumo] feedback${email ? ' vid ' + email : ''}`,
