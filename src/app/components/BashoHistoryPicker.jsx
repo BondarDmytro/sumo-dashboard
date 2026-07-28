@@ -20,8 +20,7 @@ export default function BashoHistoryPicker({ hist, value, onChange, lang, curren
         {t3(lang, 'Історія турнірів', 'Tournament history', '\u5834\u6240\u6B74', 'Historique des tournois')} {expanded ? '\u25B4' : '\u25BE'}
       </div>
       <div style={{overflowX:'auto',display:'flex',justifyContent:'center'}}>
-        <table style={{borderCollapse:'separate',borderSpacing:4,fontFamily:'monospace',fontSize:'0.62rem',width:'100%',maxWidth:720,tableLayout:'fixed'}}>  {/* history_grid_ui_v1 history_grid_v2 */}
-          <thead>
+        <table style={{borderCollapse:'separate',borderSpacing:4,fontFamily:'monospace',fontSize:'0.62rem',width:'100%',maxWidth:720,tableLayout:'fixed'}}>{/* history_grid_ui_v1 history_grid_v2 bhp_hydration_v1 */}<thead>
             <tr>
               <th style={{padding:'2px 8px'}}></th>
               {MONTHS.map(m => <th key={m} style={{padding:'2px 8px',color:'var(--mid)',fontWeight:500,textTransform:'uppercase',fontSize:'0.52rem'}}>{mShort[m]}</th>)}
