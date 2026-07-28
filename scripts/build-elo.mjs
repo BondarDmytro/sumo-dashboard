@@ -96,12 +96,14 @@ for (const bid of bashos) {
       ensure(id, r.shikonaEn, r.rank, div)
       const record = r.record || []
       const isMaeg = (r.rank || '').startsWith('Maegashira')  /* elo_kinboshi_v1 */
+      if ((r.rank || '').startsWith('Yokozuna')) { if (!R[id].yokozunaFirst) R[id].yokozunaFirst = bid; R[id].yokozunaLast = bid; R[id].yusho = R[id].yusho || 0 }  /* elo_yokozuna_terms_v1 */
       record.forEach((m, i) => {
         const day = i + 1
         if (!WIN.includes(m.result) && !LOSS.includes(m.result)) return
         if (isMaeg && m.result === 'win' && (rankThisBasho[String(m.opponentID ?? m.opponentId ?? '')] || '').startsWith('Yokozuna')) {
           R[id].kinboshi = (R[id].kinboshi || 0) + 1  /* elo_kinboshi_v1 */
         }
+        /* elo_yokozuna_terms_v1: terminy na ranzi (raz na basho dosyt, ale idempotentno) */
         if (m.result.startsWith('fusen')) return  /* fusen: zero information */
         const oppId = String(m.opponentID ?? m.opponentId ?? '')
         if (!oppId || oppId === 'undefined' || oppId === '0') return
@@ -145,6 +147,8 @@ for (const [id, p] of Object.entries(R)) {
     delta: OVR(p.elo) - OVR(p.lastBashoStartElo ?? p.elo),
     bouts: p.bouts,
     kinboshi: p.kinboshi || 0,  /* elo_kinboshi_v1 */
+    yokozunaFirst: p.yokozunaFirst || null,
+    yokozunaLast: p.yokozunaLast || null,  /* elo_yokozuna_terms_v1 */
   }
 }
 const out = { generated: new Date().toISOString(), baseBasho: BASE_BASHO, lastBasho: latestBashoWithBouts, ratings }

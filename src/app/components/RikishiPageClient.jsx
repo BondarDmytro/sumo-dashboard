@@ -500,6 +500,9 @@ export default function RikishiPageClient() {
               {v === 'list' ? t3(lang, 'Список', 'List', '一覧', 'Liste') : v === 'compare' ? t3(lang, 'Порівняти', 'Compare', '比較', 'Comparer') : t3(lang, 'Рейтинг Dohyo', 'Dohyo Rating', '土俵レーティング', 'Cote Dohyo')}
             </button>
           ))}
+          <a href={(lang && lang !== 'uk' ? '/' + lang : '') + '/yokozuna'} style={{fontFamily:'monospace',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.35rem 0.9rem',cursor:'pointer',borderRadius:2,border:'1px solid var(--border)',background:'var(--bg2)',color:'var(--mid)',textDecoration:'none',display:'inline-block'}}>{/* yok_link_v1 */}
+            {String.fromCodePoint(0x1F3C6)} {t3(lang, '\u0419\u043e\u043a\u043e\u0434\u0437\u0443\u043d\u0438', 'Yokozuna', '\u6a2a\u7db1', 'Yokozuna')}
+          </a>
         </div>
 
         {pageView === 'rating' ? (
