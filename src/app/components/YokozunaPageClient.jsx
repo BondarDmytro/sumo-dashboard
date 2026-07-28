@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'  /* photo_chain_v3_react */
 /* yokozuna_page_v1: khronolohiia vsikh yokodzun 1-75 z trokh dzherel */
 import { useLang } from './LangProvider'
 import { t3 } from '../i18n'
@@ -20,6 +21,12 @@ function fmtBasho(bid) {
 const yushoById = {}
 for (const y of Object.values(bashoYusho.yusho || {})) {
   yushoById[y.id] = (yushoById[y.id] || 0) + 1
+}
+
+function YokPhoto({ id }) {  /* photo_chain_v3_react */
+  const [stage, setStage] = useState(0)
+  if (stage === 2) return <div style={{ width: 44, height: 56, borderRadius: 3, background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', color: 'var(--mid)', flexShrink: 0 }}>{'\u6a2a'}</div>
+  return <YokPhoto id={e.id} />
 }
 
 export default function YokozunaPageClient() {
@@ -81,7 +88,7 @@ export default function YokozunaPageClient() {
           {[...numbered].sort((a, b) => b.n - a.n).map(e => (
             <div key={e.n} style={card}>
               <div style={numStyle}>{e.n}</div>
-              <img src={'/rikishi/' + e.id + '.webp'} alt="" style={{ width: 44, height: 56, objectFit: 'cover', objectPosition: 'top', borderRadius: 3, flexShrink: 0, background: 'var(--bg)' }} onError={ev => { ev.target.outerHTML = '<div style="width:44px;height:56px;border-radius:3px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--mid);flex-shrink:0">\u6a2a</div>' }} />
+              <img src={'/rikishi/' + e.id + '.webp'} alt="" style={{ width: 44, height: 56, objectFit: 'cover', objectPosition: 'top', borderRadius: 3, flexShrink: 0, background: 'var(--bg)' }} onError={ev => { if (!ev.target.dataset.jpg) { ev.target.dataset.jpg = '1'; ev.target.src = '/rikishi/' + e.id + '.jpg' } else { ev.target.outerHTML = '<div style="width:44px;height:56px;border-radius:3px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--mid);flex-shrink:0">\u6a2a</div>' } }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>{rikishiMeta.some(m => String(m.id) === String(e.id)) ? <RikishiLink id={e.id}>{lang === 'uk' ? ukrName(e.name) : e.name}</RikishiLink> : (lang === 'uk' ? ukrName(e.name) : e.name)}</div>
                 <div style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: 'var(--mid)', marginTop: 2 }}>

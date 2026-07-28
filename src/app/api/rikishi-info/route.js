@@ -50,7 +50,7 @@ export async function GET(request) {
       heya: info.heya,
       shusshin: info.shusshin,
       stats: {
-        kinboshi: eloData.ratings?.[String(id)]?.kinboshi || 0,  /* info_kinboshi_v1: z 2020, build-elo */
+        kinboshi: (eloData.ratings?.[String(id)]?.kinboshi || 0) + (histData.rikishi?.[String(id)]?.kinboshi || 0),  /* info_kinboshi_v1 + hist_kinboshi_merge_v1: 1958-2019 + 2020+ */
         totalMatches: stats.totalMatches || 0,
         totalWins: stats.totalWins || 0,
         totalLosses: stats.totalLosses || 0,
@@ -66,4 +66,5 @@ export async function GET(request) {
     return Response.json({ error: err.message }, { status: 500 })
   }
 }import eloData from '../../lib/eloRatings.json'  /* info_kinboshi_v1 */
+import histData from '../../lib/historicalRikishi.json'  /* hist_kinboshi_merge_v1 */
 

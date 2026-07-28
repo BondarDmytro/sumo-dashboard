@@ -81,6 +81,15 @@ import DohyoRating from './DohyoRating' /* dohyo_rating_wire_v1 */
 /* heya_ja_lib_v1: import perenesenyi uhoru */
 const SANSHO_JA = { 'Gino-sho': '技能賞', 'Kanto-sho': '敢闘賞', 'Shukun-sho': '殊勲賞' }  /* ja_gaps_v4 */
 const DIVISION_JA = { Makuuchi: '幕内', Juryo: '十両', Makushita: '幕下', Sandanme: '三段目', Jonidan: '序二段', Jonokuchi: '序ノ口' }  /* ja_gaps_v1 */
+function RikishiPhoto({ id, name, isMobile }) {  /* photo_chain_v3_react: key-remount + state zamist DOM-mutatsii */
+  const [stage, setStage] = useState(0)  // 0=webp 1=jpg 2=placeholder
+  useEffect(() => { setStage(0) }, [id])
+  if (stage === 2) return <div style={{width:'100%',height: isMobile ? 158 : 189,borderRadius:4,background:'var(--bg2)',border:'2px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2.4rem',color:'var(--mid)'}}>{'\u6a2a'}</div>
+  return <img key={id + '-' + stage} src={'/rikishi/' + id + (stage === 0 ? '.webp' : '.jpg')} alt={name}
+    style={{width:'100%',height: isMobile ? 158 : 189,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'}}
+    onError={() => setStage(st => st + 1)} />
+}
+
 function RikishiListCard({ r, onClick, selected }) {
   const { lang } = useLang()  /* listcard_lang_v1 */
   return (
@@ -199,10 +208,7 @@ export function RikishiDetail({ r, lang, onBack, isMobile, jpMap }) { /* rikishi
           <div style={{display:'flex',alignItems:'flex-start',gap: isMobile ? '0.5rem' : '1rem',marginBottom:'1rem',flexWrap: isMobile ? 'nowrap' : 'wrap'}}>  {/* profile_mobile_v2 */}
             <div style={{flexShrink:0,width: isMobile ? 72 : 108,display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
               <div style={{fontWeight:800,fontSize: isMobile ? '0.95rem' : '1.05rem',textAlign:'center',lineHeight:1.1}}>{displayName(r, lang)}</div>
-              <img src={`/rikishi/${r.id}.webp`} alt={r.name}
-                style={{width:'100%',height: isMobile ? 158 : 189,objectFit:'cover',objectPosition:'top',borderRadius:4,border:'2px solid var(--border)',display:'block'}}
-                onError={e => { e.target.style.display = 'none' }}
-                onLoad={e => { e.target.style.display = 'block' }} onError={ev => { ev.target.outerHTML = '<div style="width:100%;aspect-ratio:270/474;border-radius:3px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--mid)">\u6a2a</div>' }} />  {/* legends_photo_ph_v1 */}
+              <RikishiPhoto id={r.id} name={r.name} isMobile={isMobile} />  {/* photo_chain_v3_react */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                 <FavStar id={r.id || r._id} size={20} /><VoteButton id={r.id || r._id} />
               </div>
