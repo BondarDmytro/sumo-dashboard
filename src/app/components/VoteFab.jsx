@@ -63,12 +63,13 @@ export default function VoteFab() {
                       <button key={r.id} onClick={() => vote(r.id)}
                         style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4,padding:'5px 6px',borderRadius:14,minWidth:0,cursor: mine ? 'default' : 'pointer',
                           border: mine ? '1.5px solid #b8860b' : '1px solid var(--border)',
-                          background: mine ? 'rgba(184,134,11,0.18)' : 'var(--bg2)',
+                          background: (() => { const pct = total > 0 ? Math.round(100 * n / total) : 0; const fill = mine ? 'rgba(184,134,11,0.30)' : 'rgba(184,134,11,0.12)'; const base = mine ? 'rgba(184,134,11,0.10)' : 'var(--bg2)'; return pct > 0 ? `linear-gradient(90deg, ${fill} ${pct}%, ${base} ${pct}%)` : base })(),  /* vote_pills_bars_v1 */
                           fontFamily:'inherit'}}>
                         {mine && <span style={{color:'#b8860b',fontWeight:700}}>{'✓'}</span>}
                         <span style={{fontSize: isMobile ? '0.64rem' : '0.72rem',fontWeight:600,color:'var(--ink)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',minWidth:0}}>{nameOf(r)}</span>
                         {/* vote_pills_names_v3: rekord prybrano */}
-                      </button>
+                      {n > 0 && <span style={{fontSize:'0.58rem',fontFamily:'monospace',color:'#b8860b',fontWeight:700,flexShrink:0}}>{n}</span>}
+                        </button>
                     )
                   })}
                 </div>
