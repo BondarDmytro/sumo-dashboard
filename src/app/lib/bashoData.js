@@ -9,7 +9,7 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* basho_param_v1 */
   const bid = bashoId || currentBashoId()
   const isArchive = bid !== currentBashoId()
-  const bashoStart = bashoInfo(bid).startUtcMs  /* basho_start_dynamic_v1: dynamichno z kalendaria - Den-1-rytual bilshe ne potriben */
+  const bashoStart = Date.UTC(2026, 8, 13)  /* basho_start_dynamic_v1 TDZ-test: tymchasovyi hardcode Aki */
   const nowJst = Date.now() + 9 * 3600 * 1000  /* jst_day_v1: den basho zhyve za yaponskym chasom */
   const diffDays = Math.floor((nowJst - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = isArchive ? 15 : Math.min(Math.max(diffDays + 1, 1), 15)  /* basho_param_v1 */
