@@ -11,7 +11,11 @@ console.log(`rikishi: ${recs.length}`)
 /* meta_v4_last9: istoriia 9 poperednikh basho z banzuke (54 fetchi zamist 599) */
 const bashoList = (() => {
   const out = []
-  let y = 2026, m = 5
+  /* history_dynamic_top_v1: stelia dynamichna - ostannii basho-misiats vid sohodni (JST) */
+  const _now = new Date(Date.now() + 9 * 3600 * 1000)
+  let y = _now.getUTCFullYear()
+  let m = _now.getUTCMonth() + 1
+  if (m % 2 === 0) m -= 1
   for (let i = 0; i < 39; i++) {  /* history_full_v1: z 2020, syncz elo-hlybynoiu */
     out.push(`${y}${String(m).padStart(2, '0')}`)
     m -= 2

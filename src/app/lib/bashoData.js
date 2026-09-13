@@ -9,21 +9,23 @@ const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* basho_param_v1 */
   const bid = bashoId || currentBashoId()
   const isArchive = bid !== currentBashoId()
-  const bashoStart = Date.UTC(2026, 8, 13)  /* basho_start_dynamic_v1 TDZ-test: tymchasovyi hardcode Aki */
+  /* basho_start_api_v1 (konventsiia 13): startDate z API, bez bashoCalendar-vyklykiv u SSR */
+  const bashoInfoRes0 = await fetch(`https://sumo-api.com/api/basho/${bid}`, { next: { revalidate: 3600 } })
+  const bashoInfoData = await bashoInfoRes0.json().catch(() => ({}))
+  const bashoStart = bashoInfoData.startDate ? Date.parse(bashoInfoData.startDate) : Date.UTC(2026, 8, 13)
   const nowJst = Date.now() + 9 * 3600 * 1000  /* jst_day_v1: den basho zhyve za yaponskym chasom */
   const diffDays = Math.floor((nowJst - bashoStart) / (1000 * 60 * 60 * 24))
   const currentDay = isArchive ? 15 : Math.min(Math.max(diffDays + 1, 1), 15)  /* basho_param_v1 */
 
-  const [banzukeRes, torikumiRes, bashoInfoRes, prevBanzukeRes] = await Promise.all([
+  const [banzukeRes, torikumiRes, prevBanzukeRes] = await Promise.all([
     fetch(`https://sumo-api.com/api/basho/${bid}/banzuke/${division}`, { next: { revalidate: 60 } }),
     fetch(`https://sumo-api.com/api/basho/${bid}/torikumi/${division}/${currentDay}`, { next: { revalidate: 60 } }),
-    fetch(`https://sumo-api.com/api/basho/${bid}`, { next: { revalidate: 60 } }),
     fetch(`https://sumo-api.com/api/basho/${prevBashoId(bid)}/banzuke/${division}`, { next: { revalidate: 3600 } }),
   ])
 
   const banzuke = await banzukeRes.json()
   const torikumiData = await torikumiRes.json()
-  const bashoInfo = await bashoInfoRes.json()
+  const bashoInfo = bashoInfoData
   const prevBanzuke = await prevBanzukeRes.json().catch(() => null)
   let prevYusho = null  /* prev_champion_v1 */
   if (bashoStatus(bid) === 'upcoming') {
