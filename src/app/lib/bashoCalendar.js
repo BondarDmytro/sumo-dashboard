@@ -100,19 +100,6 @@ export function displayRank(rank, lang) {
 }
 
 /* basho_list_shared_v1: spilnyi spysok bashо dlia arkhivu ta storinky rikishi; onovliuvaty pislia kozhnoho turniru */
-export const BASHO_LIST = [
-  { id: '202609', label: 'Акі 2026', labelEn: 'Aki 2026', labelJa: '秋場所 2026', location: 'Токіо', locationEn: 'Tokyo' },  /* basho_list_aki26_v1 */
-  { id: '202607', label: 'Наґоя 2026', labelEn: 'Nagoya 2026', labelJa: '名古屋場所 2026', location: 'Наґоя', locationEn: 'Nagoya' },  /* basho_list_nagoya_v1 */
-  { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', labelJa: '夏場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', labelJa: '春場所 2026', location: 'Осака', locationEn: 'Osaka' },
-  { id: '202601', label: 'Хацу 2026', labelEn: 'Hatsu 2026', labelJa: '初場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202511', label: 'Кюшу 2025', labelEn: 'Kyushu 2025', labelJa: '九州場所 2025', location: 'Фукуока', locationEn: 'Fukuoka' },
-  { id: '202509', label: 'Акі 2025', labelEn: 'Aki 2025', labelJa: '秋場所 2025', location: 'Токіо', locationEn: 'Tokyo' },  /* basho_list_2025_v1 */
-  { id: '202507', label: 'Наґоя 2025', labelEn: 'Nagoya 2025', labelJa: '名古屋場所 2025', location: 'Наґоя', locationEn: 'Nagoya' },
-  { id: '202505', label: 'Натсу 2025', labelEn: 'Natsu 2025', labelJa: '夏場所 2025', location: 'Токіо', locationEn: 'Tokyo' },
-  { id: '202503', label: 'Хару 2025', labelEn: 'Haru 2025', labelJa: '春場所 2025', location: 'Осака', locationEn: 'Osaka' },
-]
-
 export const HISTORY_START_YEAR = 1958  /* history_range_v1: 6 башьо/рік з 1958 */
 export const CANCELLED_BASHO = new Set(['202005'])  // COVID; додавати за потреби
 
@@ -169,3 +156,22 @@ export function bashoStatus(bashoId, now) {
   if (t <= b.endUtcMs) return 'live'
   return 'finished'
 }
+
+/* basho_list_moved_v1: v kinets failu - IIFE chytaie const-y vyshche, TDZ inakshe */
+export const BASHO_LIST = (() => {  /* basho_list_generated_v1: heneratsiia z kalendaria - ruchnyi riadok na novyi basho SKASOVANO */
+  const FROM = '202501'  /* nyzhnia mezha selektoriv */
+  const out = []
+  let bid = currentBashoId()
+  while (bid >= FROM) {
+    const inf = bashoInfo(bid)
+    out.push({
+      id: bid,
+      label: inf.label.uk, labelEn: inf.label.en, labelJa: inf.label.ja, labelFr: inf.label.fr,
+      location: inf.city.uk, locationEn: inf.city.en,
+    })
+    bid = prevBashoIdOf(bid)
+  }
+  return out
+})()
+
+
