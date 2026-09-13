@@ -101,6 +101,7 @@ export function displayRank(rank, lang) {
 
 /* basho_list_shared_v1: spilnyi spysok bashо dlia arkhivu ta storinky rikishi; onovliuvaty pislia kozhnoho turniru */
 export const BASHO_LIST = [
+  { id: '202609', label: 'Акі 2026', labelEn: 'Aki 2026', labelJa: '秋場所 2026', location: 'Токіо', locationEn: 'Tokyo' },  /* basho_list_aki26_v1 */
   { id: '202607', label: 'Наґоя 2026', labelEn: 'Nagoya 2026', labelJa: '名古屋場所 2026', location: 'Наґоя', locationEn: 'Nagoya' },  /* basho_list_nagoya_v1 */
   { id: '202605', label: 'Натсу 2026', labelEn: 'Natsu 2026', labelJa: '夏場所 2026', location: 'Токіо', locationEn: 'Tokyo' },
   { id: '202603', label: 'Хару 2026', labelEn: 'Haru 2026', labelJa: '春場所 2026', location: 'Осака', locationEn: 'Osaka' },
