@@ -220,11 +220,11 @@ const sanyaku = matches
         </div>
 
         {/* Center */}
-        <div onClick={(e) => { e.stopPropagation(); setCompareM(m) }} style={{textAlign:'center',cursor:'pointer'}}>  {/* tk_compare_modal_v1 */}
+        <div onClick={(e) => { e.stopPropagation(); setCompareM(m) }} style={{textAlign:'center',cursor:'pointer'}}>  {/* tk_compare_modal_v1 tk_vs_button_v1 */}
           {hasResult ? (
             <div style={{fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',marginBottom:4,display:'flex',alignItems:'center',justifyContent:'center',gap:5}}>
               <span>{m.kimarite}</span><span style={{fontSize:'0.66rem',opacity:0.7}}>{'\u2696'}</span>
-            </div>  {/* tk_vs_button_v1 */}
+            </div>
           ) : (
             <div style={{marginBottom:4}}><span style={{display:'inline-flex',alignItems:'center',gap:4,fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',border:'1px solid var(--border)',borderRadius:12,padding:'2px 9px',background:'var(--bg2)'}}>{'\u2696'} vs</span></div>  {/* tk_vs_button_v1 */}
           )}

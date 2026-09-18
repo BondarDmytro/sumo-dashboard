@@ -95,7 +95,7 @@ for (const r of recs) {
       debut: r.debut || null,
       yusho: stats.yusho || 0,
       hiRank, hiVal,
-      last9: (hist[r.id] || []).sort((x, y) => x.b.localeCompare(y.b)).slice(-9),  /* meta_v4_last9 history_full_v1 */
+      last9: (hist[r.id] || []).sort((x, y) => x.b.localeCompare(y.b)).slice(-10),  /* meta_v4_last9 history_full_v1 meta_last10_v1: 10, bo potochne vidrizaietsia kliientom */
     })
   } catch (e) { console.log(`skip ${r.shikonaEn}: ${e.message}`) }
   done++

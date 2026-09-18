@@ -2,7 +2,8 @@
 /* forecast_i18n_v1 */
 import { currentBashoId } from '../../lib/bashoCalendar' /* auto_current_v3 */
 import rikishiMeta from '../../lib/rikishiMeta.json' /* rf_last9_v1 */
-const LAST9_BY_ID = Object.fromEntries(rikishiMeta.map(m => [String(m.id), m.last9 || []]))
+import rikishiHistoryFull from '../../lib/rikishiHistory.json'  /* rf_last10_v1 */
+const LAST9_BY_ID = Object.fromEntries(rikishiMeta.map(m => [String(m.id), (rikishiHistoryFull[String(m.id)] || m.last9 || []).slice(-10)]))  /* rf_last10_v1: povna history, -10 (kliient vidrizaie potochne i pokazuie 9+zhyve) */
 const SUMO_API = 'https://sumo-api.com/api'
 const COUNTRY_FLAGS = {
   'Mongolia': { flag: '🇲🇳', name: { uk: 'Монголія', en: 'Mongolia', ja: 'モンゴル' } },
