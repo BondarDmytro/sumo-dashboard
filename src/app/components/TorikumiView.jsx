@@ -226,7 +226,7 @@ const sanyaku = matches
               <span>{m.kimarite}</span><span style={{fontSize:'0.66rem',opacity:0.7}}>{'\u2696'}</span>
             </div>
           ) : (
-            <div style={{marginBottom:4}}><span style={{display:'inline-flex',alignItems:'center',gap:4,fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',border:'1px solid var(--border)',borderRadius:12,padding:'2px 9px',background:'var(--bg2)'}}>{'\u2696'} vs</span></div>  {/* tk_vs_button_v1 */}
+            <div style={{marginBottom:4}}><span style={{display:'inline-flex',alignItems:'center',gap:4,fontFamily:'monospace',fontSize:'0.62rem',color:'var(--mid)',border:'1px solid var(--border)',borderRadius:12,padding:'2px 9px',background:'var(--bg2)'}}>{'\u2696'} vs</span></div>
           )}
           {hasH2H ? (
             <div style={{
