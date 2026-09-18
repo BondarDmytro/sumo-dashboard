@@ -48,7 +48,17 @@ function chancePct(need, wins, losses, hist) {  /* rf_chance_client_v1 */
   if (need <= 0) return 100
   if (need > remaining) return 0
   const played = wins + losses
-  const p = Math.min(0.7, Math.max(0.3, played > 0 ? wins / played : 0.5))
+  /* rf_chance_v2_form: p = forma z last9 (bez potochnoho basho) + potochnyi rakhunok, vahy za kilkistiu zihranykh.
+     Prior 0.5 hasne v miru danykh; klamp shyrshyi (0.25..0.75), bo p tepper informatyvnishe. */
+  const past = (hist || []).filter(h => ((h.w || 0) + (h.l || 0)) > 0)
+  const fw = past.reduce((a, h) => a + (h.w || 0), 0)
+  const fl = past.reduce((a, h) => a + (h.l || 0), 0)
+  const formP = (fw + fl) > 0 ? fw / (fw + fl) : 0.5
+  const curP = played > 0 ? wins / played : formP
+  const wForm = Math.min(1, (fw + fl) / 30)          /* do 30 boiv formy = povna vaha */
+  const wCur = Math.min(1, played / 10)              /* potochne nabyraie vahu do 10 boiv */
+  const pRaw = (formP * wForm * 0.6 + curP * wCur * 0.4 + 0.5 * Math.max(0, 1 - wForm * 0.6 - wCur * 0.4))
+  const p = Math.min(0.75, Math.max(0.25, pRaw))
   const binom = (n, k) => { let r = 1; for (let j = 1; j <= k; j++) r = r * (n - j + 1) / j; return r }
   let prob = 0
   for (let k = need; k <= remaining; k++) prob += binom(remaining, k) * Math.pow(p, k) * Math.pow(1 - p, remaining - k)
