@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* live_ukr_names_v1 */
 /* live_pulse_v1 */
 /* live_now_v2: potochnyi bii bud-yakoho dyvizionu. Khronolohiia dnia: Jonokuchi -> ... -> Makuuchi.
    Pershyi dyvizion iz nezihranym boiem = na dokhio zaraz. Polling 60s, vikno 08:00-18:30 JST. */
@@ -69,7 +70,8 @@ export default function LiveNow({ currentDay: dayProp = null }) {
   if (!live) return null
   const divLabel = lang === 'ja' ? DIV_LABEL[live.division] : live.division
   /* live_ja_v1: yaponski shikony z mety po id */
-  const jaName = (id, fallback) => {
+  const jaName = (id, fallback) => {  /* live_ukr_names_v1: ja + uk */
+    if (lang === 'uk') return ukrName(fallback)
     if (lang !== 'ja') return fallback
     const rec = meta.find(m => Number(m.id) === Number(id))
     return (rec?.nameJp && rec.nameJp.split(/\s/)[0]) || fallback
