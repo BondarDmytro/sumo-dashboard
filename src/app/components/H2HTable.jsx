@@ -7,10 +7,13 @@ import OvrBadge from './OvrBadge' /* ovr_h2h_v1 */
 
 export default function H2HTable({ rikishi, h2h, maxDay = 99 }) {  /* day_switch_v1 */
   const { lang } = useLang()
-  const names = rikishi.map(r => (lang === 'ja' && r.nameJp) ? r.nameJp : r.name)  /* ja_gaps_v4 */
-  const idByName = Object.fromEntries(rikishi.map(r => [(lang === 'ja' && r.nameJp) ? r.nameJp : r.name, r._id]))  /* ovr_h2h_v1 */
+  const dispName = (r) => (lang === 'ja' && r.nameJp) ? r.nameJp : lang === 'uk' ? ukrName(r.name) : r.name  /* h2h_ukr_names_v1 */
+  const names = rikishi.map(dispName)
+  const idByName = Object.fromEntries(rikishi.map(r => [dispName(r), r._id]))
+  const enByDisp = Object.fromEntries(rikishi.map(r => [dispName(r), r.name]))  /* h2h_match_en_v1: matching zavzhdy anhliiskymy */
 
-  const getResult = (a, b) => {
+  const getResult = (dispA, dispB) => {
+    const a = enByDisp[dispA] || dispA, b = enByDisp[dispB] || dispB  /* h2h_match_en_v1 */
     const match = h2h.find(m =>
       (m.day || 1) <= maxDay &&
       (m.fighter1 === a && m.fighter2 === b) ||

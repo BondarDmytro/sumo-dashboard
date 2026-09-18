@@ -1,5 +1,6 @@
 'use client' /* ja_batch2_t */
 import { useState, useRef } from 'react' /* chart_hl_v1 race_smooth_v2 */
+import { ukrName } from '../lib/translit'  /* chart_ukr_names_v1 */
 import { t3 } from '../i18n' /* ja_batch1 */
 import { computeStandings } from '../lib/chanceEngine' /* chart_engine_v1 */
 import { displayName } from '../lib/bashoCalendar' /* chart_race_v2 */
@@ -189,7 +190,7 @@ export default function YushoChart({ rikishi, highlightDay }) {
                   <div style={{color:'var(--mid)',marginBottom:4}}>{label}</div>
                   {top5.map(p => {
                     const rr = top.find(x => x.name === p.dataKey)
-                    const nm = lang === 'ja' && rr?.nameJp ? rr.nameJp : p.dataKey
+                    const nm = lang === 'ja' && rr?.nameJp ? rr.nameJp : lang === 'uk' ? ukrName(p.dataKey) : p.dataKey  /* chart_ukr_names_v1 */
                     return <div key={p.dataKey} style={{color:p.stroke}}>{nm} : {p.value}%</div>
                   })}
                 </div>
@@ -199,7 +200,7 @@ export default function YushoChart({ rikishi, highlightDay }) {
           {!isMobile && <Legend
             onClick={e => setHl(h => h === e.dataKey ? null : e.dataKey)}
             wrapperStyle={{fontFamily:'monospace',fontSize:11,paddingTop:8}}
-            formatter={(value) => { const rr = top.find(x => x.name === value); return <span style={{color:'var(--ink)'}}>{lang === 'ja' && rr?.nameJp ? rr.nameJp : value}</span> }}
+            formatter={(value) => { const rr = top.find(x => x.name === value); return <span style={{color:'var(--ink)'}}>{lang === 'ja' && rr?.nameJp ? rr.nameJp : lang === 'uk' ? ukrName(value) : value}</span> }}
           />}
           {/* chart_ja_names */}
           {top.map((r, i) => (

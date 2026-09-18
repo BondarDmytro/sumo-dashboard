@@ -1,4 +1,5 @@
 'use client'
+import { ukrName } from '../lib/translit'  /* vote_ukr_names_v1 */
 /* votes_v2: knopka -> modalka z usima rikishi Makuuchi potochnoho basho */
 import { useState, useEffect } from 'react'
 import { useVotes } from './useVotes'
@@ -35,7 +36,7 @@ export default function VoteFab() {
       .catch(() => setList([]))
   }, [open, list])
 
-  const nameOf = (r) => lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name
+  const nameOf = (r) => lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : lang === 'uk' ? ukrName(r.name) : r.name  /* vote_ukr_names_v1 */
 
   return (
     <>

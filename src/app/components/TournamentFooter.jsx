@@ -15,7 +15,7 @@ export default function TournamentFooter({ contenders, h2h, allRikishi = null })
   const RESULTS_WIN_F = ['win', 'fusen win']  /* day_switch_v2 */
   const winsAt = (r, d) => (r.record || []).slice(0, d).filter(m => RESULTS_WIN_F.includes(m?.result)).length
   const topAtDay = (allRikishi && allRikishi.length)
-    ? [...allRikishi].filter(r => !r.kyujo).sort((a, b) => winsAt(b, day) - winsAt(a, day)).slice(0, 10)
+    ? [...allRikishi].filter(r => !r.kyujo).sort((a, b) => ((b.chancePct || 0) - (a.chancePct || 0)) || (winsAt(b, day) - winsAt(a, day))).slice(0, 10)  /* h2h_top_by_chance_v1: toi samyi kryterii, shcho tablytsia */
     : contenders.slice(0, 10)
 
   return (

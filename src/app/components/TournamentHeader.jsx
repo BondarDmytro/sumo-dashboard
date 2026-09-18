@@ -1,3 +1,4 @@
+/* hero_top_ukr_v2 */
 /* auto_current_v3 */
 'use client'
 import { ukrName } from '../lib/translit'  /* ukr_names_v4 */
@@ -21,7 +22,7 @@ function t3(lang, uk, en, ja, fr) {  /* fr_local_t3_v1 */
   return uk
 }
 
-export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [], champions = null, sansho = null }) {  /* basho_filter_v2 */  /* header_v3 */  /* sansho_hero_v1 */
+export default function TournamentHeader({ currentDay, daysLeft, contendersCount, hasPlayoff, isFinished, bashoId = currentBashoId(), champion = null, bashoSelect = null, top3 = [], top5Juryo = [], champions = null, sansho = null }) {  /* basho_filter_v2 */  /* header_v3 hero_top_ukr_v1 */  /* sansho_hero_v1 */
   const bi = bashoInfo(bashoId)
   const status = bashoStatus(bashoId)
   const nextBi = bashoInfo(nextBashoId(bashoId))
@@ -178,9 +179,9 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
               Makuuchi · 幕内{/* top5_hdr_short_v1 */}
             </div>
             {top3.map((r, i) => (
-              <div key={r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+              <div key={lang === 'uk' ? ukrName(r.name) : lang === 'ja' && r.nameJp ? r.nameJp : r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
                 <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
-                <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
+                <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : lang === 'uk' ? ukrName(r.name) : r.name}</span>
                 <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
                   <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
                 </span>
@@ -192,9 +193,9 @@ export default function TournamentHeader({ currentDay, daysLeft, contendersCount
             {top5Juryo.length > 0 && (<>
               <div style={{fontFamily:'monospace',fontSize:'0.68rem',letterSpacing:'0.18em',color:'#6b6560',margin:'14px 0 10px'}}>Juryo · 十両</div>{/* top5_juryo_v1 */}
               {top5Juryo.map((r, i) => (
-                <div key={r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
+                <div key={lang === 'uk' ? ukrName(r.name) : lang === 'ja' && r.nameJp ? r.nameJp : r.name} className="top5-row" style={{display:'flex',alignItems:'center',gap:8,marginBottom:5,fontFamily:'monospace',fontSize:'0.8rem'}}>
                   <span style={{width:17,height:17,borderRadius:'50%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i],color:'#fff',fontSize:'0.68rem',fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{i+1}</span>
-                  <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : r.name}</span>
+                  <span style={{color:'#f5f0e8',minWidth:96,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{lang === 'ja' && r.nameJp ? r.nameJp.split(/\s/)[0] : lang === 'uk' ? ukrName(r.name) : r.name}</span>
                   <span style={{flex:1,height:6,background:'rgba(255,255,255,0.1)',borderRadius:3,overflow:'hidden'}}>
                     <span style={{display:'block',height:'100%',width:Math.min(r.chance*3,100)+'%',background:['#b8860b','#999','#a0522d','#4a5a6a','#4a5a6a'][i]}} />
                   </span>
