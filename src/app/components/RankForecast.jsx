@@ -158,7 +158,7 @@ export default function RankForecast() {
                 scrollbarWidth:'none',
               }}>
                 {(() => {  /* rf_mobile_v1: 3 ostannikh z last9 + potochne, gridom */
-                  const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 }))).slice(-3)
+                  const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 }))).filter(h => h.b !== srcB)  /* rf_dedup_current_v1: potochne basho - okremoiu zhyvoiu kolonkoiu, ne z last9 */.slice(-3)
                   const cur = { b: srcB, w: r.wins, l: r.losses }  /* rf_client_offseason_v1 */
                   const played = r.wins + r.losses
                   const pKachi = played > 0 && srcB === String(currentBashoId()) ? chancePct(8 - r.wins, r.wins, r.losses, r.last9) : null  /* rf_hide_pct_final_v1 */
@@ -228,7 +228,7 @@ export default function RankForecast() {
             <div style={{padding:'0.5rem 1rem',display:'flex',alignItems:'center',gap:'0.6rem',borderRight:'1px solid var(--border)'}}>{/* rf_grid10_v1 */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(10, 1fr)',gap:4,flex:1,alignItems:'center'}}>
                 {(() => {
-                  const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 })))
+                  const hist = (r.last9 && r.last9.length ? r.last9 : [...(r.prevBashos || [])].reverse().map(b => ({ b: b.bashoId, w: b.wins, l: b.losses, a: 0 }))).filter(h => h.b !== srcB)  /* rf_dedup_current_v1: potochne basho - okremoiu zhyvoiu kolonkoiu, ne z last9 */
                   const cells = hist.slice(-9)
                   const pad = Array.from({ length: Math.max(0, 9 - cells.length) })
                   return (<>
