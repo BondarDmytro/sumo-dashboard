@@ -181,6 +181,13 @@ const sanyaku = matches
     const eastWon = hasResult && m.winnerId === m.eastId
     const westWon = hasResult && m.winnerId === m.westId
 
+    const scoreAt = (r) => {  /* tk_day_score_v1: rakhunok PERED boiem dnia viewDay (kanon transliatsii) */
+      if (!r) return ''
+      const rec = (r.record || []).slice(0, Math.max(0, viewDay - 1))
+      const w = rec.filter(x => x.result === 'win' || x.result === 'fusen win').length
+      const l = rec.filter(x => x.result === 'loss' || x.result === 'fusen loss').length
+      return w + '\u2013' + l
+    }
     const eastR = rikishiMap[m.eastShikona]
     const westR = rikishiMap[m.westShikona]
 
@@ -211,7 +218,7 @@ const sanyaku = matches
           {!isMobile && <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}> {/* tk_ovr_wrap_v1 */}<span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.eastRank),fontWeight:700,background:rankColor(m.eastRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}  /* tk_pill_fit_v2 */>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>}
           <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.eastId)}}><span style={{fontWeight: eastWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}><RikishiLink id={String(m.eastId)}>{lang === 'ja' ? String(eastR?.nameJp || m.eastJp || m.eastShikona).split('\u3000')[0] : m.eastShikona}</RikishiLink></span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{eastFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.eastRank),background:rankColor(m.eastRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.eastRank, lang)}</span><OvrBadge id={m.eastId} /></span>}</span>{/* tk_cols_v4: ja - lyshe shikona */}{/* tk_mob_badge_col_v1: beidzh vynos u kolonku */}  {/* tk_name_center_v1 */}
           {!isMobile && <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{eastFlag}</span>}
-          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{eastR ? eastR.wins + '–' + eastR.losses : ''}</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: eastR && eastR.wins >= 8 ? '#1a6b5c' : eastR && eastR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{scoreAt(eastR)}</span>
           {(hasResult || eMark) && (
             eMark
               ? <span style={{textAlign:'center'}}>{eMark}</span>
@@ -261,7 +268,7 @@ const sanyaku = matches
                 ? <span title={m.kimarite === 'fusen' ? 'fusen' : undefined} style={{width:10,height:10,borderRadius: m.kimarite === 'fusen' ? 0 : '50%',background: westWon ? '#f5f0e8' : '#0f0e0c',border:'1.5px solid var(--ink)',boxSizing:'border-box',display:'inline-block',margin:'0 auto'}} />
                 : <span />)
           )}
-          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{westR ? westR.wins + '–' + westR.losses : ''}</span>
+          <span style={{fontFamily:'monospace',fontSize:'0.62rem',fontWeight:600,whiteSpace:'nowrap',color: westR && westR.wins >= 8 ? '#1a6b5c' : westR && westR.losses >= 8 ? '#c0392b' : 'var(--ink)'}}>{scoreAt(westR)}</span>
           {!isMobile && <span style={{fontSize: isMobile ? '0.7rem' : '0.85rem',textAlign:'center'}}>{westFlag}</span>}
           <span style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:0,width: isMobile ? '100%' : 'auto',...pickStyle(m.westId)}}><span style={{fontWeight: westWon ? 800 : 600,fontSize: isMobile ? '0.72rem' : '0.88rem',whiteSpace:'nowrap',textAlign:'center',overflow: isMobile ? 'hidden' : 'visible',textOverflow: isMobile ? 'ellipsis' : 'clip',maxWidth: isMobile ? '100%' : 'none'}}><RikishiLink id={String(m.westId)}>{lang === 'ja' ? String(westR?.nameJp || m.westJp || m.westShikona).split('\u3000')[0] : m.westShikona}</RikishiLink></span>{isMobile && <span style={{display:'flex',gap:3,alignItems:'center',marginTop:1}}><span style={{fontSize:'0.55rem'}}>{westFlag}</span><span style={{fontFamily:'monospace',fontSize:'0.44rem',fontWeight:700,color:rankColor(m.westRank),background:rankColor(m.westRank)+'2e',padding:'0px 3px',borderRadius:2,whiteSpace:'nowrap'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>}</span>{/* tk_cols_v4 */}{/* tk_mob_badge_col_v1 */}  {/* tk_name_center_v1 */}
           {!isMobile && <span style={{display:'flex',gap:3,alignItems:'center',justifyContent:'center',minWidth:0}}><span style={{fontFamily:'monospace',fontSize: isMobile ? '0.52rem' : '0.56rem',color:rankColor(m.westRank),fontWeight:700,background:rankColor(m.westRank)+'2e',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',textAlign:'center',width:'fit-content',margin:'0 auto'}}>{shortRank(m.westRank, lang)}</span><OvrBadge id={m.westId} /></span>}

@@ -17,6 +17,7 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
   const { lang } = useLang()
   const [isMob, setIsMob] = useState(false)  /* compare_modal_mob_v1 */
   const [mlist, setMlist] = useState(null)  /* cm_matches_list_v1 */
+  const [mlOpen, setMlOpen] = useState(false)  /* cm_matches_collapse_v1 */
   useEffect(() => {
     let alive = true
     fetch('https://sumo-api.com/api/rikishi/' + eastId + '/matches/' + westId)
@@ -76,7 +77,10 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
         {typeof h2hWins === 'number' && typeof h2hTotal === 'number' && h2hTotal > 0 && (
           <div style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',marginBottom:8}}>
             {t3(lang, 'Очні зустрічі', 'Head-to-head', String.fromCharCode(0x5BFE) + String.fromCharCode(0x6226), 'Face-à-face')}
-        {Array.isArray(mlist) && mlist.length > 0 && (() => {  /* cm_matches_list_v1: ostanni 10 zustrichei */
+        {Array.isArray(mlist) && mlist.length > 0 && (
+          <div onClick={() => setMlOpen(o => !o)} style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.58rem',color:'#b8860b',cursor:'pointer',marginBottom:6}}>{mlOpen ? '\u25be' : '\u25b8'} {t3(lang, '\u0456\u0441\u0442\u043e\u0440\u0456\u044f \u0437\u0443\u0441\u0442\u0440\u0456\u0447\u0435\u0439', 'match history', '\u5bfe\u6226\u5c65\u6b74', 'historique')}</div>
+        )}  {/* cm_matches_collapse_v1 */}
+        {mlOpen && Array.isArray(mlist) && mlist.length > 0 && (() => {  /* cm_matches_list_v1 */
           const MB = { '01': ['\u0425\u0430\u0446\u0443','Hatsu'], '03': ['\u0425\u0430\u0440\u0443','Haru'], '05': ['\u041d\u0430\u0446\u0443','Natsu'], '07': ['\u041d\u0430\u0491\u043e\u044f','Nagoya'], '09': ['\u0410\u043a\u0456','Aki'], '11': ['\u041a\u044e\u0448\u044e','Kyushu'] }
           const rows = [...mlist].sort((a, b) => (b.bashoId + String(b.day).padStart(2,'0')).localeCompare(a.bashoId + String(a.day).padStart(2,'0'))).slice(0, 10)
           return (
