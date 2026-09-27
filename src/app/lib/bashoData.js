@@ -135,6 +135,18 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   const topWinsCheck = Math.max(...normalized.filter(r => !r.kyujo).map(r => r.wins))
   const tiedCheck = normalized.filter(r => r.wins === topWinsCheck && !r.kyujo)
   const needsPlayoff = tiedCheck.length > 1
+  /* senshuraku_aware_v1: 2 lidery hraiut mizh soboiu v den 15 - peremozhets odnoosibnyi, plei-of nemozhlyvyi, shansy lyshe u nykh.
+     3+ lideriv / chastkovi pary - stara logika (Monte-Carlo-terytoriia). */
+  let leadersMeetDay15 = false
+  if (currentDay >= 15 && tiedCheck.length === 2) {
+    const tBouts = (torikumiData && torikumiData.torikumi) || []
+    const n1 = tiedCheck[0].name, n2 = tiedCheck[1].name
+    leadersMeetDay15 = tBouts.some(b => {
+      const e = b.eastShikona || '', w = b.westShikona || ''
+      return (e === n1 && w === n2) || (e === n2 && w === n1)
+    })
+  }
+  /* shansy: nelidery -> 0, dva lidery perenormovani do 100 */
 
   let playoffWinner = null
   let playoff = null
@@ -218,7 +230,16 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
     const c = normalized.find(r => String(r._id) === String(prevYusho.id))
     if (c?.nameJp) prevYusho.nameJp = c.nameJp
   }
-  return { prevYusho, rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData }
+  /* senshuraku_aware_v1: perenormuvannia shansiv */
+  if (leadersMeetDay15 && !isFinished) {
+    const ln = new Set(tiedCheck.map(r => r.name))
+    const two = normalized.filter(r => ln.has(r.name))
+    const sum = two.reduce((a, r) => a + (r.yushoChance || 0), 0) || 1
+    normalized.forEach(r => {
+      r.yushoChance = ln.has(r.name) ? Math.round(1000 * (r.yushoChance || 0) / sum) / 10 : 0
+    })
+  }
+  return { prevYusho, rikishi: normalized, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData, leadersMeetDay15 }  /* senshuraku_aware_v1 */
 }
 
 function getRankShort(rank) {

@@ -23,7 +23,7 @@ const RESULTS_LOSS = ['loss', 'fusen loss']
 const RESULTS_PLAYED = [...RESULTS_WIN, ...RESULTS_LOSS]
 
 export default async function Home() {
-  const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData } = await getBashoData()
+  const { prevYusho, rikishi, leaders, chasers, currentDay, maxWins, h2h, winner, playoff, isFinished, showPlayoffBanner, specialPrizes, yushoData, leadersMeetDay15 } = await getBashoData()  /* senshuraku_aware_v1 */
   const juryoData = await getBashoData('Juryo').catch(() => null)  /* top5_juryo_v1 */
   let champions = null
   let sansho = (specialPrizes || []).length ? specialPrizes : null  /* sansho_hero_v1 */  /* champions_hero_v1+v3 champions_prev_basho_v1 */
@@ -46,7 +46,7 @@ export default async function Home() {
   } catch (e) { champions = null }
   const contenders = rikishi.filter(r => !r.kyujo)
     .sort((a,b) => b.yushoChance - a.yushoChance || b.wins - a.wins || (a.rankValue||999) - (b.rankValue||999))  /* sort_by_chance_v1 all_in_table_v1: vybuli v osnovnii tablytsi z beidzhem */
-  const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished
+  const hasPlayoff = currentDay >= 15 && leaders.length > 1 && !isFinished && !leadersMeetDay15  /* senshuraku_aware_v1 */
   const others = rikishi.filter(r => r.yushoChance === 0 && !r.kyujo)
   const kyujo = rikishi.filter(r => r.kyujo)
 
