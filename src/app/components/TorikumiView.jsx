@@ -76,6 +76,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
     if (!res.ok) window.alert(t3(lang, 'Не вдалося зберегти: ', 'Failed to save: ', '保存に失敗: ', 'Échec de l\u2019enregistrement : ') + res.err)
   }
   const nextDay = currentDay
+  const [viewDay, setViewDay] = useState(currentDay)  /* tk_day_filter_v1: filtr dniv; pickem/live na currentDay */
   /* tk_live_v1: pershyi bii bez rezultatu = na dokhio zaraz (±1 bii, lah API) */
   const jstH = (new Date().getUTCHours() + 9) % 24
   const liveWindow = jstH >= 8 && jstH < 19
@@ -96,16 +97,17 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
       if (jm < 480 || jm > 1125) return
       fetch(`/api/torikumi?day=${nextDay}&division=${division || 'Makuuchi'}`)
         .then(r => r.json())
-        .then(d => { if (Array.isArray(d) && d.length) setMatches(d) })
+        .then(d => { if (Array.isArray(d) && d.length && viewDay === nextDay) setMatches(d) })  /* tk_day_filter_v1 */
         .catch(() => {})
     }
     const t = setInterval(tick, 90000)
     return () => clearInterval(t)
-  }, [nextDay, division])
+  }, [nextDay, division, viewDay])  /* tk_day_filter_v1 */
 
   useEffect(() => {
-    if (nextDay > 15) { setLoading(false); return }
-    fetch(`/api/torikumi?day=${nextDay}&division=${division || 'Makuuchi'}`)  /* division_torikumi_v1 */
+    if (viewDay > 15) { setLoading(false); return }
+    setLoading(true)  /* tk_day_filter_v1 */
+    fetch(`/api/torikumi?day=${viewDay}&division=${division || 'Makuuchi'}`)  /* division_torikumi_v1 tk_day_filter_v1 */
       .then(r => r.json())
       .then(async d => {
         setMatches(d)
@@ -122,7 +124,7 @@ export default function TorikumiView({ division = null, /* division_torikumi_v1 
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [nextDay, division])
+  }, [viewDay, division])  /* tk_day_filter_v1 */
 
   if (nextDay > 15) return (
     <div style={{padding:'2rem',textAlign:'center',fontFamily:'monospace',color:'var(--mid)',fontSize:'0.8rem'}}>
@@ -270,6 +272,18 @@ const sanyaku = matches
 
   return (
     <div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:10,justifyContent:'center'}}>{/* tk_day_strip_v1 */}
+        {Array.from({ length: 15 }, (_, di) => di + 1).map(d => (
+          <button key={d} onClick={() => setViewDay(d)} disabled={d > nextDay}
+            style={{fontFamily:'monospace',fontSize:'0.62rem',padding:'3px 8px',borderRadius:3,cursor: d > nextDay ? 'default' : 'pointer',
+              border: '1px solid ' + (d === viewDay ? '#b8860b' : 'var(--border)'),
+              background: d === viewDay ? 'rgba(184,134,11,0.18)' : 'var(--bg2)',
+              color: d > nextDay ? 'var(--light)' : d === viewDay ? '#b8860b' : 'var(--mid)',
+              fontWeight: d === viewDay ? 700 : 400, opacity: d > nextDay ? 0.5 : 1}}>
+            {d}
+          </button>
+        ))}
+      </div>
       {compareM && (() => { const hh = h2hData[`${compareM.eastId}-${compareM.westId}`]; return <CompareModal eastId={compareM.eastId} westId={compareM.westId} h2hWins={hh?.wins1} h2hTotal={hh ? hh.wins1 + hh.wins2 : undefined} onClose={() => setCompareM(null)} /> })()}
       {scoreMode && (  /* pickem_score_v1: ranishnia smuha rezultatu */
         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',padding:'0.55rem 1rem',marginBottom:8,background:'rgba(41,128,185,0.08)',border:'1px solid rgba(41,128,185,0.35)',borderRadius:3,fontFamily:'monospace',fontSize:'0.66rem'}}>

@@ -16,6 +16,15 @@ const age = (bd) => { if (!bd) return null; const d = new Date(bd); const n = ne
 export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClose }) {
   const { lang } = useLang()
   const [isMob, setIsMob] = useState(false)  /* compare_modal_mob_v1 */
+  const [mlist, setMlist] = useState(null)  /* cm_matches_list_v1 */
+  useEffect(() => {
+    let alive = true
+    fetch('https://sumo-api.com/api/rikishi/' + eastId + '/matches/' + westId)
+      .then(r => r.json())
+      .then(d => { if (alive) setMlist((d && d.matches) || []) })
+      .catch(() => { if (alive) setMlist([]) })
+    return () => { alive = false }
+  }, [eastId, westId])
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 700px)')
     setIsMob(mq.matches)
@@ -66,7 +75,28 @@ export default function CompareModal({ eastId, westId, h2hWins, h2hTotal, onClos
         </div>
         {typeof h2hWins === 'number' && typeof h2hTotal === 'number' && h2hTotal > 0 && (
           <div style={{textAlign:'center',fontFamily:'monospace',fontSize:'0.66rem',color:'var(--mid)',marginBottom:8}}>
-            {t3(lang, 'Очні зустрічі', 'Head-to-head', String.fromCharCode(0x5BFE) + String.fromCharCode(0x6226), 'Face-à-face')}: <b style={{color:'var(--ink)'}}>{h2hWins}</b> {String.fromCharCode(0x2013)} <b style={{color:'var(--ink)'}}>{h2hTotal - h2hWins}</b>
+            {t3(lang, 'Очні зустрічі', 'Head-to-head', String.fromCharCode(0x5BFE) + String.fromCharCode(0x6226), 'Face-à-face')}
+        {Array.isArray(mlist) && mlist.length > 0 && (() => {  /* cm_matches_list_v1: ostanni 10 zustrichei */
+          const MB = { '01': ['\u0425\u0430\u0446\u0443','Hatsu'], '03': ['\u0425\u0430\u0440\u0443','Haru'], '05': ['\u041d\u0430\u0446\u0443','Natsu'], '07': ['\u041d\u0430\u0491\u043e\u044f','Nagoya'], '09': ['\u0410\u043a\u0456','Aki'], '11': ['\u041a\u044e\u0448\u044e','Kyushu'] }
+          const rows = [...mlist].sort((a, b) => (b.bashoId + String(b.day).padStart(2,'0')).localeCompare(a.bashoId + String(a.day).padStart(2,'0'))).slice(0, 10)
+          return (
+            <div style={{maxHeight:170,overflowY:'auto',margin:'0 auto 10px',maxWidth:340,fontFamily:'monospace',fontSize:'0.6rem',color:'var(--mid)',borderTop:'1px solid var(--border)',paddingTop:6}}>
+              {rows.map((m, i) => {
+                const mb = MB[m.bashoId.slice(4)] || ['?','?']
+                const label = (lang === 'en' || lang === 'fr' ? mb[1] : mb[0]) + ' ' + m.bashoId.slice(0,4)
+                const wName = lang === 'uk' ? ukrName(m.winnerEn || '') : (m.winnerEn || '')
+                return (
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',gap:8,padding:'2px 4px'}}>
+                    <span>{label} {'\u00b7'} {t3(lang,'\u0434.','d.','\u65e5','j.')}{m.day}</span>
+                    <span style={{color:'var(--ink)',fontWeight:700}}>{'\u2713'} {wName}</span>
+                    <span>{m.kimarite}</span>
+                  </div>
+                )
+              })}
+              {mlist.length > 10 && <div style={{textAlign:'center',padding:'3px 0',color:'var(--light)'}}>{t3(lang,'\u0443\u0441\u044c\u043e\u0433\u043e','total','\u5168','total')}: {mlist.length}</div>}
+            </div>
+          )
+        })()}: <b style={{color:'var(--ink)'}}>{h2hWins}</b> {String.fromCharCode(0x2013)} <b style={{color:'var(--ink)'}}>{h2hTotal - h2hWins}</b>
           </div>
         )}
         {rows.map(r => {
