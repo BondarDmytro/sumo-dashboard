@@ -138,7 +138,22 @@ export async function getBashoData(division = 'Makuuchi', bashoId = null) {  /* 
   /* senshuraku_aware_v1: 2 lidery hraiut mizh soboiu v den 15 - peremozhets odnoosibnyi, plei-of nemozhlyvyi, shansy lyshe u nykh.
      3+ lideriv / chastkovi pary - stara logika (Monte-Carlo-terytoriia). */
   let leadersMeetDay15 = false
-  if (currentDay >= 15 && tiedCheck.length === 2) {
+  /* senshuraku_aware_v2: uzahalnennia - yaksho SERED tied ye para z NEZIHRANYM boiem mizh soboiu,
+     peremozhets perevyshchyt reshtu tied (12 > 11) - ti, khto vzhe doihraly na maxWins, elimiovani. */
+  if (currentDay >= 15 && tiedCheck.length >= 2) {
+    const tBoutsAll = (torikumiData && Array.isArray(torikumiData) ? torikumiData : (torikumiData && torikumiData.torikumi) || [])
+    const names = new Set(tiedCheck.map(r => r.name))
+    const pairUnplayed = tBoutsAll.find(b => names.has(b.eastShikona) && names.has(b.westShikona) && !b.winnerId)
+    if (pairUnplayed && tiedCheck.length === 2) leadersMeetDay15 = true
+    if (pairUnplayed && tiedCheck.length > 2) {
+      /* peremozhets pary vyide na maxWins+1: tie sered reshty nemozhlyvyi - hasymo banner i shansy reshty */
+      leadersMeetDay15 = true
+      /* zvuzhuiemo tiedCheck-normalizatsiiu do PARY (reshta tied = 0 shansiv) */
+      const pn = new Set([pairUnplayed.eastShikona, pairUnplayed.westShikona])
+      for (let ti = tiedCheck.length - 1; ti >= 0; ti--) if (!pn.has(tiedCheck[ti].name)) tiedCheck.splice(ti, 1)
+    }
+  }
+  if (false && currentDay >= 15 && tiedCheck.length === 2) {
     const tBouts = (torikumiData && torikumiData.torikumi) || []
     const n1 = tiedCheck[0].name, n2 = tiedCheck[1].name
     leadersMeetDay15 = tBouts.some(b => {
